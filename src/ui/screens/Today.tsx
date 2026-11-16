@@ -12,7 +12,7 @@ import { PetIllustration } from '../art/pets'
 import { DoseList, todaySlots, useDoseActions, type SlotItem } from '../doses'
 import { EventSheet } from '../EventSheet'
 import { IconCheck, IconNext } from '../icons'
-import { Paged, useBox, type PagedItem } from '../layout'
+import { Paged, useBox, useUsableHeight, type PagedItem } from '../layout'
 import { MedSheet } from '../MedSheet'
 import { EntryEditor, EntryRow, entryLabel, useEntries, type Entry } from '../timeline'
 import { TreatmentSheet } from '../TreatmentSheet'
@@ -127,6 +127,8 @@ export function Today() {
   const [sheet, setSheet] = useState<SheetState>(null)
   const [flash, setFlash] = useState<{ id: string; text: string } | null>(null)
   const [gridRef, box] = useBox<HTMLDivElement>()
+  // En móviles muy bajos el título de la rejilla cede su sitio («Personalizar» sigue en el menú de la mascota).
+  const compact = useUsableHeight() < 560
 
   const visible = (types ?? []).filter((t) => !t.hidden)
   const active = (treatments ?? []).filter((t) => isTreatmentActive(t, now))
@@ -209,12 +211,12 @@ export function Today() {
         </button>
       ) : null}
 
-      <div className="bar" style={{ minHeight: '2.25rem' }}>
+      {!compact && <div className="bar today-bar" style={{ minHeight: '2.25rem' }}>
         <h2 className="eyebrow">¿Qué ha pasado?</h2>
         <Link className="link-btn" to="../botones">
           Personalizar
         </Link>
-      </div>
+      </div>}
 
       {visible.length === 0 ? (
         <Empty emoji="🔘" title="No hay botones visibles">

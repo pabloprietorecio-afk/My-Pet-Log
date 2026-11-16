@@ -2251,3 +2251,10 @@ button.strip {
   background: linear-gradient(135deg, rgb(110 128 240 / 0.78), rgb(160 118 240 / 0.74) 55%, rgb(236 118 166 / 0.72));
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18), 0 10px 26px rgb(0 0 0 / 0.4);
 }
+
+/* Pantallas sin barra de pestañas (Ficha, Botones, Ajustes, Inicio): reservar la barra de
+   navegación del sistema para que el último botón nunca quede debajo. */
+.app > .screen:last-child {
+  padding-bottom: calc(var(--s3) + var(--safe-b));
+}
+

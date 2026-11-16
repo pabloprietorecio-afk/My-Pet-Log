@@ -42,9 +42,9 @@ Para que cada APK se instale **encima** del anterior (sin desinstalar ni perder 
 | Secreto | Valor |
 |---|---|
 | `PETLOG_KEYSTORE_BASE64` | el archivo `petlog-release.keystore` en base64 (`base64 -w0 petlog-release.keystore`) |
-| `PETLOG_KEYSTORE_PASSWORD` | contraseña del almacén |
-| `PETLOG_KEY_PASSWORD` | contraseña de la clave (la misma) |
-| `PETLOG_KEY_ALIAS` | `petlog` |
+| `PETLOG_KEYSTORE_PASSWORD` | contraseña del almacén (la clave usa la misma; alias `petlog`) |
+
+Cada compilación sube `versionCode` (número de ejecución de Actions) y `versionName` (`0.3.<n>`), que también se ve en Ajustes.
 
 Sin esos secretos el APK se firma con una clave de depuración: se instala, pero una versión posterior puede pedir desinstalar la anterior. La clave **nunca** se sube al repositorio (está en `.gitignore`).
 

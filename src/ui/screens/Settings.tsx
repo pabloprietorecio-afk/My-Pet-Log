@@ -95,7 +95,7 @@ export function Settings() {
           />
         </div>
         <p className="hint" style={{ textAlign: 'center', marginTop: 'auto' }}>
-          PetLog 0.2 · organiza lo que registras; no sustituye al veterinario
+          PetLog {__APP_VERSION__} · organiza lo que registras; no sustituye al veterinario
         </p>
       </main>
 

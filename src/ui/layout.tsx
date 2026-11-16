@@ -190,3 +190,23 @@ function Row({ b, rowRem, rowClass }: { b: Built; rowRem: number; rowClass: stri
     </div>
   )
 }
+
+/** Alto útil de la ventana (sin barras del sistema). Sirve para decidir qué cabe en pantallas muy bajas. */
+export function useUsableHeight() {
+  const read = () => {
+    const cs = getComputedStyle(document.documentElement)
+    const px = (v: string) => parseFloat(cs.getPropertyValue(v)) || 0
+    return window.innerHeight - px('--safe-area-inset-top') - px('--safe-area-inset-bottom')
+  }
+  const [h, setH] = useState(read)
+  useEffect(() => {
+    const on = () => setH(read())
+    window.addEventListener('resize', on)
+    const t = setInterval(on, 1000) // Capacitor puede inyectar las zonas seguras tras el arranque
+    return () => {
+      window.removeEventListener('resize', on)
+      clearInterval(t)
+    }
+  }, [])
+  return h
+}

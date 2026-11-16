@@ -54,8 +54,6 @@ jobs:
         working-directory: android
         env:
           PETLOG_KEYSTORE_PASSWORD: ${{ secrets.PETLOG_KEYSTORE_PASSWORD }}
-          PETLOG_KEY_PASSWORD: ${{ secrets.PETLOG_KEY_PASSWORD }}
-          PETLOG_KEY_ALIAS: ${{ secrets.PETLOG_KEY_ALIAS }}
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --stacktrace
@@ -78,7 +76,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v0.3.${GITHUB_RUN_NUMBER}"
-          if [ "$HAS_KEY" = "true" ]; then FIRMA="Firmado con la clave propia de PetLog: se instala encima de versiones anteriores firmadas igual."; else FIRMA="Firmado con clave de depuración: para actualizar puede hacer falta desinstalar antes (haz una copia de seguridad desde Ajustes)."; fi
+          if [ "$HAS_KEY" = "true" ]; then FIRMA="Firmado con la clave propia de PetLog: se instala encima de la versión anterior sin desinstalar y conservando los datos."; else FIRMA="Firmado con clave de depuración: para actualizar puede hacer falta desinstalar antes (haz una copia de seguridad desde Ajustes)."; fi
           gh release create "$TAG" out/*.apk \
             --title "PetLog 0.3.${GITHUB_RUN_NUMBER}" \
             --notes "APK de PetLog compilado desde ${GITHUB_SHA::7}. ${FIRMA}"
