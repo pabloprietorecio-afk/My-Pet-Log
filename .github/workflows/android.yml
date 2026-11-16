@@ -1,0 +1,85 @@
+name: APK Android
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      HAS_KEY: ${{ secrets.PETLOG_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Dependencias
+        run: npm ci
+
+      - name: Pruebas
+        run: npm test
+
+      - name: Compilar la web y copiarla al proyecto Android
+        run: |
+          npm run build
+          npx cap sync android
+
+      - name: Clave de firma (si está configurada)
+        if: env.HAS_KEY == 'true'
+        run: |
+          echo "${{ secrets.PETLOG_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/petlog-release.keystore"
+          echo "PETLOG_KEYSTORE_PATH=$RUNNER_TEMP/petlog-release.keystore" >> "$GITHUB_ENV"
+
+      - name: Compilar APK
+        working-directory: android
+        env:
+          PETLOG_KEYSTORE_PASSWORD: ${{ secrets.PETLOG_KEYSTORE_PASSWORD }}
+          PETLOG_KEY_PASSWORD: ${{ secrets.PETLOG_KEY_PASSWORD }}
+          PETLOG_KEY_ALIAS: ${{ secrets.PETLOG_KEY_ALIAS }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+          mkdir -p ../out
+          cp app/build/outputs/apk/release/app-release.apk "../out/PetLog-0.3.${GITHUB_RUN_NUMBER}.apk"
+
+      - name: Comprobar firma
+        run: |
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs out/*.apk | head -5
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PetLog-apk
+          path: out/*.apk
+
+      - name: Publicar en Releases
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v0.3.${GITHUB_RUN_NUMBER}"
+          if [ "$HAS_KEY" = "true" ]; then FIRMA="Firmado con la clave propia de PetLog: se instala encima de versiones anteriores firmadas igual."; else FIRMA="Firmado con clave de depuración: para actualizar puede hacer falta desinstalar antes (haz una copia de seguridad desde Ajustes)."; fi
+          gh release create "$TAG" out/*.apk \
+            --title "PetLog 0.3.${GITHUB_RUN_NUMBER}" \
+            --notes "APK de PetLog compilado desde ${GITHUB_SHA::7}. ${FIRMA}"

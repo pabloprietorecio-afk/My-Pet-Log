@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Privacidad: los datos de PetLog no se suben a la copia en la nube de Google.
+     Sí se permite el traspaso directo entre teléfonos (cable o red local) al cambiar de móvil.
+     Copia propia en cualquier momento: Ajustes → Copia de seguridad. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+</data-extraction-rules>
