@@ -206,7 +206,7 @@ export function TagInput({
 export function Empty({ emoji, title, children }: { emoji: ReactNode; title: string; children?: ReactNode }) {
   return (
     <div className="empty">
-      <div className="big" aria-hidden="true">
+      <div className="art" aria-hidden="true">
         {emoji}
       </div>
       <h2>{title}</h2>

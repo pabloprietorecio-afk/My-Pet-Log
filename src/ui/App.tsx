@@ -65,7 +65,7 @@ function Home() {
             </div>
             <h2>El diario de salud de tu mascota</h2>
             <p>Un toque para anotar lo que pasa. Un informe claro para el veterinario. Todo se queda en tu teléfono.</p>
-            <Link to="/nueva" className="btn primary big" style={{ marginTop: 'var(--s2)' }}>
+            <Link to="/nueva" className="btn pill-cta" style={{ marginTop: 'var(--s3)' }}>
               <IconPlus />
               Añadir mi mascota
             </Link>

@@ -1631,7 +1631,7 @@ select.input {
   gap: var(--s3);
   padding: var(--s4);
 }
-.empty .big {
+.empty .art {
   font-size: 2.6rem;
   width: 4.5rem;
   height: 4.5rem;
@@ -2024,7 +2024,7 @@ button.strip {
 .act,
 .pager .icon-btn,
 .icon-btn.soft,
-.empty .big,
+.empty .art,
 .data-text {
   background: var(--glass);
   -webkit-backdrop-filter: var(--blur);
@@ -2168,12 +2168,12 @@ button.strip {
   width: 100%;
   height: 100%;
 }
-.empty .big {
+.empty .art {
   width: 6rem;
   height: 6rem;
   padding: 0.3rem;
 }
-.empty .big svg {
+.empty .art svg {
   width: 100%;
   height: 100%;
 }
@@ -2224,4 +2224,30 @@ button.strip {
 .list-item .ico .ticon {
   width: 100%;
   height: 100%;
+}
+
+/* Llamada principal en forma de pastilla: degradado semitransparente sobre la ilustración */
+.btn.pill-cta {
+  min-height: 3.5rem;
+  padding: 0 1.6rem 0 1.3rem;
+  border-radius: 999px;
+  font-size: var(--fs-lg);
+  color: #fff;
+  background: linear-gradient(135deg, rgb(70 92 220 / 0.86), rgb(150 104 236 / 0.82) 55%, rgb(242 120 168 / 0.8));
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35), 0 10px 26px rgb(90 70 180 / 0.32);
+  text-shadow: 0 1px 2px rgb(30 20 80 / 0.25);
+}
+.btn.pill-cta svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke-width: 2.6;
+}
+.btn.pill-cta:active:not(:disabled) {
+  filter: brightness(0.95);
+}
+:root[data-theme='dark'] .btn.pill-cta {
+  background: linear-gradient(135deg, rgb(110 128 240 / 0.78), rgb(160 118 240 / 0.74) 55%, rgb(236 118 166 / 0.72));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18), 0 10px 26px rgb(0 0 0 / 0.4);
 }
