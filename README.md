@@ -54,6 +54,17 @@ Cada compilación sube `versionCode` (número de ejecución de Actions) y `versi
 
 Sin esos secretos el APK se firma con una clave de depuración: se instala, pero una versión posterior puede pedir desinstalar la anterior. La clave **nunca** se sube al repositorio (está en `.gitignore`).
 
+#### Firmar un APK compilado sin secretos
+
+Si los secretos no están configurados, el APK de Actions sale con una firma de prueba (se publica como versión preliminar «firma de prueba») y **no debe instalarse encima**. Para convertirlo en una actualización válida se firma con la clave de PetLog en local, sin Android SDK:
+
+```bash
+pip install cryptography
+PETLOG_KEYSTORE_PASSWORD='…' python3 scripts/sign_apk.py PetLog-0.3.N-firma-de-prueba.apk PetLog-0.3.N.apk petlog-release.keystore petlog
+```
+
+El script aplica el esquema de firma APK v2 (RSA + SHA-256), sustituye la firma anterior y no toca el contenido ni la alineación del ZIP. Comprobado con `apksigtool verify`. Mientras se firme siempre con la misma clave y el número de versión suba, Android instala cada APK encima del anterior conservando los datos.
+
 La app Android no pide ningún permiso (ni siquiera internet) y excluye sus datos de la copia en la nube de Google; el traspaso directo entre teléfonos sí está permitido.
 
 ### Empaquetar como app en local (no probado en este entorno)

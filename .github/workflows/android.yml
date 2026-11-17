@@ -76,7 +76,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v0.3.${GITHUB_RUN_NUMBER}"
-          if [ "$HAS_KEY" = "true" ]; then FIRMA="Firmado con la clave propia de PetLog: se instala encima de la versión anterior sin desinstalar y conservando los datos."; else FIRMA="Firmado con clave de depuración: para actualizar puede hacer falta desinstalar antes (haz una copia de seguridad desde Ajustes)."; fi
-          gh release create "$TAG" out/*.apk \
-            --title "PetLog 0.3.${GITHUB_RUN_NUMBER}" \
-            --notes "APK de PetLog compilado desde ${GITHUB_SHA::7}. ${FIRMA}"
+          if [ "$HAS_KEY" = "true" ]; then
+            gh release create "$TAG" out/*.apk \
+              --title "PetLog 0.3.${GITHUB_RUN_NUMBER}" \
+              --notes "APK de PetLog compilado desde ${GITHUB_SHA::7}. Firmado con la clave propia de PetLog: se instala encima de la versión anterior sin desinstalar y conservando los datos."
+          else
+            # Sin la clave propia el APK lleva una firma de prueba distinta en cada compilación:
+            # no sirve para actualizar. Se publica como versión preliminar y con otro nombre para no confundirlo.
+            mv out/*.apk "out/PetLog-0.3.${GITHUB_RUN_NUMBER}-firma-de-prueba.apk"
+            gh release create "$TAG" out/*.apk --prerelease \
+              --title "PetLog 0.3.${GITHUB_RUN_NUMBER} (firma de prueba)" \
+              --notes "Compilado desde ${GITHUB_SHA::7} con una firma de prueba: NO lo instales encima de PetLog, obligaría a desinstalar. Usa el APK firmado con la clave de PetLog (scripts/sign_apk.py) o configura los secretos PETLOG_KEYSTORE_BASE64 y PETLOG_KEYSTORE_PASSWORD para que esta compilación lo firme directamente."
+          fi
