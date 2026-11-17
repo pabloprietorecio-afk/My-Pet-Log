@@ -1,6 +1,6 @@
 # PetLog
 
-Diario y historial médico para perros y gatos. *Un toque para registrar. Cinco segundos para enseñárselo al veterinario.*
+Diario y historial médico para perros, gatos, conejos, hámsteres y otros roedores, pájaros y serpientes u otros reptiles. *Un toque para registrar. Cinco segundos para enseñárselo al veterinario.*
 
 Privacy-first: sin cuentas, sin servidores, sin analítica y **sin ninguna conexión de red**. Los datos viven en el dispositivo.
 
@@ -16,6 +16,8 @@ Diseño y decisiones: [`docs/DISENO.md`](docs/DISENO.md).
 - Gráficas automáticas: peso, episodios por día/semana, frecuencia por tipo, apetito, cumplimiento y cualquier botón propio con número.
 - Informe para el veterinario (24 h, 7 d, 30 d, personalizado) con las 9 secciones pedidas. Solo recuentos, fechas y las notas literales del propietario; **no diagnostica ni recomienda** (hay un test que lo vigila).
 - Exportación: vista en la app, PDF (vectorial), HTML autónomo, hoja de compartir del sistema, guardar archivo, resumen en texto por WhatsApp/correo.
+- Especies: perro, gato, conejo, hámster/roedor, pájaro y serpiente/reptil. Cada una empieza con sus botones (p. ej. muda, temperatura y regurgitación en reptiles; actividad en roedores y conejos) y su unidad de peso (g o kg). Los demás botones quedan ocultos en «Personalizar botones».
+- Icono de la app elegible en Ajustes (solo Android): gato, perro, conejo, hámster, pájaro o serpiente. Usa `activity-alias` y un complemento nativo propio (`AppIconPlugin`).
 - Copia de seguridad/restauración en JSON (combina por «gana el más reciente»), tema claro/oscuro/automático.
 
 ## Arquitectura
@@ -28,8 +30,9 @@ Datos con UUID, `updatedAt` y borrado lógico, listos para una sincronización f
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # 84 pruebas (dominio, datos, informe, contraste)
+npm test             # 88 pruebas (dominio, datos, informe, contraste)
 npm run build        # typecheck + build de producción en dist/
+node tests/e2e-species.mjs  # especies: botones y unidad de peso
 node tests/e2e.mjs   # prueba de humo en Chrome real (requiere `npm run dev -- --port 5199` y Chrome)
 npm run test:e2e     # prueba funcional completa (88 comprobaciones), simula el teclado del móvil
 ```
@@ -67,6 +70,7 @@ npx cap open android
 - «Guardar» en nativo abre la hoja de compartir del sistema (elegir *Guardar en Archivos*); no escribe en una carpeta fija.
 - WhatsApp/correo: «Compartir informe en PDF» adjunta el PDF mediante la hoja del sistema (ahí aparecen WhatsApp, Gmail, etc.); los botones WhatsApp y Correo envían un resumen en texto ya escrito. En la app instalada se abren con el plugin `@capacitor/app-launcher` (tras instalar dependencias hay que ejecutar `npx cap sync`). Si un navegador bloquea la apertura, la app ofrece copiar el resumen.
 - Comprobado en Chrome (escritorio, tamaño móvil): wa.me con el texto, mailto con asunto y cuerpo, copiar al portapapeles, descarga de PDF y HTML. No comprobado aún en un teléfono real ni dentro del visor de artefactos de Claude.
+- **Icono de la app:** sin probar en un teléfono. Según el lanzador, el cambio puede tardar unos segundos, y algunos quitan el acceso directo del escritorio (la app sigue en el cajón). En iOS no está implementado.
 - **Pendiente (no implementado):** sincronización entre dispositivos, recordatorios/notificaciones de tomas, otros idiomas, cifrado de la copia, importar analíticas.
 - Las fotos se reducen a ≤1024 px y se guardan dentro de la base (y de las copias): muchas fotos engordan las copias.
 - Probado solo con la zona horaria Europe/Madrid.
