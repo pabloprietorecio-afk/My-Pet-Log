@@ -262,7 +262,11 @@ export function PetForm({ pet }: { pet?: Pet }) {
             className="btn danger"
             aria-label={`Eliminar a ${pet.name}`}
             onClick={async () => {
-              if (await confirmDialog(`¿Eliminar a ${pet.name} y todos sus registros de este dispositivo? Haz antes una copia de seguridad si quieres conservarlos.`)) {
+              const shared = ((await repo.db.meta.get('sync:links'))?.value as { petId: string }[] | undefined)?.some((l) => l.petId === pet.id)
+              const msg = shared
+                ? `${pet.name} está compartida: se eliminará también para los demás dueños. Si solo quieres quitarla de tu móvil, usa antes «Dejar de compartir» en Ajustes → Compartir.`
+                : `¿Eliminar a ${pet.name} y todos sus registros de este dispositivo? Haz antes una copia de seguridad si quieres conservarlos.`
+              if (await confirmDialog(msg)) {
                 await repo.deletePet(pet.id)
                 nav('/', { replace: true })
               }

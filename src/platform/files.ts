@@ -60,6 +60,24 @@ export async function shareFile(blob: Blob, filename: string, title: string, tex
   return 'downloaded'
 }
 
+/** Comparte un texto (WhatsApp, correo, mensajes…). Si no hay hoja de compartir, lo copia. */
+export async function shareText(title: string, text: string): Promise<'shared' | 'copied' | 'cancelled'> {
+  try {
+    if (isNative()) {
+      await Share.share({ title, text, dialogTitle: title })
+      return 'shared'
+    }
+    if (navigator.share) {
+      await navigator.share({ title, text })
+      return 'shared'
+    }
+  } catch (e) {
+    const m = String((e as Error)?.message ?? e).toLowerCase()
+    if ((e as DOMException)?.name === 'AbortError' || m.includes('cancel')) return 'cancelled'
+  }
+  return (await copyText(text)) ? 'copied' : 'cancelled'
+}
+
 /**
  * Guarda un archivo. En nativo se abre la hoja del sistema para elegir dónde
  * ("Guardar en Archivos", Drive…); en navegador se descarga.

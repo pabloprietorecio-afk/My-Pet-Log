@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// Reglas de PetLog (sincronización entre dueños). Los datos van cifrados en el móvil:
+// el servidor solo guarda texto cifrado y comprueba quién pertenece a cada grupo.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function hh(hid) {
+      return /databases/$(database)/documents/households/$(hid);
+    }
+
+    function isMember(hid) {
+      return signedIn() && exists(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid));
+    }
+
+    match /households/{hid} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['owner', 'createdAt'])
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+      allow get: if isMember(hid);
+      allow list, update, delete: if false;
+
+      match /members/{uid} {
+        allow list, get: if isMember(hid);
+        // Entra quien crea el grupo, o quien trae una invitación vigente.
+        allow create: if signedIn() && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['invite', 'joinedAt'])
+          && request.resource.data.joinedAt == request.time
+          && request.resource.data.invite is string
+          && (get(hh(hid)).data.owner == request.auth.uid
+              || exists(/databases/$(database)/documents/households/$(hid)/invites/$(request.resource.data.invite)));
+        allow update: if false;
+        allow delete: if signedIn() && uid == request.auth.uid;
+      }
+
+      match /invites/{invite} {
+        // Nadie puede listarlas ni leerlas: solo se comprueba que existen al entrar.
+        allow read, update: if false;
+        allow create: if isMember(hid)
+          && invite.size() >= 20
+          && request.resource.data.keys().hasOnly(['by', 'createdAt'])
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isMember(hid);
+      }
+
+      match /records/{rid} {
+        allow read: if isMember(hid);
+        allow create, update: if isMember(hid)
+          && request.resource.data.keys().hasOnly(['u', 'iv', 'ct', 'by'])
+          && request.resource.data.u == request.time
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.iv is string && request.resource.data.iv.size() < 40
+          && request.resource.data.ct is string && request.resource.data.ct.size() < 1000000;
+        allow delete: if false;
+      }
+    }
+  }
+}

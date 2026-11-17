@@ -1,3 +1,6 @@
+import { useEffect } from 'react'
+import { Capacitor } from '@capacitor/core'
+import { App as CapApp } from '@capacitor/app'
 import { HashRouter, Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { usePets } from '../data/hooks'
 import { memoryMode } from '../data/instance'
@@ -13,6 +16,7 @@ import { speciesLabel } from '../domain/eventTypes'
 import { lastPet } from './nav'
 import { Buttons } from './screens/Buttons'
 import { Tips } from './screens/Tips'
+import { Share } from './screens/Share'
 import { Charts } from './screens/Charts'
 import { History } from './screens/History'
 import { Medication } from './screens/Medication'
@@ -71,6 +75,9 @@ function Home() {
               <IconPlus />
               Añadir mi mascota
             </Link>
+            <Link to="/compartir?codigo=" className="link-btn invited">
+              ¿Te han invitado? Unirme con un código
+            </Link>
           </div>
         ) : (
           <>
@@ -104,6 +111,24 @@ function NewPet() {
   )
 }
 
+/** Abre la app desde un enlace petlog://unirse/<código> (p. ej. al escanear el QR con la cámara). */
+function DeepLinks() {
+  const nav = useNavigate()
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    const open = (url?: string) => {
+      const m = url?.match(/^petlog:\/\/unirse\/(.+)$/)
+      if (m) nav(`/compartir?codigo=${encodeURIComponent(decodeURIComponent(m[1]))}`)
+    }
+    void CapApp.getLaunchUrl().then((r) => open(r?.url))
+    const h = CapApp.addListener('appUrlOpen', (e) => open(e.url))
+    return () => {
+      void h.then((x) => x.remove())
+    }
+  }, [nav])
+  return null
+}
+
 export function App() {
   useTheme()
   return (
@@ -115,10 +140,12 @@ export function App() {
         </div>
       )}
       <HashRouter>
+        <DeepLinks />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/nueva" element={<NewPet />} />
           <Route path="/ajustes" element={<Settings />} />
+          <Route path="/compartir" element={<Share />} />
           {import.meta.env.DEV && <Route path="/galeria" element={<Gallery />} />}
           {import.meta.env.DEV && <Route path="/icono" element={<IconStudio />} />}
           <Route path="/pet/:petId" element={<PetShell />}>

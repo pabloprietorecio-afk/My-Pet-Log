@@ -64,6 +64,11 @@ export class LocalRepository {
     return () => this.listeners.delete(cb)
   }
 
+  /** Avisa a la interfaz de un cambio hecho fuera del repositorio (p. ej. estado de la sincronización). */
+  touch() {
+    this.notify()
+  }
+
   private notify() {
     for (const l of this.listeners) {
       try {

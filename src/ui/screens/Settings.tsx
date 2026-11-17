@@ -122,8 +122,9 @@ export function Settings() {
           )}
         </div>
         <div className="list">
+          <Item ico={<SettingIcon name="share" />} title="Compartir con otros dueños" sub="Llevar el diario entre varias personas" onClick={() => nav('/compartir')} />
           <Item ico={<SettingIcon name="backup" />} title="Copia de seguridad" sub="Guardar o restaurar tus datos" onClick={() => setPanel('backup')} />
-          <Item ico={<SettingIcon name="privacy" />} title="Privacidad" sub="Todo se queda en este dispositivo" onClick={() => setPanel('privacy')} />
+          <Item ico={<SettingIcon name="privacy" />} title="Privacidad" sub="Sin cuentas ni anuncios; lo compartido va cifrado" onClick={() => setPanel('privacy')} />
         </div>
         <div className="list">
           <Item
@@ -226,7 +227,10 @@ export function Settings() {
       )}
       {panel === 'privacy' && (
         <Sheet title="Privacidad" onClose={() => setPanel(null)}>
-          <p>PetLog no tiene cuentas, ni servidores, ni analítica, y no se conecta a internet. Los informes solo salen del teléfono cuando tú los compartes.</p>
+          <p>PetLog no tiene cuentas, ni anuncios, ni analítica. Tus datos viven en este dispositivo, y los informes solo salen cuando tú los compartes.</p>
+          <p>
+            Solo si compartes una mascota con otros dueños, sus datos se envían a un servidor de Google (Firebase) para que los demás los reciban. Van <b>cifrados en tu móvil</b> con una clave que solo está en la invitación: el servidor no puede leerlos.
+          </p>
           <p className="hint">{storage}</p>
         </Sheet>
       )}

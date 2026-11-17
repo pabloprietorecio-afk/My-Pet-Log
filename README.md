@@ -2,7 +2,7 @@
 
 Diario y historial médico para perros, gatos, conejos, hámsteres y otros roedores, pájaros y serpientes u otros reptiles. *Un toque para registrar. Cinco segundos para enseñárselo al veterinario.*
 
-Privacy-first: sin cuentas, sin servidores, sin analítica y **sin ninguna conexión de red**. Los datos viven en el dispositivo.
+Privacy-first: sin cuentas, sin anuncios y sin analítica. Los datos viven en el dispositivo. Solo si compartes una mascota con otros dueños, sus datos viajan **cifrados de extremo a extremo** por Firebase.
 
 Diseño y decisiones: [`docs/DISENO.md`](docs/DISENO.md).
 
@@ -19,6 +19,7 @@ Diseño y decisiones: [`docs/DISENO.md`](docs/DISENO.md).
 - Especies: perro, gato, conejo, hámster/roedor, pájaro y serpiente/reptil. Cada una empieza con sus botones (p. ej. muda, temperatura y regurgitación en reptiles; actividad en roedores y conejos) y su unidad de peso (g o kg). Los demás botones quedan ocultos en «Personalizar botones».
 - Icono de la app elegible en Ajustes (solo Android): gato, perro, conejo, hámster, pájaro o serpiente. Usa `activity-alias` y un complemento nativo propio (`AppIconPlugin`).
 - Consejos de cuidado por especie (comida, higiene, actividad, hogar y salud): fichas ilustradas que se pasan deslizando, cada una con su fuente (RSPCA, PDSA, International Cat Care, Rabbit Welfare Association, Royal Veterinary College, CDC…). Son consejos generales: sin dosis ni diagnósticos. El contenido está en `src/domain/tips.ts`.
+- Compartir una mascota entre varios dueños (Ajustes → Compartir): cada móvil sube y baja los cambios de esa mascota (ficha, botones, registros con sus fotos, tratamientos y tomas). Los informes no se suben: se generan en cada móvil. Invitación por código o QR (`petlog://unirse/…`), nueva invitación, dejar de compartir. Ver «Sincronización» más abajo.
 - Copia de seguridad/restauración en JSON (combina por «gana el más reciente»), tema claro/oscuro/automático.
 
 ## Arquitectura
@@ -26,12 +27,22 @@ Diseño y decisiones: [`docs/DISENO.md`](docs/DISENO.md).
 `domain` (reglas puras) → `data` (Dexie/IndexedDB tras `LocalRepository`) → `charts` (SVG) → `report` (HTML/PDF) → `platform` (Capacitor) → `ui` (React).
 Datos con UUID, `updatedAt` y borrado lógico, listos para una sincronización futura.
 
+## Sincronización entre dueños
+
+- **Servidor:** Firebase con acceso anónimo y Cloud Firestore (SDK «lite», solo REST). Código en `src/sync/`; reglas en `firebase/firestore.rules`.
+- **Cifrado:** cada mascota compartida tiene una clave AES-256 que solo viaja dentro de la invitación (`PL1.<grupo>.<invitación>.<clave>`). El móvil cifra cada registro con AES-GCM antes de subirlo, y el identificador del documento es un HMAC: el servidor no ve nombres, tipos de registro ni fechas de la mascota.
+- **Reglas:** solo los miembros de un grupo leen y escriben sus registros. Para entrar hace falta una invitación vigente, que nadie puede leer, solo comprobar. Cada registro lleva la hora del servidor y su autor.
+- **Conflictos:** por cada registro gana el `updatedAt` más reciente. Los borrados son lógicos, así que también se propagan.
+- **Pruebas:** `tests/sync.test.ts` prueba dos móviles contra un servidor en memoria con las mismas comprobaciones. El flujo `.github/workflows/firebase.yml` prueba las reglas (`firebase/test/reglas.test.mjs`) y la sincronización real contra los emuladores oficiales (`tests/firebase-emulator.test.ts`).
+- **Configurar:** pega el `firebaseConfig` del proyecto en `src/sync/config.ts` y publica las reglas, con `firebase deploy --only firestore:rules` desde `firebase/` o pegándolas en la consola. Mientras `FIREBASE_CONFIG` sea `null`, la pantalla Compartir avisa de que falta el servidor.
+- **En desarrollo:** `localStorage.setItem('petlog-dev-sync', '1')` usa un servidor simulado en memoria para revisar las pantallas.
+
 ## Desarrollo
 
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # 91 pruebas (dominio, datos, informe, contraste)
+npm test             # 102 pruebas (dominio, datos, informe, contraste)
 npm run build        # typecheck + build de producción en dist/
 node tests/e2e-species.mjs  # especies: botones y unidad de peso
 node tests/e2e-tips.mjs     # Consejos: todas las fichas, temas, deslizar y fuentes
@@ -84,6 +95,7 @@ npx cap open android
 - WhatsApp/correo: «Compartir informe en PDF» adjunta el PDF mediante la hoja del sistema (ahí aparecen WhatsApp, Gmail, etc.); los botones WhatsApp y Correo envían un resumen en texto ya escrito. En la app instalada se abren con el plugin `@capacitor/app-launcher` (tras instalar dependencias hay que ejecutar `npx cap sync`). Si un navegador bloquea la apertura, la app ofrece copiar el resumen.
 - Comprobado en Chrome (escritorio, tamaño móvil): wa.me con el texto, mailto con asunto y cuerpo, copiar al portapapeles, descarga de PDF y HTML. No comprobado aún en un teléfono real ni dentro del visor de artefactos de Claude.
 - **Icono de la app:** sin probar en un teléfono. Según el lanzador, el cambio puede tardar unos segundos, y algunos quitan el acceso directo del escritorio (la app sigue en el cajón). En iOS no está implementado.
-- **Pendiente (no implementado):** sincronización entre dispositivos, recordatorios/notificaciones de tomas, otros idiomas, cifrado de la copia, importar analíticas.
+- **Compartir:** probado con el servidor simulado y, en CI, contra los emuladores de Firebase. Falta probarlo contra el proyecto real y entre dos teléfonos. La sesión anónima se pierde si se reinstala la app: hay que volver a unirse con el código. El abuso de cuota no está limitado (App Check pendiente).
+- **Pendiente (no implementado):** recordatorios/notificaciones de tomas, otros idiomas, cifrado de la copia, importar analíticas.
 - Las fotos se reducen a ≤1024 px y se guardan dentro de la base (y de las copias): muchas fotos engordan las copias.
 - Probado solo con la zona horaria Europe/Madrid.

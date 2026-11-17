@@ -1,0 +1,14 @@
+{
+  "name": "petlog-reglas-firebase",
+  "private": true,
+  "description": "Pruebas de las reglas de Firestore y de la sincronización real contra los emuladores de Firebase (las lanza el CI).",
+  "type": "module",
+  "scripts": {
+    "test": "firebase emulators:exec --config ../firebase.json --only firestore,auth --project demo-petlog \"node --test && cd ../.. && npx vitest run tests/firebase-emulator.test.ts\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.4.0",
+    "firebase-tools": "^15.0.0"
+  }
+}

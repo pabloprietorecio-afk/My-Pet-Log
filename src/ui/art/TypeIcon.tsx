@@ -211,6 +211,14 @@ export const APP_GLYPHS = {
       <path d="M8.4 10.6V8a3.6 3.6 0 0 1 7.2 0v2.6" stroke={W} strokeWidth="2.2" fill="none" />
     </>
   ),
+  share: (
+    <>
+      <circle cx="9" cy="8.6" r="3.3" fill={W} />
+      <path d="M2.8 19.4c.5-3.5 3.1-5.6 6.2-5.6s5.7 2.1 6.2 5.6z" fill={W} />
+      <circle cx="16.6" cy="9.4" r="2.6" fill={W} fillOpacity=".75" />
+      <path d="M15.4 13.9c3.2-.6 5.6 1.4 6 4.6h-4.3" fill={W} fillOpacity=".75" />
+    </>
+  ),
   trash: (
     <>
       <path d="M5 7h14M9.5 7V5h5v2" stroke={W} strokeWidth="2.1" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -239,6 +247,7 @@ export const APP_COLORS: Record<keyof typeof APP_GLYPHS, Pal> = {
   backup: ['#6fd0ff', '#2a8fef'],
   privacy: ['#7fdcae', '#2fae6f'],
   trash: ['#ff8c80', '#ec4a3c'],
+  share: ['#ffa3c4', '#e7558f'],
   card: ['#ffc56b', '#f59a21'],
   sliders: ['#b9a2ff', '#8460ef'],
 }

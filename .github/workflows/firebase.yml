@@ -1,0 +1,38 @@
+name: Firebase (emuladores)
+
+# Prueba las reglas de Firestore y la sincronización real (dos «móviles» contra los emuladores oficiales).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/sync/**'
+      - 'src/data/**'
+      - 'firebase/**'
+      - 'tests/firebase-emulator.test.ts'
+      - '.github/workflows/firebase.yml'
+  workflow_dispatch:
+
+jobs:
+  emuladores:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            firebase/test/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Dependencias
+        run: |
+          npm ci
+          npm ci --prefix firebase/test
+      - name: Reglas y sincronización contra los emuladores
+        working-directory: firebase/test
+        run: npm test

@@ -19,6 +19,13 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
+            <!-- Invitaciones para compartir una mascota: petlog://unirse/<código> (QR o enlace). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="petlog" android:host="unirse" />
+            </intent-filter>
 
         </activity>
 
@@ -123,6 +130,9 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
     </application>
+
+    <!-- Solo se usa para compartir mascotas con otros dueños (datos cifrados en el móvil). -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Sin permisos: PetLog no usa internet. WhatsApp, el correo y la hoja de compartir
          se abren con intents del sistema, que no necesitan permiso. -->

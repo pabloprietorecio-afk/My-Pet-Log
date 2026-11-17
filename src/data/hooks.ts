@@ -46,3 +46,7 @@ export function useNow(ms = 30_000): Date {
   }, [ms])
   return now
 }
+
+/** Mascotas compartidas con otros dueños (ver src/sync/engine.ts). */
+export const useShareLinks = () =>
+  useLiveQuery(async () => ((await repo.db.meta.get('sync:links'))?.value as import('../sync/engine').ShareLink[] | undefined) ?? [], [])
