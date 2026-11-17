@@ -4,7 +4,7 @@
  * Regla de oro: SOLO organiza y cuenta lo que el propietario introdujo.
  * No diagnostica, no interpreta y no recomienda. Los textos fijos son neutros.
  */
-import { describeEvent, levelOptions } from './eventTypes'
+import { SPECIES, describeEvent, levelOptions } from './eventTypes'
 import { adherence, doseState, doseText, isTreatmentActive, scheduleText } from './schedule'
 import { countPerDay, countPerWeek, daysWithRecords, frequencyByType, levelAveragePerDay, valueSeries } from './stats'
 import type { DoseLog, EventType, LocalDate, LogEvent, Pet, Treatment } from './types'
@@ -148,7 +148,6 @@ export interface ReportModel {
   disclaimer: string
 }
 
-const SPECIES = { dog: 'Perro', cat: 'Gato' } as const
 const SEX = { male: 'Macho', female: 'Hembra', unknown: 'Sin especificar' } as const
 
 const short = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s)
@@ -265,9 +264,20 @@ export function buildReport(input: ReportInput): ReportModel {
   for (const t of ordered) {
     if (t.key === 'medication' || t.key === 'weight' || t.key === 'vet') continue
     const evs = events.filter((e) => e.typeId === t.id)
-    const always = t.key === 'vomit' || t.key === 'stool'
+    // Vómito y deposición se listan aunque sean 0 (un «0» también es información), salvo si el botón está oculto.
+    const always = (t.key === 'vomit' || t.key === 'stool') && !t.hidden
     if (evs.length === 0 && !always) continue
     const noun = t.key === 'vomit' || t.key === 'symptom' ? ['episodio', 'episodios'] : ['registro', 'registros']
+    if (t.input === 'number') {
+      const vals = evs.filter((e) => typeof e.value === 'number')
+      if (vals.length) {
+        const u = vals[vals.length - 1].unit ?? t.unit ?? ''
+        const min = Math.min(...vals.map((e) => e.value!))
+        const max = Math.max(...vals.map((e) => e.value!))
+        summary.push({ label: t.label, value: `${vals.length} ${plural(vals.length, 'medida', 'medidas')} (${min === max ? formatNumber(min) : `${formatNumber(min)}–${formatNumber(max)}`} ${u})`.replace(' )', ')') })
+        continue
+      }
+    }
     const br = levelBreakdown(t, evs)
     summary.push({
       label: t.label,
@@ -329,7 +339,7 @@ export function buildReport(input: ReportInput): ReportModel {
     if (t.key === 'vomit') addSeries(t.id, t.label, evs)
     else if (t.key === 'symptom') addSeries(t.id, t.label, evs)
     else if (t.key === 'stool') addSeries(t.id, 'Deposición blanda o diarrea', evs.filter((e) => (e.level ?? 0) >= 2))
-    else if (t.key === 'custom' && t.input !== 'number') addSeries(t.id, t.label, evs)
+    else if ((t.key === 'custom' || t.key === 'shed') && t.input !== 'number') addSeries(t.id, t.label, evs)
   }
 
   const frequency = frequencyByType(events, ordered, period.from, period.to)
@@ -351,7 +361,7 @@ export function buildReport(input: ReportInput): ReportModel {
     period.to,
   )
   const customValues = ordered
-    .filter((t) => t.key === 'custom' && t.input === 'number')
+    .filter((t) => t.key !== 'weight' && t.input === 'number')
     .map((t) => ({
       label: t.label,
       unit: t.unit ?? '',
@@ -388,7 +398,7 @@ export function buildReport(input: ReportInput): ReportModel {
     },
     pet: {
       name: pet.name,
-      species: SPECIES[pet.species],
+      species: SPECIES[pet.species]?.pick ?? pet.species,
       breed: pet.breed || undefined,
       sex: SEX[pet.sex],
       age: ageText(pet.birthDate, now),

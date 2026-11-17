@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { backupFileName, createBackup, restoreBackup, serializeBackup } from '../../data/backup'
 import { memoryMode, mirrorStatus, repo } from '../../data/instance'
@@ -8,8 +8,20 @@ import { Seg, Sheet, confirmDialog } from '../components'
 import { IconBack, IconNext } from '../icons'
 import { Backdrop } from '../art/Backdrop'
 import { SettingIcon } from '../art/TypeIcon'
+import { IconLayer } from '../art/AppIconArt'
+import type { PetKind } from '../art/pets'
+import { canChangeAppIcon, getAppIcon, setAppIcon } from '../../platform/appIcon'
 
-type Panel = 'theme' | 'tap' | 'backup' | 'privacy' | null
+type Panel = 'theme' | 'tap' | 'backup' | 'privacy' | 'icon' | null
+
+const ICONS: { kind: PetKind; label: string }[] = [
+  { kind: 'cat', label: 'Gato' },
+  { kind: 'dog', label: 'Perro' },
+  { kind: 'rabbit', label: 'Conejo' },
+  { kind: 'rodent', label: 'Hámster' },
+  { kind: 'bird', label: 'Pájaro' },
+  { kind: 'reptile', label: 'Serpiente' },
+]
 
 const THEME = { system: 'Automático', light: 'Claro', dark: 'Oscuro' } as const
 const TAP = { instant: 'Registrar al instante', sheet: 'Pedir detalles antes' } as const
@@ -19,7 +31,24 @@ export function Settings() {
   const nav = useNavigate()
   const [panel, setPanel] = useState<Panel>(null)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const iconSupported = canChangeAppIcon()
+  const [icon, setIcon] = useState<PetKind | null>(null)
+  const [iconMsg, setIconMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  useEffect(() => {
+    if (iconSupported) getAppIcon().then(setIcon, () => setIcon(null))
+  }, [iconSupported])
   if (!settings) return null
+
+  const chooseIcon = async (kind: PetKind) => {
+    if (kind === icon) return
+    try {
+      await setAppIcon(kind)
+      setIcon(kind)
+      setIconMsg({ ok: true, text: 'Icono cambiado. El lanzador del teléfono puede tardar unos segundos en mostrarlo.' })
+    } catch {
+      setIconMsg({ ok: false, text: 'No se pudo cambiar el icono en este teléfono.' })
+    }
+  }
 
   const backup = async () => {
     try {
@@ -76,6 +105,21 @@ export function Settings() {
         <div className="list">
           <Item ico={<SettingIcon name="theme" />} title="Apariencia" sub={THEME[settings.theme]} onClick={() => setPanel('theme')} />
           <Item ico={<SettingIcon name="tap" />} title="Al tocar un botón" sub={TAP[settings.tapMode]} onClick={() => setPanel('tap')} />
+          {iconSupported && (
+            <Item
+              ico={
+                <span className="app-ico-mini">
+                  <IconLayer layer="full" kind={icon ?? 'cat'} />
+                </span>
+              }
+              title="Icono de la app"
+              sub={ICONS.find((i) => i.kind === icon)?.label ?? 'Gato'}
+              onClick={() => {
+                setIconMsg(null)
+                setPanel('icon')
+              }}
+            />
+          )}
         </div>
         <div className="list">
           <Item ico={<SettingIcon name="backup" />} title="Copia de seguridad" sub="Guardar o restaurar tus datos" onClick={() => setPanel('backup')} />
@@ -94,7 +138,7 @@ export function Settings() {
             }}
           />
         </div>
-        <p className="hint" style={{ textAlign: 'center', marginTop: 'auto' }}>
+        <p className="hint about">
           PetLog {__APP_VERSION__} · organiza lo que registras; no sustituye al veterinario
         </p>
       </main>
@@ -156,6 +200,27 @@ export function Settings() {
             </p>
           ) : (
             memoryMode && <p className="hint">No disponible en la vista de demostración.</p>
+          )}
+        </Sheet>
+      )}
+      {panel === 'icon' && (
+        <Sheet title="Icono de la app" onClose={() => setPanel(null)}>
+          <div className="icon-grid" role="radiogroup" aria-label="Icono de la app">
+            {ICONS.map((i) => (
+              <button key={i.kind} className="icon-opt" role="radio" aria-checked={icon === i.kind} onClick={() => chooseIcon(i.kind)}>
+                <span className="pic">
+                  <IconLayer layer="full" kind={i.kind} />
+                </span>
+                <span>{i.label}</span>
+              </button>
+            ))}
+          </div>
+          {iconMsg ? (
+            <p className={`status ${iconMsg.ok ? 'ok' : 'err'}`} role="status">
+              {iconMsg.text}
+            </p>
+          ) : (
+            <p className="hint">Cambia el icono en la pantalla de inicio. Algunos lanzadores quitan el acceso directo del escritorio al cambiarlo: la app sigue en el cajón de aplicaciones y tus datos no se tocan.</p>
           )}
         </Sheet>
       )}

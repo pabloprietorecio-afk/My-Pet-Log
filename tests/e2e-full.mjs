@@ -112,7 +112,7 @@ await kb(page.getByLabel('Veterinario'), 'Dra. Prueba', 'Veterinario')
 await kb(page.getByLabel('Teléfono'), '600000000', 'Teléfono')
 await page.getByRole('button', { name: 'Crear mascota' }).click()
 await page.waitForURL(/\/hoy$/)
-ok(await page.locator('.who .meta').innerText().then((t) => t.includes('11,9 kg') && t.includes('Perro')), 'cabecera: especie y peso inicial')
+await page.waitForFunction(() => /kg/.test(document.querySelector('.who .meta')?.textContent ?? ''), null, { timeout: 4000 }).catch(() => {}); const metaTxt = await page.locator('.who .meta').innerText(); ok(metaTxt.includes('11,9 kg') && metaTxt.includes('Perro'), 'cabecera: especie y peso inicial (' + metaTxt + ')')
 
 // ─────────────────────────────────────────────────────────────────────────
 section('2. Registro rápido (Hoy)')

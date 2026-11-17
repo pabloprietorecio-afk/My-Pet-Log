@@ -9,6 +9,7 @@ import { IconStudio } from './IconStudio'
 import { Backdrop } from './art/Backdrop'
 import { PetIllustration } from './art/pets'
 import { ageShort } from '../domain/time'
+import { speciesLabel } from '../domain/eventTypes'
 import { lastPet } from './nav'
 import { Buttons } from './screens/Buttons'
 import { Charts } from './screens/Charts'
@@ -37,7 +38,7 @@ function Home() {
         <Avatar pet={p} />
         <span className="txt">
           <span className="lab" style={{ fontSize: 'var(--fs-lg)' }}>{p.name}</span>
-          <span className="det">{[p.species === 'cat' ? 'Gato' : 'Perro', ageShort(p.birthDate, new Date())].filter(Boolean).join(' · ')}</span>
+          <span className="det">{[speciesLabel(p.species), ageShort(p.birthDate, new Date())].filter(Boolean).join(' · ')}</span>
         </span>
         <IconNext />
       </>

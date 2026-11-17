@@ -19,7 +19,7 @@ export interface Entity {
   deletedAt?: ISODateTime | null
 }
 
-export type Species = 'dog' | 'cat'
+export type Species = 'dog' | 'cat' | 'rodent' | 'reptile' | 'rabbit' | 'bird'
 export type Sex = 'male' | 'female' | 'unknown'
 
 export interface VetInfo {
@@ -54,6 +54,9 @@ export type EventKey =
   | 'symptom'
   | 'vet'
   | 'other'
+  | 'shed'
+  | 'temperature'
+  | 'activity'
   | 'custom'
 
 export type InputKind = 'none' | 'level' | 'number' | 'text'

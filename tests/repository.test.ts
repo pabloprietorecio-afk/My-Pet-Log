@@ -17,9 +17,11 @@ describe('repositorio', () => {
     const repo = freshRepo()
     const pet = await repo.createPet(petInput, 4.2)
     const types = await repo.listEventTypes(pet.id)
-    expect(types.map((t) => t.key)).toEqual([
+    expect(types.filter((t) => !t.hidden).map((t) => t.key)).toEqual([
       'medication', 'vomit', 'stool', 'food', 'water', 'weight', 'mood', 'symptom', 'vet', 'other',
     ])
+    // Los botones de otras especies existen pero ocultos (se activan en «Personalizar»).
+    expect(types.filter((t) => t.hidden).map((t) => t.key).sort()).toEqual(['activity', 'shed', 'temperature'])
     const events = await repo.listEvents(pet.id)
     expect(events).toHaveLength(1)
     expect(events[0].value).toBe(4.2)
@@ -183,5 +185,42 @@ describe('migración de iconos antiguos', () => {
     const after = await repo.listEventTypes(pet.id)
     expect(after.find((t) => t.key === 'vet')!.emoji).toBe('🩺')
     expect(after.find((t) => t.key === 'symptom')!.emoji).toBe('🐾')
+  })
+})
+
+describe('especies', () => {
+  it('cada especie tiene sus botones visibles y la unidad de peso adecuada', async () => {
+    const repo = freshRepo()
+    const visible = async (species: 'rabbit' | 'rodent' | 'reptile' | 'bird') => {
+      const pet = await repo.createPet({ ...petInput, species }, species === 'rabbit' ? 2.1 : 120)
+      const types = await repo.listEventTypes(pet.id)
+      const events = await repo.listEvents(pet.id)
+      return { pet, types, shown: types.filter((t) => !t.hidden), weight: events[0] }
+    }
+    const rabbit = await visible('rabbit')
+    expect(rabbit.shown.map((t) => t.key)).not.toContain('vomit')
+    expect(rabbit.weight.unit).toBe('kg')
+
+    const rodent = await visible('rodent')
+    expect(rodent.shown.map((t) => t.key)).toContain('activity')
+    expect(rodent.weight).toMatchObject({ value: 120, unit: 'g' })
+    expect(rodent.types.find((t) => t.key === 'weight')!.unit).toBe('g')
+
+    const reptile = await visible('reptile')
+    const labels = reptile.shown.map((t) => t.label)
+    expect(labels).toEqual(expect.arrayContaining(['Muda', 'Temperatura', 'Regurgitación', 'Defecación']))
+    expect(reptile.types.find((t) => t.key === 'temperature')!.unit).toBe('°C')
+
+    const bird = await visible('bird')
+    expect(bird.shown.map((t) => t.key)).toEqual(expect.arrayContaining(['shed', 'activity']))
+    expect(bird.shown).toHaveLength(10)
+  })
+
+  it('al cambiar de especie se añaden ocultos los botones que falten, sin tocar los del usuario', async () => {
+    const { missingBuiltinTypes } = await import('../src/domain/eventTypes')
+    const old = ['medication', 'vomit', 'stool', 'food', 'water', 'weight', 'mood', 'symptom', 'vet', 'other'].map((key, order) => ({ key, order }))
+    const add = missingBuiltinTypes('p', old as never, '2026-01-01T00:00:00.000Z', 'reptile')
+    expect(add.map((t) => t.key).sort()).toEqual(['activity', 'shed', 'temperature'])
+    expect(add.every((t) => t.hidden && t.order >= 10)).toBe(true)
   })
 })

@@ -144,3 +144,38 @@ describe('gráficas SVG', () => {
     expect(pdfSafe('Vómito → 🤮 «ñ» …')).toBe('Vómito -> "ñ" ...')
   })
 })
+
+describe('informe de otras especies', () => {
+  it('serpiente: especie, temperatura como medidas con gráfica, sin «Vómito: 0» de botones ocultos', () => {
+    const snake: Pet = { ...pet, id: 's1', name: 'Kaa', species: 'reptile' }
+    const st = seedEventTypes('s1', stamp.createdAt, 'reptile')
+    const id = (k: string) => st.find((t) => t.key === k)!.id
+    const e = (k: string, at: string, extra: Partial<LogEvent> = {}): LogEvent => ({ id: `${k}-${at}`, petId: 's1', typeId: id(k), at: iso(at), ...stamp, ...extra })
+    const evs = [
+      e('temperature', '2026-11-14 10:00', { value: 29.5, unit: '°C' }),
+      e('temperature', '2026-11-15 10:00', { value: 31, unit: '°C' }),
+      e('shed', '2026-11-15 18:00', { level: 3 }),
+      e('weight', '2026-11-15 19:00', { value: 640, unit: 'g' }),
+    ]
+    const m = buildReport({ pet: snake, types: st, events: evs, treatments: [], doseLogs: [], period: makePeriod('7d', NOW), now: NOW })
+    expect(m.pet.species).toBe('Serpiente / reptil')
+    const sum = Object.fromEntries(m.summary.map((s) => [s.label, s.value]))
+    expect(sum['Temperatura']).toBe('2 medidas (29,5–31 °C)')
+    expect(sum['Muda']).toContain('1 registro')
+    expect(sum['Peso']).toContain('640 g')
+    // Regurgitación es visible en reptiles: se lista aunque sea 0. «Vómito» como tal no existe.
+    expect(sum['Regurgitación']).toBe('0 episodios')
+    expect(Object.keys(sum)).not.toContain('Vómito')
+    expect(m.customValues.map((c) => c.label)).toContain('Temperatura')
+    const charts = reportCharts(m, PALETTE_LIGHT)
+    expect(charts.some((c) => c.title.includes('Temperatura'))).toBe(true)
+  })
+
+  it('conejo: no aparece «Vómito» (botón oculto) aunque sea 0', () => {
+    const bunny: Pet = { ...pet, id: 'r1', name: 'Coco', species: 'rabbit' }
+    const rt = seedEventTypes('r1', stamp.createdAt, 'rabbit')
+    const m = buildReport({ pet: bunny, types: rt, events: [], treatments: [], doseLogs: [], period: makePeriod('7d', NOW), now: NOW })
+    expect(m.summary.map((s) => s.label)).not.toContain('Vómito')
+    expect(m.pet.species).toBe('Conejo')
+  })
+})

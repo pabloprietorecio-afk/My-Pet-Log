@@ -2158,11 +2158,35 @@ button.strip {
 .avatar.dog {
   background: #d8ecff;
 }
+.avatar.rodent {
+  background: #ffefd6;
+}
+.avatar.reptile {
+  background: #e3f5d9;
+}
+.avatar.rabbit {
+  background: #f0e8ff;
+}
+.avatar.bird {
+  background: #dff4ff;
+}
 :root[data-theme='dark'] .avatar.cat {
   background: #4a3426;
 }
 :root[data-theme='dark'] .avatar.dog {
   background: #233a52;
+}
+:root[data-theme='dark'] .avatar.rodent {
+  background: #4a3a24;
+}
+:root[data-theme='dark'] .avatar.reptile {
+  background: #27402a;
+}
+:root[data-theme='dark'] .avatar.rabbit {
+  background: #3a2f52;
+}
+:root[data-theme='dark'] .avatar.bird {
+  background: #1f3d4f;
 }
 .avatar svg {
   width: 100%;
@@ -2258,3 +2282,131 @@ button.strip {
   padding-bottom: calc(var(--s3) + var(--safe-b));
 }
 
+
+/* Selector de especie: 3 × 2 con ilustración */
+/* Una sola fila de dibujos: el nombre de la elegida va en la etiqueta del campo */
+.species-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.35rem;
+}
+.species-opt {
+  min-height: var(--tap);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--glass-strong);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  min-width: 0;
+}
+.species-opt span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.species-opt svg {
+  flex: none;
+  margin: -4px -2px;
+}
+.species-opt[aria-checked='true'] {
+  background: var(--primary-soft);
+  box-shadow: inset 0 0 0 2px var(--primary);
+  color: var(--primary);
+}
+
+/* Icono de la app (Ajustes) */
+.app-ico-mini {
+  display: block;
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 1px 2px rgb(40 30 80 / 0.18));
+}
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s2, 0.5rem);
+}
+.icon-opt {
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.2rem;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  cursor: pointer;
+}
+.icon-opt .pic {
+  display: block;
+  width: clamp(48px, 15vw, 64px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 2px 5px rgb(40 30 80 / 0.18));
+  transition: transform 0.15s ease;
+}
+.icon-opt:active .pic {
+  transform: scale(0.94);
+}
+.icon-opt[aria-checked='true'] {
+  background: var(--primary-soft);
+  box-shadow: inset 0 0 0 2px var(--primary);
+  color: var(--primary);
+}
+.icon-opt:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .icon-opt .pic { transition: none; }
+}
+.list-item .ico:has(.app-ico-mini) {
+  background: none;
+  width: 2rem;
+  height: 2rem;
+}
+.list-item .ico .app-ico-mini,
+.list-item .ico .app-ico-mini svg {
+  width: 2rem;
+  height: 2rem;
+}
+/* Pie de Ajustes: legible aunque quede sobre la ilustración del fondo */
+.hint.about {
+  margin-top: auto;
+  align-self: center;
+  text-align: center;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: var(--glass-strong);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Formulario compacto cuando la altura útil (sin barras del sistema) es baja */
+.form-area.tight {
+  gap: var(--s2);
+}
+.form-area.tight .input {
+  min-height: 2.75rem;
+}
+.form-area.tight .field {
+  gap: 0.15rem;
+}
+.form-area.tight .photo-pick .avatar {
+  width: 4.25rem;
+  height: 4.25rem;
+}
+.form-area.tight .species-opt {
+  min-height: 2.6rem;
+}
+.form-area.tight .seg button {
+  min-height: 2.5rem;
+}

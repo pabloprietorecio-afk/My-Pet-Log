@@ -5,7 +5,7 @@
  * La pantalla Hoy se anima suavemente (y se queda quieta si el sistema pide reducir movimiento).
  */
 import { memo, type ReactNode } from 'react'
-import { CatFace, DogFace } from './pets'
+import { Face, type PetKind } from './pets'
 
 export type Scene = 'today' | 'history' | 'meds' | 'charts' | 'report' | 'settings' | 'home' | 'form'
 
@@ -63,7 +63,7 @@ type Kind = keyof typeof KINDS
 const DECO = ['var(--d1)', 'var(--d2)', 'var(--d3)', 'var(--d4)', 'var(--d5)', 'var(--d6)']
 
 interface Pet {
-  kind: 'cat' | 'dog'
+  kind: PetKind
   x: number
   y: number
   s: number
@@ -99,7 +99,7 @@ const SCENES: Record<Scene, SceneDef> = {
   history: {
     seed: 21,
     kinds: ['spark', 'paw', 'dot', 'heart', 'paw', 'ball'],
-    pets: [{ kind: 'cat', x: 352, y: 760, s: 1.9, r: -14, fur: '#d9d0f7', dark: '#a493e2' }],
+    pets: [{ kind: 'rabbit', x: 352, y: 765, s: 1.9, r: -14 }],
     blobs: [
       [380, 120, 200, 'var(--b1)'],
       [0, 520, 230, 'var(--b2)'],
@@ -117,7 +117,10 @@ const SCENES: Record<Scene, SceneDef> = {
   charts: {
     seed: 47,
     kinds: ['spark', 'dot', 'paw', 'fish', 'spark'],
-    pets: [{ kind: 'cat', x: 52, y: 790, s: 1.7, r: 10, fur: '#ffd9a8', dark: '#f0a860' }],
+    pets: [
+      { kind: 'bird', x: 52, y: 790, s: 1.7, r: 10 },
+      { kind: 'rodent', x: 345, y: 120, s: 1.1, r: -10 },
+    ],
     blobs: [
       [390, 160, 210, 'var(--b1)'],
       [40, 600, 220, 'var(--b3)'],
@@ -128,7 +131,7 @@ const SCENES: Record<Scene, SceneDef> = {
     kinds: ['paw', 'spark', 'heart', 'dot', 'bone'],
     pets: [
       { kind: 'dog', x: 352, y: 470, s: 1.5, r: -10, fur: '#f3dbbd', dark: '#a8774d' },
-      { kind: 'cat', x: 40, y: 830, s: 1.6, r: 8 },
+      { kind: 'reptile', x: 46, y: 822, s: 1.7, r: 8 },
     ],
     blobs: [
       [0, 120, 200, 'var(--b2)'],
@@ -153,6 +156,8 @@ const SCENES: Record<Scene, SceneDef> = {
     pets: [
       { kind: 'cat', x: 70, y: 770, s: 2.2, r: 10 },
       { kind: 'dog', x: 320, y: 790, s: 2.4, r: -8 },
+      { kind: 'bird', x: 345, y: 150, s: 1.15, r: -10 },
+      { kind: 'rabbit', x: 40, y: 330, s: 1.15, r: 12 },
     ],
     blobs: [
       [60, 120, 220, 'var(--b1)'],
@@ -164,7 +169,10 @@ const SCENES: Record<Scene, SceneDef> = {
   form: {
     seed: 97,
     kinds: ['paw', 'spark', 'dot', 'heart'],
-    pets: [{ kind: 'dog', x: 335, y: 795, s: 1.8, r: -8 }],
+    pets: [
+      { kind: 'dog', x: 335, y: 795, s: 1.8, r: -8 },
+      { kind: 'rodent', x: 40, y: 640, s: 1.3, r: 10 },
+    ],
     blobs: [
       [390, 200, 210, 'var(--b2)'],
       [0, 640, 220, 'var(--b1)'],
@@ -280,7 +288,7 @@ export const Backdrop = memo(function Backdrop({ scene }: { scene: Scene }) {
         <g className="pets">
           {def.pets.map((p, i) => (
             <At key={i} x={p.x - 32 * p.s} y={p.y - 32 * p.s} s={p.s} r={p.r} cls={anim ? 'bob' : undefined} delay={anim ? i * 1.3 : undefined}>
-              {p.kind === 'cat' ? <CatFace fur={p.fur} dark={p.dark} blink={anim} /> : <DogFace fur={p.fur} dark={p.dark} blink={anim} />}
+              <Face kind={p.kind} fur={p.fur} dark={p.dark} blink={anim} />
             </At>
           ))}
         </g>

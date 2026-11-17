@@ -20,12 +20,98 @@
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
 
+        </activity>
+
+        <!-- Icono de la app: cat. Solo uno está activo; se cambia desde Ajustes. -->
+        <activity-alias
+            android:name=".IconCat"
+            android:targetActivity=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity-alias>
 
-        </activity>
+        <!-- Icono de la app: dog. Solo uno está activo; se cambia desde Ajustes. -->
+        <activity-alias
+            android:name=".IconDog"
+            android:targetActivity=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:icon="@mipmap/ic_launcher_dog"
+            android:roundIcon="@mipmap/ic_launcher_dog_round"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Icono de la app: rabbit. Solo uno está activo; se cambia desde Ajustes. -->
+        <activity-alias
+            android:name=".IconRabbit"
+            android:targetActivity=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:icon="@mipmap/ic_launcher_rabbit"
+            android:roundIcon="@mipmap/ic_launcher_rabbit_round"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Icono de la app: rodent. Solo uno está activo; se cambia desde Ajustes. -->
+        <activity-alias
+            android:name=".IconRodent"
+            android:targetActivity=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:icon="@mipmap/ic_launcher_rodent"
+            android:roundIcon="@mipmap/ic_launcher_rodent_round"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Icono de la app: bird. Solo uno está activo; se cambia desde Ajustes. -->
+        <activity-alias
+            android:name=".IconBird"
+            android:targetActivity=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:icon="@mipmap/ic_launcher_bird"
+            android:roundIcon="@mipmap/ic_launcher_bird_round"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Icono de la app: reptile. Solo uno está activo; se cambia desde Ajustes. -->
+        <activity-alias
+            android:name=".IconReptile"
+            android:targetActivity=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:icon="@mipmap/ic_launcher_reptile"
+            android:roundIcon="@mipmap/ic_launcher_reptile_round"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
 
         <provider
             android:name="androidx.core.content.FileProvider"

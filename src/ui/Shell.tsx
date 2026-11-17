@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEventTypes, useEvents, usePet, usePets } from '../data/hooks'
 import { ageShort, formatNumber } from '../domain/time'
+import { speciesLabel } from '../domain/eventTypes'
 import { Avatar, Sheet, useToast } from './components'
 import { IconBack, IconChart, IconDoc, IconDown, IconGear, IconList, IconNext, IconPill, IconPlus, IconToday } from './icons'
 import { rememberPet } from './nav'
@@ -55,7 +56,7 @@ export function PetShell() {
   const last = weightType
     ? [...(events ?? [])].filter((e) => e.typeId === weightType.id && e.value !== undefined).sort((a, b) => b.at.localeCompare(a.at))[0]
     : undefined
-  const meta = [pet.species === 'cat' ? 'Gato' : 'Perro', ageShort(pet.birthDate, new Date()), last ? `${formatNumber(last.value!)} kg` : undefined]
+  const meta = [speciesLabel(pet.species), ageShort(pet.birthDate, new Date()), last ? `${formatNumber(last.value!)} ${last.unit ?? weightType?.unit ?? 'kg'}` : undefined]
     .filter(Boolean)
     .join(' · ')
   const seg = loc.pathname.split('/').pop() ?? ''
@@ -118,7 +119,7 @@ export function PetShell() {
                 <Avatar pet={p} />
                 <span className="txt">
                   <b>{p.name}</b>
-                  <small>{p.species === 'cat' ? 'Gato' : 'Perro'}{p.id === pet.id ? ' · ahora' : ''}</small>
+                  <small>{speciesLabel(p.species)}{p.id === pet.id ? ' · ahora' : ''}</small>
                 </span>
                 {p.id === pet.id ? <span className="badge due">Actual</span> : <IconNext />}
               </button>

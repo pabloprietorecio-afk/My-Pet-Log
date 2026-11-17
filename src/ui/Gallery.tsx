@@ -5,7 +5,7 @@ import { PetIllustration } from './art/pets'
 import { TypeIcon } from './art/TypeIcon'
 import type { EventKey } from '../domain/types'
 
-const KEYS: EventKey[] = ['medication', 'vomit', 'stool', 'food', 'water', 'weight', 'mood', 'symptom', 'vet', 'other', 'custom']
+const KEYS: EventKey[] = ['medication', 'vomit', 'stool', 'food', 'water', 'weight', 'mood', 'symptom', 'vet', 'other', 'shed', 'temperature', 'activity', 'custom']
 
 export function Gallery() {
   const q = new URLSearchParams(location.hash.split('?')[1] ?? '')
@@ -24,13 +24,12 @@ export function Gallery() {
             <TypeIcon key={k} k={k} size={28} emoji={k === 'custom' ? '🦴' : undefined} />
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <span style={{ width: 96, height: 96, borderRadius: '50%', background: '#ffe2c8', display: 'grid', placeItems: 'center' }}>
-            <PetIllustration species="cat" />
-          </span>
-          <span style={{ width: 96, height: 96, borderRadius: '50%', background: '#d9f0ff', display: 'grid', placeItems: 'center' }}>
-            <PetIllustration species="dog" />
-          </span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+          {(['dog', 'cat', 'rabbit', 'rodent', 'bird', 'reptile'] as const).map((k) => (
+            <span key={k} className={`avatar lg ${k}`} style={{ width: 104, height: 104 }}>
+              <PetIllustration species={k} />
+            </span>
+          ))}
         </div>
       </div>
     </>

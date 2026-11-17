@@ -1,6 +1,6 @@
 import Dexie, { type DexieOptions, type Table } from 'dexie'
 import { newId } from '../domain/ids'
-import { LEGACY_EMOJI, seedEventTypes } from '../domain/eventTypes'
+import { LEGACY_EMOJI, missingBuiltinTypes, seedEventTypes } from '../domain/eventTypes'
 import { scheduleChanged } from '../domain/schedule'
 import {
   SCHEMA_VERSION,
@@ -139,23 +139,23 @@ export class LocalRepository {
     return p && live(p) ? p : undefined
   }
 
-  /** Crea la mascota con sus botones por defecto y, si se indica, su primer peso. */
-  async createPet(input: NewEntity<Pet>, initialWeightKg?: number): Promise<Pet> {
+  /** Crea la mascota con los botones de su especie y, si se indica, su primer peso (en la unidad de su especie). */
+  async createPet(input: NewEntity<Pet>, initialWeight?: number): Promise<Pet> {
     return this.mutate(async () => {
       const pet = this.stamp<Pet>(input)
-      const types = seedEventTypes(pet.id, pet.createdAt)
+      const types = seedEventTypes(pet.id, pet.createdAt, pet.species)
       await this.db.transaction('rw', this.db.pets, this.db.eventTypes, this.db.events, async () => {
         await this.db.pets.add(pet)
         await this.db.eventTypes.bulkAdd(types)
-        if (initialWeightKg && initialWeightKg > 0) {
+        if (initialWeight && initialWeight > 0) {
           const wt = types.find((t) => t.key === 'weight')!
           await this.db.events.add(
             this.stamp<LogEvent>({
               petId: pet.id,
               typeId: wt.id,
               at: pet.createdAt,
-              value: initialWeightKg,
-              unit: 'kg',
+              value: initialWeight,
+              unit: wt.unit ?? 'kg',
             }),
           )
         }
@@ -170,6 +170,12 @@ export class LocalRepository {
       if (!cur) throw new Error('Mascota no encontrada')
       const next = { ...cur, ...patch, updatedAt: new Date().toISOString() }
       await this.db.pets.put(next)
+      if (patch.species && patch.species !== cur.species) {
+        // Al cambiar de especie se añaden (ocultos) los botones de serie que falten; los del usuario no se tocan.
+        const existing = await this.db.eventTypes.where('petId').equals(id).filter((t) => !t.deletedAt).toArray()
+        const add = missingBuiltinTypes(id, existing, next.updatedAt, patch.species)
+        if (add.length) await this.db.eventTypes.bulkAdd(add)
+      }
       return next
     })
   }

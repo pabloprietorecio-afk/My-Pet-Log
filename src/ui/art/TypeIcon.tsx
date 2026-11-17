@@ -21,6 +21,9 @@ export const TYPE_COLORS: Record<EventKey, Pal> = {
   symptom: ['#ff9f8b', '#ef5542'],
   vet: ['#62d9d1', '#1ba3a0'],
   other: ['#bec7d0', '#84909e'],
+  shed: ['#dccf86', '#a28f2c'],
+  temperature: ['#ffb070', '#f0621a'],
+  activity: ['#f2a8ff', '#be4fe6'],
   custom: ['#c9baff', '#9a84ef'],
 }
 
@@ -30,7 +33,7 @@ const SQUIRCLE = 'M20 0C36.2 0 40 3.8 40 20S36.2 40 20 40 0 36.2 0 20 3.8 0 20 0
 const W = '#fff'
 
 /** Glifos en rejilla de 24; `c` es el color oscuro del degradado para los recortes. */
-const GLYPHS: Record<Exclude<EventKey, 'custom'>, (c: string) => ReactNode> = {
+const GLYPHS: Record<Exclude<EventKey, 'custom' | 'shed' | 'temperature' | 'activity'>, (c: string) => ReactNode> = {
   medication: (c) => (
     <g transform="rotate(45 12 12)">
       <rect x="7.6" y="2.2" width="8.8" height="19.6" rx="4.4" fill={W} />
@@ -115,12 +118,36 @@ const GLYPHS: Record<Exclude<EventKey, 'custom'>, (c: string) => ReactNode> = {
   ),
 }
 
-const DEFAULT_EMOJI = new Map(BUILTIN_TYPES.map((t) => [t.key, t.emoji]))
+// Glifos de los botones de especies (muda, temperatura del terrario, actividad).
+const EXTRA: Record<'shed' | 'temperature' | 'activity', (c: string) => ReactNode> = {
+  shed: (c) => (
+    <>
+      <path d="M19.6 3.4C11.4 3.6 4.8 10 5 19l.2.2c9 .2 15.4-6.4 14.4-15.8z" fill={W} />
+      <path d="M4 20.2 16.8 7.2" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M9.4 14.8l-3-.6M12.2 12l-2.8-1.4M14.8 9.4l-2.4-2M11.4 15.6l.8 2.6M14 13l1.4 2.4M16.6 10.4l1.8 1.8" stroke={c} strokeOpacity=".45" strokeWidth="1.2" strokeLinecap="round" />
+    </>
+  ),
+  temperature: () => (
+    <>
+      <circle cx="12" cy="12" r="4.6" fill={W} />
+      <path
+        d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4l1.8 1.8M16.8 16.8l1.8 1.8M5.4 18.6l1.8-1.8M16.8 7.2l1.8-1.8"
+        stroke={W}
+        strokeWidth="2.1"
+        strokeLinecap="round"
+      />
+    </>
+  ),
+  activity: () => <path d="M13.8 2.4 5.2 13.6h5.9l-1.2 8 8.9-11.6h-5.9z" fill={W} strokeLinejoin="round" />,
+}
+
+const DEFAULT_EMOJI = new Map<string, string>(BUILTIN_TYPES.map((t) => [t.key, t.emoji]))
 
 export function TypeIcon({ k, emoji, size = 40 }: { k: EventKey; emoji?: string; size?: number | string }) {
   const id = useId().replace(/:/g, '')
   const [top, bottom] = TYPE_COLORS[k] ?? TYPE_COLORS.custom
-  const glyph = k !== 'custom' && (!emoji || emoji === DEFAULT_EMOJI.get(k)) ? GLYPHS[k] : null
+  const draw = k === 'shed' || k === 'temperature' || k === 'activity' ? EXTRA[k] : k === 'custom' ? null : GLYPHS[k]
+  const glyph = draw && (!emoji || emoji === DEFAULT_EMOJI.get(k)) ? draw : null
   return (
     <svg className="ticon" width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
       <defs>

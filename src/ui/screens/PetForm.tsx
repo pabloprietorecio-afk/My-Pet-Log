@@ -6,12 +6,18 @@ import { fileToSmallDataUrl, pickImage } from '../../platform/photo'
 import { Avatar, Field, Seg, Sheet, TagInput, confirmDialog } from '../components'
 import { IconTrash } from '../icons'
 import { PetIllustration } from '../art/pets'
+import { SPECIES, SPECIES_ORDER } from '../../domain/eventTypes'
+
+/** Nombre corto en el selector (el completo va en la etiqueta accesible). */
+const SHORT: Record<Species, string> = { dog: 'Perro', cat: 'Gato', rabbit: 'Conejo', rodent: 'Hámster', bird: 'Pájaro', reptile: 'Serpiente' }
 import { rememberPet } from '../nav'
+import { useUsableHeight } from '../layout'
 
 type Part = 'data' | 'health' | 'vet'
 
 /** Alta y edición de la ficha, en tres partes cortas para que nada necesite scroll. `pet` ausente = alta. */
 export function PetForm({ pet }: { pet?: Pet }) {
+  const usable = useUsableHeight()
   const nav = useNavigate()
   const [part, setPart] = useState<Part>('data')
   const [name, setName] = useState(pet?.name ?? '')
@@ -84,6 +90,11 @@ export function PetForm({ pet }: { pet?: Pet }) {
   const healthCount = conditions.length + allergies.length + (notes.trim() ? 1 : 0)
   const vetCount = [vetName, clinic, phone].filter((x) => x.trim()).length
 
+  // Con barras del sistema altas (Android) o pantallas bajas, el formulario se compacta para no solaparse con el botón.
+  const tight = usable < 620
+  // En pantallas muy bajas, al crear, la raza (opcional) pasa a la pestaña Salud para que nada quede tapado.
+  const breedInHealth = !pet && usable < 530
+  const veryShort = usable < 530
   return (
     <>
       <Seg<Part>
@@ -97,7 +108,7 @@ export function PetForm({ pet }: { pet?: Pet }) {
         ]}
       />
 
-      <div className="form-area">
+      <div className={`form-area${tight ? ' tight' : ''}`}>
         {part === 'data' && (
           <>
             <div className="row" style={{ gap: 'var(--s4)', alignItems: 'flex-end' }}>
@@ -128,11 +139,25 @@ export function PetForm({ pet }: { pet?: Pet }) {
                 />
               </div>
             </div>
-            <Field label="Especie">
-              <Seg<Species> label="Especie" value={species} onChange={setSpecies} options={[
-                  { value: 'dog', label: <span className="seg-pet"><PetIllustration species="dog" size={26} />Perro</span>, text: 'Perro' },
-                  { value: 'cat', label: <span className="seg-pet"><PetIllustration species="cat" size={26} />Gato</span>, text: 'Gato' },
-                ]} />
+            <Field label={`Especie: ${SHORT[species]}`}>
+              <div className="species-grid" role="radiogroup" aria-label="Especie">
+                {SPECIES_ORDER.map((sp) => (
+                  <button
+                    key={sp}
+                    type="button"
+                    role="radio"
+                    aria-checked={species === sp}
+                    aria-label={SPECIES[sp].pick}
+                    className="species-opt"
+                    onClick={() => setSpecies(sp)}
+                  >
+                    <PetIllustration species={sp} size={34} />
+                  </button>
+                ))}
+              </div>
+              {pet && species !== pet.species && (
+                <span className="hint">Tus botones se mantienen. Los propios de esta especie aparecerán ocultos en «Personalizar botones».</span>
+              )}
             </Field>
             <Field label="Sexo">
               <Seg<Sex> label="Sexo" value={sex} onChange={setSex} options={[{ value: 'female', label: 'Hembra' }, { value: 'male', label: 'Macho' }, { value: 'unknown', label: 'No sé' }]} />
@@ -154,15 +179,22 @@ export function PetForm({ pet }: { pet?: Pet }) {
               ) : (
                 <div className="field">
                   <label htmlFor="p-weight" className="lbl">
-                    Peso (kg)
+                    Peso ({SPECIES[species].weightUnit})
                   </label>
-                  <input id="p-weight" className="input" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="p. ej. 4,2" />
+                  <input
+                    id="p-weight"
+                    className="input"
+                    inputMode="decimal"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder={SPECIES[species].weightUnit === 'g' ? 'p. ej. 120' : 'p. ej. 4,2'}
+                  />
                 </div>
               )}
             </div>
             {pet ? (
-              <p className="hint">El peso se anota con el botón «Peso»; aquí se muestra siempre el último.</p>
-            ) : (
+              veryShort ? null : <p className="hint">El peso se anota con el botón «Peso»; aquí se muestra siempre el último.</p>
+            ) : breedInHealth ? null : (
               <div className="field">
                 <label htmlFor="p-breed" className="lbl">
                   Raza (opcional)
@@ -175,6 +207,14 @@ export function PetForm({ pet }: { pet?: Pet }) {
 
         {part === 'health' && (
           <>
+            {breedInHealth && (
+              <div className="field">
+                <label htmlFor="p-breed" className="lbl">
+                  Raza (opcional)
+                </label>
+                <input id="p-breed" className="input" value={breed} onChange={(e) => setBreed(e.target.value)} />
+              </div>
+            )}
             <TagInput label="Patologías" values={conditions} onChange={setConditions} placeholder="p. ej. Insuficiencia renal" />
             <TagInput label="Alergias" values={allergies} onChange={setAllergies} placeholder="p. ej. Pollo" />
             <div className="field" style={{ flex: 1, minHeight: 0 }}>
