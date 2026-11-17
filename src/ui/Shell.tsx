@@ -4,7 +4,7 @@ import { useEventTypes, useEvents, usePet, usePets } from '../data/hooks'
 import { ageShort, formatNumber } from '../domain/time'
 import { speciesLabel } from '../domain/eventTypes'
 import { Avatar, Sheet, useToast } from './components'
-import { IconBack, IconChart, IconDoc, IconDown, IconGear, IconList, IconNext, IconPill, IconPlus, IconToday } from './icons'
+import { IconBack, IconBulb, IconChart, IconDoc, IconDown, IconGear, IconList, IconNext, IconPill, IconPlus, IconToday } from './icons'
 import { rememberPet } from './nav'
 import { Backdrop, type Scene } from './art/Backdrop'
 import { SettingIcon } from './art/TypeIcon'
@@ -25,12 +25,14 @@ const SCENE: Record<string, Scene> = {
   informe: 'report',
   ficha: 'form',
   botones: 'form',
+  consejos: 'history',
 }
 
 /** Subpantallas de detalle: cabecera con «volver» y sin navegación inferior. */
 const SUB: Record<string, string> = {
   ficha: 'Ficha',
   botones: 'Personalizar botones',
+  consejos: 'Consejos',
 }
 
 export function PetShell() {
@@ -75,7 +77,7 @@ export function PetShell() {
           <Link className="icon-btn" to="hoy" replace aria-label="Volver">
             <IconBack />
           </Link>
-          <h1>{sub === 'Ficha' ? `Ficha de ${pet.name}` : sub}</h1>
+          <h1>{sub === 'Ficha' ? `Ficha de ${pet.name}` : sub === 'Consejos' ? `Consejos para ${pet.name}` : sub}</h1>
         </header>
       ) : (
         <header className="topbar">
@@ -89,6 +91,9 @@ export function PetShell() {
               <span className="meta">{meta}</span>
             </span>
           </button>
+          <Link className="icon-btn" to="consejos" aria-label={`Consejos para ${pet.name}`}>
+            <IconBulb />
+          </Link>
           <Link className="icon-btn" to="/ajustes" aria-label="Ajustes">
             <IconGear />
           </Link>

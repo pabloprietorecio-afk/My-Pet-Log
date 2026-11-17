@@ -12,6 +12,7 @@ import { ageShort } from '../domain/time'
 import { speciesLabel } from '../domain/eventTypes'
 import { lastPet } from './nav'
 import { Buttons } from './screens/Buttons'
+import { Tips } from './screens/Tips'
 import { Charts } from './screens/Charts'
 import { History } from './screens/History'
 import { Medication } from './screens/Medication'
@@ -129,6 +130,7 @@ export function App() {
             <Route path="informe" element={<Report />} />
             <Route path="ficha" element={<PetFormEdit />} />
             <Route path="botones" element={<Buttons />} />
+            <Route path="consejos" element={<Tips />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

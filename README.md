@@ -18,6 +18,7 @@ Diseño y decisiones: [`docs/DISENO.md`](docs/DISENO.md).
 - Exportación: vista en la app, PDF (vectorial), HTML autónomo, hoja de compartir del sistema, guardar archivo, resumen en texto por WhatsApp/correo.
 - Especies: perro, gato, conejo, hámster/roedor, pájaro y serpiente/reptil. Cada una empieza con sus botones (p. ej. muda, temperatura y regurgitación en reptiles; actividad en roedores y conejos) y su unidad de peso (g o kg). Los demás botones quedan ocultos en «Personalizar botones».
 - Icono de la app elegible en Ajustes (solo Android): gato, perro, conejo, hámster, pájaro o serpiente. Usa `activity-alias` y un complemento nativo propio (`AppIconPlugin`).
+- Consejos de cuidado por especie (comida, higiene, actividad, hogar y salud): fichas ilustradas que se pasan deslizando, cada una con su fuente (RSPCA, PDSA, International Cat Care, Rabbit Welfare Association, Royal Veterinary College, CDC…). Son consejos generales: sin dosis ni diagnósticos. El contenido está en `src/domain/tips.ts`.
 - Copia de seguridad/restauración en JSON (combina por «gana el más reciente»), tema claro/oscuro/automático.
 
 ## Arquitectura
@@ -30,9 +31,10 @@ Datos con UUID, `updatedAt` y borrado lógico, listos para una sincronización f
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # 88 pruebas (dominio, datos, informe, contraste)
+npm test             # 91 pruebas (dominio, datos, informe, contraste)
 npm run build        # typecheck + build de producción en dist/
 node tests/e2e-species.mjs  # especies: botones y unidad de peso
+node tests/e2e-tips.mjs     # Consejos: todas las fichas, temas, deslizar y fuentes
 node tests/e2e.mjs   # prueba de humo en Chrome real (requiere `npm run dev -- --port 5199` y Chrome)
 npm run test:e2e     # prueba funcional completa (88 comprobaciones), simula el teclado del móvil
 ```

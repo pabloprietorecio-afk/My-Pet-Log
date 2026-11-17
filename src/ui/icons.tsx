@@ -29,3 +29,4 @@ export const IconTrash = make(<><path d="M4 7h16M10 11v6M14 11v6" /><path d="M6 
 export const IconSliders = make(<><path d="M4 7h10M18 7h2M4 17h2M10 17h10" /><circle cx="16" cy="7" r="2" /><circle cx="8" cy="17" r="2" /></>)
 export const IconPaw = make(<><circle cx="7" cy="9" r="1.8" /><circle cx="11" cy="5.5" r="1.8" /><circle cx="15.5" cy="6.5" r="1.8" /><circle cx="18" cy="11" r="1.8" /><path d="M8.5 16.5c0-2.5 2-4.5 4-4.5s4.5 2 4.5 4.5-1.8 3-4 3-4.5-.5-4.5-3z" /></>)
 export const IconEyeOpen = make(<><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /><circle cx="12" cy="14" r="2.2" /></>)
+export const IconBulb = make(<><path className="f" d="M9 17.5h6M9.5 21h5M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.3v1.4h5v-1.4c0-.9.4-1.7 1.1-2.3A6 6 0 0 0 12 3z" /><path d="M9 17.5h6M9.5 21h5M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.3v1.4h5v-1.4c0-.9.4-1.7 1.1-2.3A6 6 0 0 0 12 3z" /></>)
