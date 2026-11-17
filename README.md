@@ -31,6 +31,7 @@ npm run dev          # http://localhost:5173
 npm test             # 84 pruebas (dominio, datos, informe, contraste)
 npm run build        # typecheck + build de producción en dist/
 node tests/e2e.mjs   # prueba de humo en Chrome real (requiere `npm run dev -- --port 5199` y Chrome)
+npm run test:e2e     # prueba funcional completa (88 comprobaciones), simula el teclado del móvil
 ```
 
 ### APK de Android (GitHub Actions)

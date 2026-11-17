@@ -49,20 +49,27 @@ export function Sheet({
   const toast = useToast()
   // Un aviso abierto taparía el contenido de la hoja.
   useEffect(() => toast.hide(), [toast])
+  // `onClose` suele ser una función nueva en cada render del padre (p. ej. al abrirse el teclado
+  // y cambiar el tamaño de la pantalla). Se guarda en una ref para que el efecto de abajo se ejecute
+  // SOLO al abrir la hoja: si se repitiera, robaría el foco al campo, el teclado se cerraría,
+  // la pantalla volvería a cambiar de tamaño… y así en bucle.
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null
-    ref.current?.focus()
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    // Respeta el foco que haya puesto un campo con autoFocus.
+    if (!ref.current?.contains(document.activeElement)) ref.current?.focus({ preventScroll: true })
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeRef.current()
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
-      prev?.focus?.()
+      prev?.focus?.({ preventScroll: true })
     }
-  }, [onClose])
+  }, [])
   return (
-    <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && closeRef.current()}>
       <div className={`sheet${full ? ' full' : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} ref={ref} tabIndex={-1}>
         <div className="grab" aria-hidden="true" />
         <div className="sheet-head">

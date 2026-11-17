@@ -191,12 +191,22 @@ function Row({ b, rowRem, rowClass }: { b: Built; rowRem: number; rowClass: stri
   )
 }
 
-/** Alto útil de la ventana (sin barras del sistema). Sirve para decidir qué cabe en pantallas muy bajas. */
+/**
+ * Alto útil de la ventana (sin barras del sistema) para decidir qué cabe en pantallas muy bajas.
+ * El teclado encoge la ventana al escribir: se ignora (se guarda el máximo para el mismo ancho),
+ * así la pantalla de fondo no se reorganiza cada vez que aparece o desaparece el teclado.
+ */
 export function useUsableHeight() {
+  const best = useRef({ w: 0, h: 0 })
   const read = () => {
     const cs = getComputedStyle(document.documentElement)
     const px = (v: string) => parseFloat(cs.getPropertyValue(v)) || 0
-    return window.innerHeight - px('--safe-area-inset-top') - px('--safe-area-inset-bottom')
+    // Solo el alto de la ventana se toma como máximo (el teclado lo reduce); las zonas seguras
+    // se restan siempre con su valor actual, porque Capacitor puede inyectarlas tras el arranque.
+    const w = window.innerWidth
+    if (w !== best.current.w) best.current = { w, h: window.innerHeight }
+    else best.current.h = Math.max(best.current.h, window.innerHeight)
+    return Math.round(best.current.h - px('--safe-area-inset-top') - px('--safe-area-inset-bottom'))
   }
   const [h, setH] = useState(read)
   useEffect(() => {
@@ -207,6 +217,7 @@ export function useUsableHeight() {
       window.removeEventListener('resize', on)
       clearInterval(t)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return h
 }
