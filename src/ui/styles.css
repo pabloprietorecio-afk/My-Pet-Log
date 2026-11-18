@@ -2860,3 +2860,219 @@ button.strip {
   --c1: var(--d1);
   --c2: var(--d2);
 }
+
+/* ── Anotar por voz ─────────────────────────────────────────────────────── */
+.topbar .icon-btn.mic {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--primary) 70%, transparent);
+}
+.topbar .icon-btn.mic svg .f {
+  fill: rgb(255 255 255 / 0.25);
+}
+.voice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding-bottom: 0.4rem;
+}
+.voice-orb {
+  position: relative;
+  width: 5.6rem;
+  height: 5.6rem;
+  border-radius: 50%;
+  border: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--primary) 70%, #fff), var(--primary));
+  box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--primary) 80%, transparent);
+  margin-top: 0.3rem;
+}
+.voice-orb svg {
+  width: 2.4rem;
+  height: 2.4rem;
+  position: relative;
+  z-index: 1;
+}
+.voice-orb svg .f {
+  fill: rgb(255 255 255 / 0.3);
+}
+.voice-orb .halo {
+  position: absolute;
+  inset: -0.55rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+  transform: scale(0.85);
+  opacity: 0;
+  transition: transform 0.12s linear, opacity 0.2s;
+}
+.voice-orb.on .halo {
+  opacity: 1;
+  transform: scale(var(--ring, 1));
+}
+.voice-orb:disabled {
+  opacity: 0.5;
+}
+.voice-text {
+  min-height: 2.6rem;
+  text-align: center;
+  max-width: 22rem;
+}
+.voice-text .said {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+.voice-text .said.hint {
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.voice-err {
+  color: var(--danger);
+  font-size: 0.95rem;
+  margin: 0;
+  text-align: center;
+}
+.voice-type {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+.voice-type .input {
+  flex: 1;
+  min-width: 0;
+}
+.voice-examples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+}
+.voice-examples button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  min-height: 2.25rem;
+}
+.voice-result {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.voice-heard {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.voice-ok {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.voice-done {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.voice-done li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: var(--glass-strong, var(--surface));
+  border-radius: var(--r-md, 14px);
+  padding: 0.5rem 0.65rem;
+}
+.voice-done .ic {
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: none;
+}
+.voice-done .t {
+  font-weight: 650;
+  color: var(--ink);
+}
+.voice-answer {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  text-align: center;
+  color: var(--ink);
+}
+.voice-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.voice-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.voice-speak {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  min-height: 2.75rem;
+}
+.voice-speak input {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--primary);
+}
+@media (max-height: 660px) {
+  .voice {
+    gap: 0.55rem;
+  }
+  .voice-orb {
+    width: 4.4rem;
+    height: 4.4rem;
+  }
+  .voice-orb svg {
+    width: 2rem;
+    height: 2rem;
+  }
+  .voice-examples li:nth-child(n + 4) {
+    display: none;
+  }
+  .voice-text {
+    min-height: 1.6rem;
+  }
+  .voice-speak {
+    min-height: 2.4rem;
+  }
+}
+.voice-actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+.voice-actions .btn {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  white-space: nowrap;
+}

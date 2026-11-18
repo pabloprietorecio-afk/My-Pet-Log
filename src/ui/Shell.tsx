@@ -4,7 +4,8 @@ import { useEventTypes, useEvents, usePet, usePets } from '../data/hooks'
 import { ageShort, formatNumber } from '../domain/time'
 import { speciesLabel } from '../domain/eventTypes'
 import { Avatar, Sheet, useToast } from './components'
-import { IconBack, IconBulb, IconChart, IconDoc, IconDown, IconGear, IconList, IconNext, IconPill, IconPlus, IconToday } from './icons'
+import { IconBack, IconBulb, IconChart, IconDoc, IconDown, IconGear, IconList, IconNext, IconPill, IconMic, IconPlus, IconToday } from './icons'
+import { VoiceSheet } from './VoiceSheet'
 import { rememberPet } from './nav'
 import { Backdrop, type Scene } from './art/Backdrop'
 import { SettingIcon } from './art/TypeIcon'
@@ -45,6 +46,14 @@ export function PetShell() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => toast.hide(), [loc.pathname])
   const [switcher, setSwitcher] = useState(false)
+  const [voice, setVoice] = useState(false)
+  // petlog://voz, el widget y el atajo abren la app con ?voz=1
+  useEffect(() => {
+    if (new URLSearchParams(loc.search).has('voz')) {
+      setVoice(true)
+      nav(loc.pathname, { replace: true })
+    }
+  }, [loc.search]) // eslint-disable-line react-hooks/exhaustive-deps
   const types = useEventTypes(petId)
   const weightType = types?.find((t) => t.key === 'weight')
   const events = useEvents(petId)
@@ -91,6 +100,9 @@ export function PetShell() {
               <span className="meta">{meta}</span>
             </span>
           </button>
+          <button className="icon-btn mic" onClick={() => setVoice(true)} aria-label="Anotar por voz">
+            <IconMic />
+          </button>
           <Link className="icon-btn" to="consejos" aria-label={`Consejos para ${pet.name}`}>
             <IconBulb />
           </Link>
@@ -102,6 +114,7 @@ export function PetShell() {
       <main className="screen">
         <Outlet context={{ pet }} />
       </main>
+      {voice && <VoiceSheet petId={pet.id} petName={pet.name} onClose={() => setVoice(false)} />}
       {!sub && (
         <div className="tabbar">
           <nav aria-label="Secciones">

@@ -133,7 +133,19 @@
 
     <!-- Solo se usa para compartir mascotas con otros dueños (datos cifrados en el móvil). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Dictado por voz: solo mientras se pulsa el micrófono. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
-    <!-- Sin permisos: PetLog no usa internet. WhatsApp, el correo y la hoja de compartir
-         se abren con intents del sistema, que no necesitan permiso. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
 </manifest>

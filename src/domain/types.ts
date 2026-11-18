@@ -124,6 +124,8 @@ export interface Settings {
   theme: 'system' | 'light' | 'dark'
   /** instant: el toque registra. sheet: abre la hoja de detalle primero. */
   tapMode: 'instant' | 'sheet'
+  /** Leer en voz alta lo que se anota por voz. */
+  voiceSpeak?: boolean
   deviceId: string
   schemaVersion: number
 }
