@@ -56,12 +56,12 @@ export class FirebaseBackend implements SyncBackend {
   private auth: Auth
   private db: Firestore
 
-  /** `emulator` solo para pruebas: usa los emuladores locales de Firebase y no guarda la sesión. */
-  constructor(config: FirebaseOptions, opts: { name?: string; emulator?: { firestore: string; auth: string } } = {}) {
+  /** Solo para pruebas: `emulator` usa los emuladores locales; `memory` no guarda la sesión. */
+  constructor(config: FirebaseOptions, opts: { name?: string; memory?: boolean; emulator?: { firestore: string; auth: string } } = {}) {
     this.app = initializeApp(config, opts.name ?? 'petlog-sync')
     // Persistencia en IndexedDB (con respaldo en localStorage): el acceso anónimo se mantiene entre aperturas.
     this.auth = initializeAuth(this.app, {
-      persistence: opts.emulator ? inMemoryPersistence : [indexedDBLocalPersistence, browserLocalPersistence],
+      persistence: opts.emulator || opts.memory ? inMemoryPersistence : [indexedDBLocalPersistence, browserLocalPersistence],
     })
     this.db = getFirestore(this.app)
     if (opts.emulator) {

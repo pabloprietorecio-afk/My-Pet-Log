@@ -1,0 +1,27 @@
+name: Firebase (proyecto real)
+
+# Prueba la sincronización contra el proyecto real (dos dispositivos anónimos de prueba).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/sync/**'
+      - 'tests/firebase-real.test.ts'
+      - '.github/workflows/firebase-real.yml'
+  workflow_dispatch:
+
+jobs:
+  real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Sincronización contra petloj-72431
+        env:
+          PETLOG_REAL: '1'
+        run: npx vitest run tests/firebase-real.test.ts --reporter=verbose
