@@ -204,3 +204,14 @@ describe('«¿Qué puedo decir?»', () => {
     for (const g of voiceHelp()) for (const ph of g.phrases) expect(parseVoice(plain(ph), ctx).kind, plain(ph)).not.toBe('none')
   })
 })
+
+describe('pedir ayuda por voz', () => {
+  it.each(['qué puedo decir', '¿Qué puedo decir?', 'qué puedo pedir', 'ayuda', 'qué frases entiendes', 'cómo funciona', 'qué comandos puedo usar', 'a ver qué puedo decir'])('«%s» abre la lista', (s) => {
+    expect(parseVoice(s, ctx).kind).toBe('help')
+  })
+  it('no confunde frases normales con ayuda', () => {
+    expect(parseVoice('agua', ctx).kind).toBe('actions')
+    expect(parseVoice('¿cuánto pesa?', ctx).kind).toBe('query')
+    expect(parseVoice('nota pide ayuda al ladrar', ctx).kind).toBe('actions')
+  })
+})

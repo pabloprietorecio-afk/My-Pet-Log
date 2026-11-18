@@ -24,6 +24,7 @@ export type Outcome =
   | { kind: 'saved'; petId: string; done: Done[]; ignored: string[]; needsTreatment?: boolean }
   | { kind: 'answer'; petId: string; text: string }
   | { kind: 'undone'; text: string }
+  | { kind: 'help' }
   | { kind: 'none'; text: string }
 
 /** Lo último que se guardó por voz (para «deshacer» o el botón Deshacer). */
@@ -132,6 +133,7 @@ export async function runVoice(text: string, currentPetId: string): Promise<Outc
   const ctx = await buildContext(currentPetId)
   const r: VoiceResult = parseVoice(text, ctx)
   if (r.kind === 'none') return { kind: 'none', text }
+  if (r.kind === 'help') return { kind: 'help' }
   if (r.kind === 'undo') {
     const t = await undoLast()
     return { kind: 'undone', text: t ? `Deshecho: ${t}` : 'No hay nada que deshacer de esta sesión de voz.' }
@@ -156,5 +158,6 @@ export function spoken(o: Outcome, petName?: string): string {
     return `Anotado${petName ? ` para ${petName}` : ''}: ${o.done.map((d) => say(d.text)).join('; ')}.`
   }
   if (o.kind === 'none') return 'No lo he entendido.'
+  if (o.kind === 'help') return 'Estas son las frases que entiendo.'
   return o.text
 }

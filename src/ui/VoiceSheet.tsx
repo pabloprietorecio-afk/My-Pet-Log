@@ -47,7 +47,8 @@ export function VoiceSheet({ petId, petName, onClose, autoStart = true }: { petI
     const o = await runVoice(text, petId)
     if (!alive.current) return
     setOut(o)
-    setPhase('result')
+    // «¿Qué puedo decir?» dicho en voz alta abre la lista de frases.
+    setPhase(o.kind === 'help' ? 'help' : 'result')
     if (settings?.voiceSpeak) {
       const name = o.kind === 'saved' && o.petId !== petId ? (await repo.getPet(o.petId))?.name : undefined
       void speak(spoken(o, name))
@@ -163,6 +164,7 @@ export function VoiceSheet({ petId, petName, onClose, autoStart = true }: { petI
             petName={petName}
             onUndo={undo}
             onAgain={start}
+            onHelp={openHelp}
             onOpen={(to) => {
               onClose()
               nav(to)
@@ -261,8 +263,10 @@ function Result({
   onUndo,
   onAgain,
   onOpen,
+  onHelp,
 }: {
   out: Outcome
+  onHelp: () => void
   heard: string
   petId: string
   petName: string
@@ -333,8 +337,11 @@ function Result({
       )}
       {out.kind === 'none' && (
         <>
-          <p className="voice-err">No lo he entendido. Toca «¿Qué puedo decir?» para ver las frases que entiendo.</p>
+          <p className="voice-err">No lo he entendido.</p>
           <div className="voice-actions">
+            <button className="btn tonal" onClick={onHelp}>
+              ¿Qué puedo decir?
+            </button>
             <button className="btn primary" onClick={onAgain}>
               Repetir
             </button>

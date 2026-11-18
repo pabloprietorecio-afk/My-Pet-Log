@@ -37,6 +37,7 @@ export type VoiceResult =
   | { kind: 'actions'; petId: string; actions: VoiceAction[]; ignored: string[] }
   | { kind: 'query'; petId: string; query: VoiceQuery }
   | { kind: 'undo' }
+  | { kind: 'help' }
   | { kind: 'none'; text: string }
 
 // ── Normalización ─────────────────────────────────────────────────────────
@@ -405,6 +406,9 @@ const GIVEN_HINT = /\b(dado|di|dada|tomado|tomada|tomo|administrad[ao]|puesto|pu
 
 const UNDO = /^(deshacer|deshaz|borra(?:r)? (?:el |lo )?ultimo|elimina(?:r)? (?:el |lo )?ultimo|anula(?:r)?(?: (?:el |lo )?ultimo)?|me he equivocado|quita(?:r)? (?:el |lo )?ultimo)\b/
 
+/** «¿Qué puedo decir?», «ayuda», «qué entiendes»… abre la lista de frases. */
+const HELP = /^(?:(?:y |pero |oye |a ver )?(?:que|que cosas|que frases|que comandos|que ordenes) (?:puedo|se puede|se pueden) (?:decir|pedir|preguntar|hacer|usar|decirte|pedirte)|ayuda|ayudame|que (?:entiendes|sabes hacer|frases entiendes)|como (?:funciona|se usa)|(?:dime |ensename )?(?:las )?(?:frases|comandos|ejemplos))$/
+
 const SPLIT = /\s*(?:,|\by luego\b|\bluego\b|\bdespues\b|\btambien\b|\bademas\b|\by\b)\s*/
 
 /**
@@ -414,6 +418,7 @@ export function parseVoice(raw: string, ctx: VoiceContext): VoiceResult {
   let text = wordsToNumbers(norm(raw))
   if (!text) return { kind: 'none', text: raw }
   if (UNDO.test(text)) return { kind: 'undo' }
+  if (HELP.test(text)) return { kind: 'help' }
 
   // Mascota por nombre
   let petId = ctx.currentPetId
