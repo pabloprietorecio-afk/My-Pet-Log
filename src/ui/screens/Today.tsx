@@ -1,5 +1,5 @@
-import { useMemo, useState, type CSSProperties } from 'react'
-import { Link, useOutletContext } from 'react-router-dom'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
 import { repo } from '../../data/instance'
 import { useDoseLogs, useEventTypes, useEvents, useNow, useSettings, useTreatments } from '../../data/hooks'
 import { levelOptions, levelQuestion, tapBehavior } from '../../domain/eventTypes'
@@ -9,6 +9,7 @@ import { endOfLocalDay, formatTime, startOfLocalDay } from '../../domain/time'
 import { Empty, Sheet, useToast } from '../components'
 import { TypeIcon } from '../art/TypeIcon'
 import { TypeArt, tintVars } from '../art/TypeArt'
+import { pushWidgets } from '../../platform/widgets'
 import { PetIllustration } from '../art/pets'
 import { DoseList, todaySlots, useDoseActions, type SlotItem } from '../doses'
 import { EventSheet } from '../EventSheet'
@@ -140,6 +141,21 @@ export function Today() {
   const givenToday = (logs ?? []).filter((l) => l.status === 'given').length
 
   const count = (t: EventType) => (t.key === 'medication' ? givenToday : (events ?? []).filter((e) => e.typeId === t.id).length)
+
+  // Widgets de Android: mascota y primeros botones (orden de «Personalizar»).
+  useEffect(() => {
+    if (types) void pushWidgets(pet.id, pet.name, [...types].sort((a, b) => a.order - b.order))
+  }, [pet.id, pet.name, types])
+
+  // Botón del widget: petlog://anotar/<botón> llega como ?anotar=<id>
+  const [q, setQ] = useSearchParams()
+  const fromWidget = q.get('anotar')
+  useEffect(() => {
+    if (!fromWidget || !types) return
+    const t = types.find((x) => x.id === fromWidget)
+    setQ({}, { replace: true })
+    if (t) void tap(t)
+  }, [fromWidget, types]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tap = async (type: EventType) => {
     const behavior = settings?.tapMode === 'sheet' && type.key !== 'medication' ? 'sheet' : tapBehavior(type)

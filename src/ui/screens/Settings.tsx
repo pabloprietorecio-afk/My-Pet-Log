@@ -231,6 +231,9 @@ export function Settings() {
           <p>
             Solo si compartes una mascota con otros dueños, sus datos se envían a un servidor de Google (Firebase) para que los demás los reciban. Van <b>cifrados en tu móvil</b> con una clave que solo está en la invitación: el servidor no puede leerlos.
           </p>
+          <p>
+            Al anotar por voz, el micrófono solo se activa mientras lo usas. El dictado lo hace el reconocimiento de voz de Android: si el teléfono tiene el idioma descargado se hace en el propio móvil; si no, el servicio de voz del teléfono puede usar internet. PetLog no guarda el audio.
+          </p>
           <p className="hint">{storage}</p>
         </Sheet>
       )}

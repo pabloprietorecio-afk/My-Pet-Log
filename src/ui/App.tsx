@@ -119,7 +119,13 @@ function DeepLinks() {
     if (!Capacitor.isNativePlatform()) return
     const open = (url?: string) => {
       const m = url?.match(/^petlog:\/\/unirse\/(.+)$/)
-      if (m) nav(`/compartir?codigo=${encodeURIComponent(decodeURIComponent(m[1]))}`)
+      if (m) return nav(`/compartir?codigo=${encodeURIComponent(decodeURIComponent(m[1]))}`)
+      // Widget, atajo y ajustes rápidos: petlog://voz y petlog://anotar/<botón>?pet=<mascota>
+      const v = url?.match(/^petlog:\/\/voz(?:\?pet=([\w-]+))?/)
+      const a = url?.match(/^petlog:\/\/anotar\/([\w-]+)\?pet=([\w-]+)/)
+      const pet = a?.[2] ?? v?.[1] ?? lastPet()
+      if (v) return nav(pet ? `/pet/${pet}/hoy?voz=1` : '/')
+      if (a) return nav(`/pet/${a[2]}/hoy?anotar=${a[1]}`)
     }
     void CapApp.getLaunchUrl().then((r) => open(r?.url))
     const h = CapApp.addListener('appUrlOpen', (e) => open(e.url))

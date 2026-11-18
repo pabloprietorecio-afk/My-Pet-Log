@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical" android:padding="10dp">
+    <TextView android:id="@+id/pet_name" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingStart="4dp" android:paddingBottom="6dp" android:text="@string/app_name"
+        android:textColor="@color/widget_ink" android:textSize="15sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
+        <LinearLayout android:id="@+id/mic" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:gravity="center" android:orientation="vertical" android:background="@drawable/widget_tile_bg" android:layout_marginEnd="6dp">
+            <FrameLayout android:layout_width="44dp" android:layout_height="44dp" android:background="@drawable/widget_mic_bg">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center"
+                    android:src="@drawable/ic_widget_mic" android:tint="@color/widget_on_primary" android:contentDescription="@string/voice_label"/>
+            </FrameLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp"
+                android:text="@string/voice_short" android:textColor="@color/widget_ink" android:textSize="12sp" android:textStyle="bold" android:maxLines="1"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/b0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:gravity="center" android:orientation="vertical" android:background="@drawable/widget_tile_bg" android:layout_marginEnd="6dp">
+            <ImageView android:id="@+id/b0_img" android:layout_width="44dp" android:layout_height="44dp" android:scaleType="fitCenter" android:importantForAccessibility="no"/>
+            <TextView android:id="@+id/b0_txt" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp"
+                android:textColor="@color/widget_ink" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/b1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:gravity="center" android:orientation="vertical" android:background="@drawable/widget_tile_bg" android:layout_marginEnd="6dp">
+            <ImageView android:id="@+id/b1_img" android:layout_width="44dp" android:layout_height="44dp" android:scaleType="fitCenter" android:importantForAccessibility="no"/>
+            <TextView android:id="@+id/b1_txt" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp"
+                android:textColor="@color/widget_ink" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/b2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:gravity="center" android:orientation="vertical" android:background="@drawable/widget_tile_bg">
+            <ImageView android:id="@+id/b2_img" android:layout_width="44dp" android:layout_height="44dp" android:scaleType="fitCenter" android:importantForAccessibility="no"/>
+            <TextView android:id="@+id/b2_txt" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp"
+                android:textColor="@color/widget_ink" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end"/>
+        </LinearLayout>
+    </LinearLayout>
+    <TextView android:id="@+id/empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone"
+        android:text="@string/widget_quick_empty" android:textColor="@color/widget_muted" android:textSize="12sp" android:paddingTop="4dp"/>
+</LinearLayout>

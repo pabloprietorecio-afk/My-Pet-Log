@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="voz"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_mic"
+        android:shortcutShortLabel="@string/voice_label"
+        android:shortcutLongLabel="@string/voice_label">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="petlog://voz"
+            android:targetPackage="app.petlog.diario"
+            android:targetClass="app.petlog.diario.MainActivity" />
+    </shortcut>
+</shortcuts>

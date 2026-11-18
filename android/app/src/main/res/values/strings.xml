@@ -4,4 +4,9 @@
     <string name="title_activity_main">PetLog</string>
     <string name="package_name">app.petlog.diario</string>
     <string name="custom_url_scheme">app.petlog.diario</string>
+    <string name="voice_label">Anotar por voz</string>
+    <string name="voice_short">Voz</string>
+    <string name="widget_mic_desc">Micrófono para anotar por voz en PetLog</string>
+    <string name="widget_quick_desc">Micrófono y los tres primeros botones de tu mascota</string>
+    <string name="widget_quick_empty">Abre PetLog una vez para preparar los botones</string>
 </resources>
