@@ -8,6 +8,7 @@ import { Avatar, ConfirmHost, ToastProvider } from './components'
 import { IconBack, IconGear, IconNext, IconPlus } from './icons'
 import { Paged, type PagedItem } from './layout'
 import { Gallery } from './Gallery'
+import { ArtGallery } from './ArtGallery'
 import { IconStudio } from './IconStudio'
 import { Backdrop } from './art/Backdrop'
 import { PetIllustration } from './art/pets'
@@ -147,6 +148,7 @@ export function App() {
           <Route path="/ajustes" element={<Settings />} />
           <Route path="/compartir" element={<Share />} />
           {import.meta.env.DEV && <Route path="/galeria" element={<Gallery />} />}
+          {import.meta.env.DEV && <Route path="/arte" element={<ArtGallery />} />}
           {import.meta.env.DEV && <Route path="/icono" element={<IconStudio />} />}
           <Route path="/pet/:petId" element={<PetShell />}>
             <Route index element={<Navigate to="hoy" replace />} />

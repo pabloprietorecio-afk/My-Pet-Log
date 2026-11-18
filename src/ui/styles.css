@@ -2755,3 +2755,108 @@ button.strip {
   font-size: var(--fs-sm);
   word-break: break-all;
 }
+
+/* ── Botones de registro con ilustración (0.4) ───────────────────────────
+   Cada botón es una tarjeta del color de su tipo; la ilustración ocupa casi todo
+   el botón, anclada abajo a la derecha, y el nombre queda arriba a la izquierda. */
+.tiles .tile.art {
+  container-type: size;
+  background: linear-gradient(155deg, var(--l1), var(--l2));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 1px 2px rgb(40 30 60 / 0.06), 0 6px 16px -6px rgb(40 30 60 / 0.18);
+  color: var(--tink);
+  display: block;
+  padding: 0 !important;
+}
+:root[data-theme='dark'] .tiles .tile.art {
+  background: linear-gradient(155deg, var(--d1), var(--d2));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07), 0 6px 16px -6px rgb(0 0 0 / 0.5);
+  color: color-mix(in srgb, var(--tink) 28%, #fff);
+}
+.tiles .tile.art:active {
+  transform: scale(0.965);
+  filter: brightness(0.97) saturate(1.08);
+}
+.tiles .tile.art .tart {
+  position: absolute;
+  right: -3%;
+  bottom: -4%;
+  /* lo más grande posible sin tapar el nombre */
+  width: min(84cqw, calc(100cqh - 1.35rem));
+  height: min(84cqw, calc(100cqh - 1.35rem));
+  filter: drop-shadow(0 4px 8px rgb(40 30 60 / 0.12));
+  pointer-events: none;
+}
+:root[data-theme='dark'] .tiles .tile.art .tart {
+  filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.35));
+}
+.tiles .tile.art .label {
+  position: absolute;
+  left: 0.7rem;
+  top: 0.55rem;
+  right: 0.5rem;
+  font-size: clamp(0.8rem, 12cqw, 1.12rem);
+  letter-spacing: -0.01em;
+  z-index: 1;
+}
+.tiles.v.tight .tile.art .label {
+  left: 0.5rem;
+  top: 0.42rem;
+  right: 0.3rem;
+  font-size: clamp(0.72rem, 12.5cqw, 0.85rem);
+}
+/* Botones apaisados (dos columnas o el último, que se estira): la ilustración toma todo el alto. */
+@container (min-aspect-ratio: 7/5) {
+  .tiles .tile.art .tart {
+    width: min(calc((100cqh - 1.25rem) * 1.22), 62cqw);
+    height: min(calc((100cqh - 1.25rem) * 1.22), 62cqw);
+    right: 3%;
+    bottom: -11%;
+  }
+  .tiles .tile.art .label {
+    left: 0.8rem;
+    top: 0.6rem;
+    font-size: clamp(0.9rem, 9cqw, 1.15rem);
+  }
+}
+@container (min-aspect-ratio: 3/1) {
+  .tiles .tile.art .tart {
+    width: 122cqh;
+    height: 122cqh;
+    right: 4%;
+    bottom: -12%;
+  }
+}
+.tiles .tile.art .count {
+  top: auto;
+  right: auto;
+  bottom: 0.5rem;
+  left: 0.55rem;
+  background: rgb(255 255 255 / 0.92);
+  color: var(--tink);
+  box-shadow: 0 1px 3px rgb(40 30 60 / 0.18);
+  z-index: 2;
+  position: absolute;
+  margin: 0;
+}
+:root[data-theme='dark'] .tiles .tile.art .count {
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+.tiles .tile.art .count.alert {
+  background: var(--danger);
+  color: #fff;
+}
+.tiles .tile.art .flash {
+  z-index: 3;
+}
+/* Iconos pequeños (franja, listas): tarjeta del tipo */
+.ticon2 {
+  --c1: var(--l1);
+  --c2: var(--l2);
+}
+:root[data-theme='dark'] .ticon2 {
+  --c1: var(--d1);
+  --c2: var(--d2);
+}

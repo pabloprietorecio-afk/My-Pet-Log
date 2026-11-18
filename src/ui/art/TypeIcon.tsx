@@ -4,7 +4,8 @@
  * Si el usuario cambió el icono de un botón (o es un botón propio), se muestra su emoji
  * dentro del mismo squircle, así todo conserva la misma forma.
  */
-import { useId, type ReactNode } from 'react'
+import { useId, type CSSProperties, type ReactNode } from 'react'
+import { TypeArt, tintVars } from './TypeArt'
 import { BUILTIN_TYPES } from '../../domain/eventTypes'
 import type { EventKey } from '../../domain/types'
 
@@ -33,7 +34,7 @@ const SQUIRCLE = 'M20 0C36.2 0 40 3.8 40 20S36.2 40 20 40 0 36.2 0 20 3.8 0 20 0
 const W = '#fff'
 
 /** Glifos en rejilla de 24; `c` es el color oscuro del degradado para los recortes. */
-const GLYPHS: Record<Exclude<EventKey, 'custom' | 'shed' | 'temperature' | 'activity'>, (c: string) => ReactNode> = {
+export const GLYPHS: Record<Exclude<EventKey, 'custom' | 'shed' | 'temperature' | 'activity'>, (c: string) => ReactNode> = {
   medication: (c) => (
     <g transform="rotate(45 12 12)">
       <rect x="7.6" y="2.2" width="8.8" height="19.6" rx="4.4" fill={W} />
@@ -119,7 +120,7 @@ const GLYPHS: Record<Exclude<EventKey, 'custom' | 'shed' | 'temperature' | 'acti
 }
 
 // Glifos de los botones de especies (muda, temperatura del terrario, actividad).
-const EXTRA: Record<'shed' | 'temperature' | 'activity', (c: string) => ReactNode> = {
+export const EXTRA: Record<'shed' | 'temperature' | 'activity', (c: string) => ReactNode> = {
   shed: (c) => (
     <>
       <path d="M19.6 3.4C11.4 3.6 4.8 10 5 19l.2.2c9 .2 15.4-6.4 14.4-15.8z" fill={W} />
@@ -141,30 +142,22 @@ const EXTRA: Record<'shed' | 'temperature' | 'activity', (c: string) => ReactNod
   activity: () => <path d="M13.8 2.4 5.2 13.6h5.9l-1.2 8 8.9-11.6h-5.9z" fill={W} strokeLinejoin="round" />,
 }
 
-const DEFAULT_EMOJI = new Map<string, string>(BUILTIN_TYPES.map((t) => [t.key, t.emoji]))
+export const DEFAULT_EMOJI = new Map<string, string>(BUILTIN_TYPES.map((t) => [t.key, t.emoji]))
 
 export function TypeIcon({ k, emoji, size = 40 }: { k: EventKey; emoji?: string; size?: number | string }) {
   const id = useId().replace(/:/g, '')
-  const [top, bottom] = TYPE_COLORS[k] ?? TYPE_COLORS.custom
-  const draw = k === 'shed' || k === 'temperature' || k === 'activity' ? EXTRA[k] : k === 'custom' ? null : GLYPHS[k]
-  const glyph = draw && (!emoji || emoji === DEFAULT_EMOJI.get(k)) ? draw : null
+  // Tarjeta tintada (clara u oscura según el tema) con la ilustración del tipo encima.
   return (
-    <svg className="ticon" width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
+    <svg className="ticon ticon2" width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" style={tintVars(k, emoji) as CSSProperties}>
       <defs>
-        <linearGradient id={`g${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={top} />
-          <stop offset="1" stopColor={bottom} />
+        <linearGradient id={`g${id}`} x1="0" y1="0" x2="0.6" y2="1">
+          <stop offset="0" style={{ stopColor: 'var(--c1)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--c2)' }} />
         </linearGradient>
       </defs>
       <path d={SQUIRCLE} fill={`url(#g${id})`} />
-      <path d={SQUIRCLE} fill="none" stroke="#fff" strokeOpacity=".22" strokeWidth="1" transform="translate(.5 .5) scale(.975)" />
-      {glyph ? (
-        <g transform="translate(8 8)">{glyph(bottom)}</g>
-      ) : (
-        <text x="20" y="21" textAnchor="middle" dominantBaseline="central" fontSize="22">
-          {emoji}
-        </text>
-      )}
+      <path d={SQUIRCLE} fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="1" transform="translate(.5 .5) scale(.975)" />
+      <TypeArt k={k} emoji={emoji} box={{ x: 3, y: 3, size: 34 }} />
     </svg>
   )
 }

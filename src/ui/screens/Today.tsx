@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { repo } from '../../data/instance'
 import { useDoseLogs, useEventTypes, useEvents, useNow, useSettings, useTreatments } from '../../data/hooks'
@@ -8,6 +8,7 @@ import type { EventType, LogEvent, Pet } from '../../domain/types'
 import { endOfLocalDay, formatTime, startOfLocalDay } from '../../domain/time'
 import { Empty, Sheet, useToast } from '../components'
 import { TypeIcon } from '../art/TypeIcon'
+import { TypeArt, tintVars } from '../art/TypeArt'
 import { PetIllustration } from '../art/pets'
 import { DoseList, todaySlots, useDoseActions, type SlotItem } from '../doses'
 import { EventSheet } from '../EventSheet'
@@ -244,14 +245,12 @@ export function Today() {
             return (
               <button
                 key={t.id}
-                className={`tile${wide ? ' wide' : ''}`}
-                style={wide ? { gridColumn: `span ${L.cols - rest + 1}` } : undefined}
+                className={`tile art${wide ? ' wide' : ''}`}
+                style={{ ...(tintVars(t.key, t.emoji) as CSSProperties), ...(wide ? { gridColumn: `span ${L.cols - rest + 1}` } : null) }}
                 onClick={() => tap(t)}
                 aria-label={aria}
               >
-                <span className="emoji" aria-hidden="true">
-                  <TypeIcon k={t.key} emoji={t.emoji} size="100%" />
-                </span>
+                <TypeArt k={t.key} emoji={t.emoji} className="tart" />
                 <span className="label">{t.label}</span>
                 {alert ? (
                   <span className="count alert" aria-hidden="true">
