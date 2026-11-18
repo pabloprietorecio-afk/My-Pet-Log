@@ -3076,3 +3076,194 @@ button.strip {
   padding-right: 0.5rem;
   white-space: nowrap;
 }
+/* La carita del micro es el propio botón */
+.voice-orb {
+  background: none;
+  box-shadow: none;
+  width: 6.4rem;
+  height: 6.4rem;
+}
+.voice-orb .face {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 14px rgb(40 50 140 / 0.3));
+}
+.voice-orb .halo {
+  border-radius: 34%;
+}
+.voice-orb.on .face {
+  animation: voice-bob 1.6s ease-in-out infinite;
+}
+@keyframes voice-bob {
+  50% { transform: translateY(-2px) rotate(-2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice-orb.on .face { animation: none; }
+}
+@media (max-height: 660px) {
+  .voice-orb { width: 4.8rem; height: 4.8rem; }
+}
+/* «¿Qué puedo decir?» */
+.voice-example {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.voice-example b {
+  color: var(--primary);
+  font-style: italic;
+}
+.voice-help-btn {
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.55rem 1rem;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.voice-help {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.voice-help-title {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+.voice-help-sub {
+  margin: -0.2rem 0 0.2rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.voice-help-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.vh-group {
+  --vh: #3d55d6;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--vh) 7%, transparent);
+  transition: background 0.2s;
+}
+.vh-group.on {
+  background: color-mix(in srgb, var(--vh) 14%, transparent);
+}
+.vh-log { --vh: #3d55d6; }
+.vh-detail { --vh: #c2410c; }
+.vh-meds { --vh: #7c3aed; }
+.vh-time { --vh: #0f766e; }
+.vh-more { --vh: #b4237a; }
+.vh-ask { --vh: #15803d; }
+:root[data-theme='dark'] .vh-log { --vh: #9db0ff; }
+:root[data-theme='dark'] .vh-detail { --vh: #ffae7a; }
+:root[data-theme='dark'] .vh-meds { --vh: #c4a8ff; }
+:root[data-theme='dark'] .vh-time { --vh: #6fdcd0; }
+:root[data-theme='dark'] .vh-more { --vh: #ff9fd0; }
+:root[data-theme='dark'] .vh-ask { --vh: #8ee6a5; }
+.vh-head {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem 0.7rem;
+  min-height: 2.9rem;
+  text-align: left;
+}
+.vh-ic {
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.05rem;
+  background: color-mix(in srgb, var(--vh) 18%, transparent);
+}
+.vh-txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.vh-t {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--vh);
+}
+.vh-s {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vh-arrow {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid var(--vh);
+  border-bottom: 2px solid var(--vh);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 0.2s;
+  margin-right: 0.3rem;
+}
+.vh-group.on .vh-arrow {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+.vh-phrases {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.7rem 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.vh-phrases li {
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0.32rem 0.7rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.vh-phrases b {
+  color: var(--vh);
+  font-weight: 800;
+}
+@media (max-height: 700px) {
+  .vh-group:not(.on) .vh-s { display: none; }
+  .vh-head { min-height: 2.6rem; padding-top: 0.3rem; padding-bottom: 0.3rem; }
+  .vh-ic { width: 1.8rem; height: 1.8rem; font-size: 0.95rem; }
+  .voice-help-title { font-size: 1.15rem; }
+  .vh-phrases li { font-size: 0.84rem; padding: 0.26rem 0.6rem; }
+}
+@media (max-height: 700px) {
+  .vh-s { display: none; }
+  .voice-help-sub { display: none; }
+  .voice-help-list { gap: 0.25rem; }
+  .vh-phrases { gap: 0.25rem; padding-bottom: 0.45rem; }
+  .vh-head { min-height: 2.5rem; }
+}
+@media (max-height: 600px) {
+  .voice-help-title { display: none; }
+  .vh-head { min-height: 2.3rem; padding-top: 0.2rem; padding-bottom: 0.2rem; }
+  .vh-phrases li { font-size: 0.8rem; padding: 0.2rem 0.5rem; }
+}

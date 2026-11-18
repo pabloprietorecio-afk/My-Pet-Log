@@ -7,5 +7,6 @@
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_mic"
     android:previewLayout="@layout/widget_mic"
+    android:previewImage="@drawable/ic_voice_face"
     android:description="@string/widget_mic_desc"
     android:widgetCategory="home_screen" />

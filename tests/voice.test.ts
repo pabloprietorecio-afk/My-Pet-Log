@@ -188,3 +188,19 @@ describe('mascota, varias acciones, deshacer y preguntas', () => {
     expect(parseVoice('', ctx).kind).toBe('none')
   })
 })
+
+describe('«¿Qué puedo decir?»', () => {
+  it('todas las frases de la ayuda se entienden', async () => {
+    const { voiceHelp, plain } = await import('../src/voice/help')
+    const groups = voiceHelp({ treatment: 'Prednisona', otherPet: 'Toby', custom: 'Pis' })
+    for (const g of groups)
+      for (const ph of g.phrases) {
+        const r = parseVoice(plain(ph), ctx)
+        expect(r.kind, `«${plain(ph)}»`).not.toBe('none')
+        if (g.id === 'ask') expect(r.kind, plain(ph)).toBe('query')
+        if (g.id !== 'ask' && plain(ph) !== 'deshacer') expect(r.kind, plain(ph)).toBe('actions')
+      }
+    // sin tratamientos ni otras mascotas también
+    for (const g of voiceHelp()) for (const ph of g.phrases) expect(parseVoice(plain(ph), ctx).kind, plain(ph)).not.toBe('none')
+  })
+})

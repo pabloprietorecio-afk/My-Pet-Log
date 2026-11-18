@@ -3,7 +3,7 @@
     <shortcut
         android:shortcutId="voz"
         android:enabled="true"
-        android:icon="@drawable/ic_shortcut_mic"
+        android:icon="@drawable/ic_voice_face"
         android:shortcutShortLabel="@string/voice_label"
         android:shortcutLongLabel="@string/voice_label">
         <intent
