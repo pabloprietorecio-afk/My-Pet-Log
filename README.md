@@ -34,7 +34,7 @@ Datos con UUID, `updatedAt` y borrado lógico, listos para una sincronización f
 - **Reglas:** solo los miembros de un grupo leen y escriben sus registros. Para entrar hace falta una invitación vigente, que nadie puede leer, solo comprobar. Cada registro lleva la hora del servidor y su autor.
 - **Conflictos:** por cada registro gana el `updatedAt` más reciente. Los borrados son lógicos, así que también se propagan.
 - **Pruebas:** `tests/sync.test.ts` prueba dos móviles contra un servidor en memoria con las mismas comprobaciones. El flujo `.github/workflows/firebase.yml` prueba las reglas (`firebase/test/reglas.test.mjs`) y la sincronización real contra los emuladores oficiales (`tests/firebase-emulator.test.ts`).
-- **Configurar:** pega el `firebaseConfig` del proyecto en `src/sync/config.ts` y publica las reglas, con `firebase deploy --only firestore:rules` desde `firebase/` o pegándolas en la consola. Mientras `FIREBASE_CONFIG` sea `null`, la pantalla Compartir avisa de que falta el servidor.
+- **Configurar:** el proyecto es `petloj-72431` (Firestore en europe-southwest1, acceso anónimo sin limpieza automática). Su `firebaseConfig` está en `src/sync/config.ts` y publica las reglas, con `firebase deploy --only firestore:rules` desde `firebase/` o pegándolas en la consola. Mientras `FIREBASE_CONFIG` sea `null`, la pantalla Compartir avisa de que falta el servidor.
 - **En desarrollo:** `localStorage.setItem('petlog-dev-sync', '1')` usa un servidor simulado en memoria para revisar las pantallas.
 
 ## Desarrollo
@@ -95,7 +95,7 @@ npx cap open android
 - WhatsApp/correo: «Compartir informe en PDF» adjunta el PDF mediante la hoja del sistema (ahí aparecen WhatsApp, Gmail, etc.); los botones WhatsApp y Correo envían un resumen en texto ya escrito. En la app instalada se abren con el plugin `@capacitor/app-launcher` (tras instalar dependencias hay que ejecutar `npx cap sync`). Si un navegador bloquea la apertura, la app ofrece copiar el resumen.
 - Comprobado en Chrome (escritorio, tamaño móvil): wa.me con el texto, mailto con asunto y cuerpo, copiar al portapapeles, descarga de PDF y HTML. No comprobado aún en un teléfono real ni dentro del visor de artefactos de Claude.
 - **Icono de la app:** sin probar en un teléfono. Según el lanzador, el cambio puede tardar unos segundos, y algunos quitan el acceso directo del escritorio (la app sigue en el cajón). En iOS no está implementado.
-- **Compartir:** probado con el servidor simulado y, en CI, contra los emuladores de Firebase. Falta probarlo contra el proyecto real y entre dos teléfonos. La sesión anónima se pierde si se reinstala la app: hay que volver a unirse con el código. El abuso de cuota no está limitado (App Check pendiente).
+- **Compartir:** probado con el servidor simulado y, en CI, contra los emuladores de Firebase. Probado contra el proyecto real desde CI (`.github/workflows/firebase-real.yml`); falta probarlo entre dos teléfonos. La sesión anónima se pierde si se reinstala la app: hay que volver a unirse con el código. El abuso de cuota no está limitado (App Check pendiente).
 - **Pendiente (no implementado):** recordatorios/notificaciones de tomas, otros idiomas, cifrado de la copia, importar analíticas.
 - Las fotos se reducen a ≤1024 px y se guardan dentro de la base (y de las copias): muchas fotos engordan las copias.
 - Probado solo con la zona horaria Europe/Madrid.
