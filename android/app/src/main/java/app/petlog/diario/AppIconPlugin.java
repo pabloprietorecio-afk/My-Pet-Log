@@ -56,6 +56,8 @@ public class AppIconPlugin extends Plugin {
                     pm.setComponentEnabledSetting(alias(k), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
                 }
             }
+            // El atajo va ligado a la entrada del lanzador: se revisa tras cambiarla.
+            VoiceShortcut.ensure(getContext());
             JSObject ret = new JSObject();
             ret.put("kind", kind);
             call.resolve(ret);

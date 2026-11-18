@@ -11,6 +11,7 @@ import { SettingIcon } from '../art/TypeIcon'
 import { IconLayer } from '../art/AppIconArt'
 import type { PetKind } from '../art/pets'
 import { canChangeAppIcon, getAppIcon, setAppIcon } from '../../platform/appIcon'
+import { voiceShortcutText } from '../../platform/shortcut'
 
 type Panel = 'theme' | 'tap' | 'backup' | 'privacy' | 'icon' | null
 
@@ -33,6 +34,10 @@ export function Settings() {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const iconSupported = canChangeAppIcon()
   const [icon, setIcon] = useState<PetKind | null>(null)
+  const [shortcut, setShortcut] = useState<string | null>(null)
+  useEffect(() => {
+    if (panel === 'icon') void voiceShortcutText().then(setShortcut)
+  }, [panel, icon])
   const [iconMsg, setIconMsg] = useState<{ ok: boolean; text: string } | null>(null)
   useEffect(() => {
     if (iconSupported) getAppIcon().then(setIcon, () => setIcon(null))
@@ -223,6 +228,7 @@ export function Settings() {
           ) : (
             <p className="hint">Cambia el icono en la pantalla de inicio. Algunos lanzadores quitan el acceso directo del escritorio al cambiarlo: la app sigue en el cajón de aplicaciones y tus datos no se tocan.</p>
           )}
+          {shortcut && <p className="hint">{shortcut}</p>}
         </Sheet>
       )}
       {panel === 'privacy' && (
