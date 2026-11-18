@@ -76,7 +76,7 @@ PETLOG_KEYSTORE_PASSWORD='…' python3 scripts/sign_apk.py PetLog-0.3.N-firma-de
 
 El script aplica el esquema de firma APK v2 (RSA + SHA-256), sustituye la firma anterior y no toca el contenido ni la alineación del ZIP. Comprobado con `apksigtool verify`. Mientras se firme siempre con la misma clave y el número de versión suba, Android instala cada APK encima del anterior conservando los datos.
 
-La app Android no pide ningún permiso (ni siquiera internet) y excluye sus datos de la copia en la nube de Google; el traspaso directo entre teléfonos sí está permitido.
+La app Android solo pide el permiso de internet (para compartir mascotas; sin compartir no se conecta a nada) y excluye sus datos de la copia en la nube de Google; el traspaso directo entre teléfonos sí está permitido.
 
 ### Empaquetar como app en local (no probado en este entorno)
 
