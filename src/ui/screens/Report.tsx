@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { memoryMode } from '../../data/instance'
 import { makePeriod, type PeriodPreset } from '../../domain/report'
@@ -8,9 +8,9 @@ import { copyText, mailtoUrl, openExternal, saveFile, shareFile, whatsappUrl } f
 import { htmlBlob, pdfBlob, reportFileName } from '../../report/export'
 import { renderHtml } from '../../report/html'
 import { reportToText } from '../../report/text'
+import { reportArt } from '../art/reportArt'
 import { Seg, Sheet } from '../components'
 import { IconChat, IconCode, IconDownload, IconEyeOpen, IconMail, IconShare } from '../icons'
-import { Paged, type PagedItem } from '../layout'
 import { useReportModel } from '../reportData'
 
 export function Report() {
@@ -27,7 +27,8 @@ export function Report() {
   const now = useMemo(() => new Date(), [preset, from, to])
   const period = useMemo(() => makePeriod(preset, now, { from, to }), [preset, now, from, to])
   const model = useReportModel(pet, period, now)
-  const html = useMemo(() => (model && preview ? renderHtml(model) : ''), [model, preview])
+  // El mismo HTML sirve para la miniatura (portada) y para la vista completa.
+  const html = useMemo(() => (model ? renderHtml(model, reportArt) : ''), [model])
 
   const run = async (label: string, fn: () => Promise<string | void>) => {
     if (!model) return
@@ -58,17 +59,6 @@ export function Report() {
       }
     })
   }
-
-  const summary: PagedItem[] = (model?.summary ?? []).map((s, i) => ({
-    key: `s${i}`,
-    node: (
-      <>
-        <span className="lab">{s.label}</span>
-        <span className="val">{s.value}</span>
-      </>
-    ),
-  }))
-  const head = model ? [{ key: 'h', head: `${model.period.fromText} – ${model.period.toText}` } as PagedItem] : []
 
   return (
     <>
@@ -101,21 +91,10 @@ export function Report() {
       )}
 
       <div className="bar">
-        <h2 className="eyebrow">Resumen</h2>
-        <button className="link-btn" onClick={() => setPreview(true)} disabled={!model}>
-          <IconEyeOpen />
-          Ver informe completo
-        </button>
+        <h2 className="eyebrow">Vista previa</h2>
+        <span className="rthumb-range">{model ? `${model.period.fromDay} – ${model.period.toDay}` : ''}</span>
       </div>
-      <Paged
-        items={[...head, ...summary]}
-        rowRem={3.9}
-        headRem={1.6}
-        rowClass="sum"
-        resetKey={period.label + from + to}
-        label="Resumen del periodo"
-        empty={<p className="muted">Preparando…</p>}
-      />
+      <ReportThumb html={html} onOpen={() => setPreview(true)} label={model ? `Ver informe completo de ${pet.name} (${model.period.fromDay} – ${model.period.toDay})` : 'Preparando el informe'} />
 
       <button
         className="btn primary block big"
@@ -123,7 +102,7 @@ export function Report() {
         disabled={off}
         onClick={() =>
           run('share', async () =>
-            outcome(await shareFile(await pdfBlob(model!), reportFileName(model!, 'pdf'), title, reportToText(model!)), 'PDF descargado.'),
+            outcome(await shareFile(await pdfBlob(model!, reportArt), reportFileName(model!, 'pdf'), title, reportToText(model!)), 'PDF descargado.'),
           )
         }
       >
@@ -134,7 +113,7 @@ export function Report() {
         <button
           className="act"
           disabled={off}
-          onClick={() => run('pdf', async () => outcome(await saveFile(await pdfBlob(model!), reportFileName(model!, 'pdf'), title), 'PDF descargado.'))}
+          onClick={() => run('pdf', async () => outcome(await saveFile(await pdfBlob(model!, reportArt), reportFileName(model!, 'pdf'), title), 'PDF descargado.'))}
         >
           <IconDownload />
           {busy === 'pdf' ? '…' : 'PDF'}
@@ -142,7 +121,7 @@ export function Report() {
         <button
           className="act"
           disabled={off}
-          onClick={() => run('html', async () => outcome(await saveFile(htmlBlob(model!), reportFileName(model!, 'html'), title), 'HTML descargado.'))}
+          onClick={() => run('html', async () => outcome(await saveFile(htmlBlob(model!, reportArt), reportFileName(model!, 'html'), title), 'HTML descargado.'))}
         >
           <IconCode />
           HTML
@@ -197,5 +176,48 @@ export function Report() {
         </Sheet>
       )}
     </>
+  )
+}
+
+/** Ancho (px CSS) al que se dibuja la portada antes de reducirla: activa la maqueta de dos columnas. */
+const THUMB_W = 720
+
+/**
+ * Miniatura de la portada (infografía) que ocupa el hueco libre de la pantalla.
+ * Toda la tarjeta es un botón que abre el informe completo.
+ */
+function ReportThumb({ html, onOpen, label }: { html: string; onOpen: () => void; label: string }) {
+  const ref = useRef<HTMLButtonElement>(null)
+  const [size, setSize] = useState({ w: 0, h: 0 })
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => setSize({ w: el.clientWidth, h: el.clientHeight })
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const scale = size.w ? size.w / THUMB_W : 0
+  // Sin barras de desplazamiento dentro de la miniatura.
+  const doc = useMemo(() => html.replace('</head>', '<style>html,body{overflow:hidden}</style></head>'), [html])
+  return (
+    <button ref={ref} type="button" className="rthumb" onClick={onOpen} disabled={!html} aria-label={label}>
+      {html && scale > 0 && (
+        <iframe
+          title="Vista previa del informe"
+          aria-hidden="true"
+          tabIndex={-1}
+          sandbox=""
+          srcDoc={doc}
+          style={{ width: THUMB_W, height: Math.ceil(size.h / scale) + 2, transform: `scale(${scale})` }}
+        />
+      )}
+      {!html && <span className="rthumb-wait">Preparando…</span>}
+      <span className="rthumb-cta" aria-hidden="true">
+        <IconEyeOpen />
+        Ver informe completo
+      </span>
+    </button>
   )
 }

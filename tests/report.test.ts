@@ -97,7 +97,7 @@ describe('informe', () => {
   it('no emite lenguaje de diagnóstico, valoración ni recomendación', () => {
     const html = renderHtml(m)
     const text = reportToText(m)
-    const body = (s: string) => s.replace(m.disclaimer, '').replace(/Generado con PetLog[^\n<]*/g, '')
+    const body = (s: string) => s.split(m.disclaimer).join('').replace(/Generado con PetLog[^\n<]*/g, '')
     const banned = /(diagnostic|sospech|probablement|recomend|deber[ií]a|empeor|mejor[óo]|grave\b|preocupant|urgente|tratamiento sugerido)/i
     // "mejor" aparece en una nota literal del propietario: se excluye ese texto
     const clean = (s: string) => body(s).replace('Come mejor con comida húmeda', '')
@@ -179,3 +179,41 @@ describe('informe de otras especies', () => {
     expect(m.pet.species).toBe('Conejo')
   })
 })
+
+describe('portada (infografía)', () => {
+  const m = build('7d')
+  it('resume solo recuentos, con la medicación y los episodios primero', () => {
+    const keys = m.cover.stats.map((s) => s.key)
+    expect(keys[0]).toBe('days')
+    expect(keys[1]).toBe('medication')
+    expect(keys.indexOf('vomit')).toBeLessThan(keys.indexOf('food'))
+    const vomit = m.cover.stats.find((s) => s.key === 'vomit')!
+    expect(vomit.value).toBe('2 episodios')
+    expect(vomit.detail).toBe('Leve ×1 · Moderado ×1')
+    const med = m.cover.stats.find((s) => s.key === 'medication')!
+    expect(med.value).toMatch(/^\d+ de \d+ tomas$/)
+  })
+  it('peso: último valor y diferencia aritmética, sin valoraciones', () => {
+    expect(m.cover.weight).toMatchObject({ last: '4 kg', lastDate: '16/11/2026', first: '4,2 kg', delta: '−0,2 kg' })
+  })
+  it('notas del propietario de más reciente a más antigua y tratamientos actuales', () => {
+    expect(m.cover.notes[0].text).toBe('tras desayunar')
+    expect(m.cover.notes.map((n) => n.text)).toContain('Estuvo escondida toda la tarde')
+    expect(m.cover.meds[0]).toMatchObject({ name: 'Prednisona', dose: '5 mg' })
+  })
+  it('el HTML abre con la portada y funciona sin ilustraciones', () => {
+    const html = renderHtml(m)
+    expect(html.indexOf('class="cover"')).toBeGreaterThan(0)
+    expect(html.indexOf('class="cover"')).toBeLessThan(html.indexOf('1. Datos de la mascota'))
+    for (const t of ['Resumen del periodo', 'Evolución del peso', 'Episodios por día', 'Registros por tipo', 'Medicación actual', 'Consulta veterinaria', 'Observaciones']) {
+      expect(html).toContain(t)
+    }
+    expect(html).toContain('Luna &lt;b&gt;')
+    expect(html).not.toMatch(/src="https?:|href="https?:/)
+  })
+  it('usa las ilustraciones que le pasa la app', () => {
+    const art = { type: () => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect id="ARTE" width="1" height="1"/></svg>', pet: () => '<svg viewBox="0 0 64 64"></svg>' }
+    expect(renderHtml(m, art)).toContain('id="ARTE"')
+  })
+})
+

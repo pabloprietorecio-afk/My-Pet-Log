@@ -7,7 +7,7 @@
 import { SPECIES, describeEvent, levelOptions } from './eventTypes'
 import { adherence, doseState, doseText, isTreatmentActive, scheduleText } from './schedule'
 import { countPerDay, countPerWeek, daysWithRecords, frequencyByType, levelAveragePerDay, valueSeries } from './stats'
-import type { DoseLog, EventType, LocalDate, LogEvent, Pet, Treatment } from './types'
+import type { DoseLog, EventKey, EventType, LocalDate, LogEvent, Pet, Species, Treatment } from './types'
 import {
   addDays,
   ageText,
@@ -119,12 +119,32 @@ export interface IncidentSeries {
   counts: number[]
 }
 
+/** Un dato de la portada (tarjeta «Resumen del periodo»). Solo recuentos. */
+export interface CoverStat {
+  key: EventKey | 'days'
+  emoji?: string
+  label: string
+  value: string
+  detail?: string
+}
+
+/** Datos de la primera página (infografía). Todo sale de lo registrado; nada se interpreta. */
+export interface ReportCover {
+  stats: CoverStat[]
+  weight?: { last: string; lastDate: string; first?: string; firstDate?: string; delta?: string }
+  vetVisits: { when: string; text: string }[]
+  notes: { when: string; label: string; text: string }[]
+  meds: { name: string; dose: string; schedule: string; adherence?: string }[]
+}
+
 export interface ReportModel {
   generatedAt: string
-  period: { label: string; from: string; to: string; fromText: string; toText: string }
+  period: { label: string; from: string; to: string; fromText: string; toText: string; fromDay: string; toDay: string }
   pet: {
     name: string
     species: string
+    speciesKey: Species
+    photo?: string
     breed?: string
     sex: string
     age?: string
@@ -140,11 +160,12 @@ export interface ReportModel {
   medication: { rows: MedRow[]; adHoc: number }
   weight: { windowLabel: string; points: { t: number; v: number; date: LocalDate }[]; unit: string }
   incidents: { bin: 'day' | 'week'; labels: string[]; series: IncidentSeries[] }
-  frequency: { label: string; emoji: string; count: number }[]
+  frequency: { key: EventKey; label: string; emoji: string; count: number }[]
   appetite: { date: LocalDate; avg: number | null }[]
   customValues: { label: string; unit: string; points: { t: number; v: number; date: LocalDate }[] }[]
   ownerNotes: { when: string; label: string; text: string }[]
   photos: { when: string; label: string; dataUrl: string }[]
+  cover: ReportCover
   disclaimer: string
 }
 
@@ -260,6 +281,7 @@ export function buildReport(input: ReportInput): ReportModel {
     label: 'Días con algún registro',
     value: `${periodDays.withRecords} de ${periodDays.total}`,
   })
+  const stats: CoverStat[] = [{ key: 'days', label: 'Días con registro', value: `${periodDays.withRecords} de ${periodDays.total}` }]
   const ordered = [...types].sort((a, b) => a.order - b.order)
   for (const t of ordered) {
     if (t.key === 'medication' || t.key === 'weight' || t.key === 'vet') continue
@@ -274,7 +296,9 @@ export function buildReport(input: ReportInput): ReportModel {
         const u = vals[vals.length - 1].unit ?? t.unit ?? ''
         const min = Math.min(...vals.map((e) => e.value!))
         const max = Math.max(...vals.map((e) => e.value!))
-        summary.push({ label: t.label, value: `${vals.length} ${plural(vals.length, 'medida', 'medidas')} (${min === max ? formatNumber(min) : `${formatNumber(min)}–${formatNumber(max)}`} ${u})`.replace(' )', ')') })
+        const range = `${min === max ? formatNumber(min) : `${formatNumber(min)}–${formatNumber(max)}`} ${u}`.trim()
+        summary.push({ label: t.label, value: `${vals.length} ${plural(vals.length, 'medida', 'medidas')} (${range})` })
+        stats.push({ key: t.key, emoji: t.emoji, label: t.label, value: `${vals.length} ${plural(vals.length, 'medida', 'medidas')}`, detail: range })
         continue
       }
     }
@@ -283,10 +307,13 @@ export function buildReport(input: ReportInput): ReportModel {
       label: t.label,
       value: `${evs.length} ${plural(evs.length, noun[0], noun[1])}${br ? ` (${br})` : ''}`,
     })
+    stats.push({ key: t.key, emoji: t.emoji, label: t.label, value: `${evs.length} ${plural(evs.length, noun[0], noun[1])}`, detail: br || undefined })
   }
   const vetEvents = events.filter((e) => types.find((t) => t.id === e.typeId)?.key === 'vet')
   if (vetEvents.length > 0) {
     summary.push({ label: 'Citas / visitas veterinarias', value: String(vetEvents.length) })
+    const vt = types.find((t) => t.key === 'vet')
+    stats.push({ key: 'vet', emoji: vt?.emoji, label: 'Visitas veterinarias', value: String(vetEvents.length) })
   }
   const periodWeights = allWeights.filter((e) => e.at >= fromIso && e.at <= toIso)
   if (periodWeights.length > 0) {
@@ -320,6 +347,12 @@ export function buildReport(input: ReportInput): ReportModel {
     }
     if (extra > 0) bits.push(`${extra} ${plural(extra, 'toma adicional', 'tomas adicionales')}`)
     summary.push({ label: 'Medicación', value: bits.join(' · ') })
+    const mt = types.find((t) => t.key === 'medication')
+    stats.push(
+      planned > 0
+        ? { key: 'medication', emoji: mt?.emoji, label: 'Medicación', value: `${g + l} de ${planned} tomas`, detail: [sk ? `${sk} omitidas` : '', un ? `${un} sin registrar` : '', extra ? `${extra} adicionales` : ''].filter(Boolean).join(' · ') || undefined }
+        : { key: 'medication', emoji: mt?.emoji, label: 'Medicación', value: `${extra} ${plural(extra, 'toma suelta', 'tomas sueltas')}` },
+    )
   }
 
   // ── Gráficas ─────────────────────────────────────────────────────────────
@@ -344,7 +377,7 @@ export function buildReport(input: ReportInput): ReportModel {
 
   const frequency = frequencyByType(events, ordered, period.from, period.to)
     .filter((f) => f.type.key !== 'weight')
-    .map((f) => ({ label: f.type.label, emoji: f.type.emoji, count: f.count }))
+    .map((f) => ({ key: f.type.key, label: f.type.label, emoji: f.type.emoji, count: f.count }))
 
   const foodType = types.find((t) => t.key === 'food')
   const appetite = foodType
@@ -387,6 +420,48 @@ export function buildReport(input: ReportInput): ReportModel {
 
   const wUnit = lastWeight?.unit ?? 'kg'
 
+  // ── Portada (infografía): solo datos ya calculados arriba, sin valoraciones ──
+  const vetTypeIds = new Set(types.filter((t) => t.key === 'vet').map((t) => t.id))
+  const vetVisits = vetEvents
+    .slice()
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .map((e) => ({ when: formatDateTime(e.at), text: describeEvent(typeById.get(e.typeId)!, e) }))
+  // Notas del propietario (las de «Veterinario» ya salen en su tarjeta), de la más reciente a la más antigua.
+  const coverNotes = [
+    ...events.filter((x) => x.note && !vetTypeIds.has(x.typeId)).map((e) => ({ at: e.at, label: typeById.get(e.typeId)?.label ?? 'Registro', text: e.note! })),
+    ...logs.filter((x) => x.note).map((l) => ({ at: l.at, label: 'Medicación', text: l.note! })),
+  ].sort((a, b) => b.at.localeCompare(a.at))
+  let coverWeight: ReportCover['weight']
+  if (lastWeight) {
+    const shown = weightPoints.filter((q) => q.v !== null)
+    const first = shown[0]
+    const last = { v: lastWeight.value!, date: toLocalDate(new Date(lastWeight.at)) }
+    const diff = first ? Math.round((last.v - first.v) * 100) / 100 : 0
+    coverWeight = {
+      last: `${formatNumber(last.v)} ${wUnit}`,
+      lastDate: formatDateShort(new Date(lastWeight.at)),
+      ...(first && shown.length > 1
+        ? {
+            first: `${formatNumber(first.v)} ${wUnit}`,
+            firstDate: formatDateShort(parseLocalDate(first.date)),
+            delta: `${diff > 0 ? '+' : diff < 0 ? '−' : '±'}${formatNumber(Math.abs(diff))} ${wUnit}`,
+          }
+        : {}),
+    }
+  }
+  // En la portada caben pocos datos: primero lo que más pregunta el veterinario.
+  const PRIORITY: string[] = ['days', 'medication', 'vomit', 'stool', 'symptom', 'food', 'water', 'vet']
+  const rank = (k: string) => (PRIORITY.includes(k) ? PRIORITY.indexOf(k) : PRIORITY.length)
+  stats.sort((a, b) => rank(a.key) - rank(b.key))
+  const pctByName = new Map(rows.filter((r) => r.planned > 0).map((r) => [r.name, `${r.given + r.late} de ${r.planned} tomas`]))
+  const cover: ReportCover = {
+    stats,
+    weight: coverWeight,
+    vetVisits,
+    notes: coverNotes.map((n) => ({ when: formatDateTime(n.at), label: n.label, text: n.text })),
+    meds: currentTreatments.map((t) => ({ name: t.name, dose: t.dose, schedule: t.schedule, adherence: pctByName.get(t.name) })),
+  }
+
   return {
     generatedAt: formatDateTime(now.toISOString()),
     period: {
@@ -395,10 +470,14 @@ export function buildReport(input: ReportInput): ReportModel {
       to: toIso,
       fromText: formatDateTime(fromIso),
       toText: formatDateTime(toIso),
+      fromDay: formatDateShort(period.from),
+      toDay: formatDateShort(period.to),
     },
     pet: {
       name: pet.name,
       species: SPECIES[pet.species]?.pick ?? pet.species,
+      speciesKey: pet.species,
+      photo: pet.photo || undefined,
       breed: pet.breed || undefined,
       sex: SEX[pet.sex],
       age: ageText(pet.birthDate, now),
@@ -425,6 +504,7 @@ export function buildReport(input: ReportInput): ReportModel {
     customValues,
     ownerNotes,
     photos,
+    cover,
     disclaimer: DISCLAIMER,
   }
 }

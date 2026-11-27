@@ -1,6 +1,8 @@
 import { esc, PALETTE_LIGHT } from '../charts/svg'
 import { reportCharts } from '../charts/reportCharts'
 import type { ReportModel } from '../domain/report'
+import type { ReportArt } from './art'
+import { COVER_CSS, renderCoverHtml } from './coverHtml'
 
 const CSS = `
 :root{--ink:#0f2a26;--muted:#53665f;--line:#dbe3e0;--soft:#f1f5f3;--brand:#1c5cab}
@@ -38,15 +40,21 @@ td.n,th.n{text-align:right;white-space:nowrap}
 .disc{margin-top:30px;padding:10px 12px;background:var(--soft);border-left:3px solid var(--muted);font-size:12px;color:var(--muted)}
 details.alt{font-size:12px;color:var(--muted)}
 .empty{color:var(--muted);font-style:italic}
-@page{size:A4;margin:14mm}
-@media print{main{padding:0}details.alt{display:none}h2{break-after:avoid}}
+@page{size:A4;margin:10mm}
+.sep{max-width:820px;margin:18px auto 0;padding:0 16px;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.sep::before,.sep::after{content:"";flex:1;border-top:1px dashed var(--line)}
+@media print{main{padding:0 2mm}details.alt{display:none}h2{break-after:avoid}.sep{display:none}}
 `
 
 const li = (items: string[]) =>
   items.length ? `<ul class="tags">${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="empty">Sin datos registrados.</p>'
 
-/** Informe como HTML autónomo (sin recursos externos). */
-export function renderHtml(m: ReportModel): string {
+/**
+ * Informe como HTML autónomo (sin recursos externos).
+ * Primera página: infografía (`coverHtml.ts`). Después, el informe detallado con las 9 secciones.
+ * `art` son las ilustraciones de la app ya en SVG; sin ellas se usan iconos sencillos.
+ */
+export function renderHtml(m: ReportModel, art?: ReportArt): string {
   const p = m.pet
   const kv = (k: string, v?: string) => (v ? `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>` : '')
   const vetLine = [p.vet.name, p.vet.clinic, p.vet.phone].filter(Boolean).join(' · ')
@@ -115,9 +123,12 @@ export function renderHtml(m: ReportModel): string {
 
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Informe de ${esc(p.name)} · ${esc(m.period.label)}</title><style>${CSS}</style></head>
-<body><main>
-<header class="top"><div class="app">PetLog · Informe para el veterinario</div>
+<title>Informe de ${esc(p.name)} · ${esc(m.period.label)}</title><style>${CSS}${COVER_CSS}</style></head>
+<body>
+${renderCoverHtml(m, art)}
+<div class="sep" aria-hidden="true">Informe detallado</div>
+<main>
+<header class="top"><div class="app">PetLog · Informe detallado para el veterinario</div>
 <h1>${esc(p.name)}</h1>
 <div class="sub">${esc(m.period.label)} · ${esc(m.period.fromText)} – ${esc(m.period.toText)}<br>Generado el ${esc(m.generatedAt)}</div></header>
 

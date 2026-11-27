@@ -1,4 +1,5 @@
 import type { ReportModel } from '../domain/report'
+import type { ReportArt } from './art'
 import { renderHtml } from './html'
 
 const safe = (s: string) =>
@@ -14,6 +15,6 @@ export function reportFileName(m: ReportModel, ext: 'pdf' | 'html', now = new Da
   return `PetLog-${safe(m.pet.name) || 'mascota'}-informe-${date}.${ext}`
 }
 
-export const htmlBlob = (m: ReportModel) => new Blob([renderHtml(m)], { type: 'text/html;charset=utf-8' })
+export const htmlBlob = (m: ReportModel, art?: ReportArt) => new Blob([renderHtml(m, art)], { type: 'text/html;charset=utf-8' })
 /** El generador de PDF (jsPDF + svg2pdf) se carga solo al pedir un PDF. */
-export const pdfBlob = async (m: ReportModel) => (await import('./pdf')).renderPdf(m)
+export const pdfBlob = async (m: ReportModel, art?: ReportArt) => (await import('./pdf')).renderPdf(m, art)

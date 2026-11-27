@@ -3,6 +3,8 @@ import { svg2pdf } from 'svg2pdf.js'
 import { PALETTE_LIGHT } from '../charts/svg'
 import { reportCharts } from '../charts/reportCharts'
 import type { ReportModel } from '../domain/report'
+import type { ReportArt } from './art'
+import { drawCover } from './coverPdf'
 import { pdfSafe } from './pdfText'
 
 const PAGE_W = 210
@@ -146,18 +148,24 @@ async function drawSvg(w: Writer, svg: string, width: number) {
   w.y += height + 2
 }
 
-/** Informe como PDF vectorial (sin dependencias de red). */
-export async function renderPdf(m: ReportModel): Promise<Blob> {
+/**
+ * Informe como PDF vectorial (sin dependencias de red).
+ * Página 1: infografía (`coverPdf.ts`). Desde la 2: informe detallado con las 9 secciones.
+ */
+export async function renderPdf(m: ReportModel, art?: ReportArt): Promise<Blob> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true })
   doc.setProperties({ title: pdfSafe(`Informe de ${m.pet.name}`), subject: 'Informe para el veterinario', creator: 'PetLog' })
   const w = new Writer(doc)
   const p = m.pet
 
-  // Cabecera
+  await drawCover(doc, m, art)
+  doc.addPage()
+
+  // Cabecera del informe detallado
   doc.setFillColor(...BRAND)
   doc.rect(0, 0, PAGE_W, 3, 'F')
   w.y = 10
-  w.text('PetLog · Informe para el veterinario', { size: 9, color: MUTED, gap: 0 })
+  w.text('PetLog · Informe detallado para el veterinario', { size: 9, color: MUTED, gap: 0 })
   w.text(p.name, { size: 22, style: 'bold', gap: 1 })
   w.text(`${m.period.label} (${m.period.fromText} - ${m.period.toText})`, { size: 10, color: MUTED, gap: 0 })
   w.text(`Generado el ${m.generatedAt}`, { size: 9, color: MUTED, gap: 2 })
