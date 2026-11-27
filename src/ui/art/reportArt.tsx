@@ -3,6 +3,7 @@
  * Así la portada usa los mismos dibujos que los botones de la app.
  */
 import { renderToStaticMarkup } from 'react-dom/server'
+import figtree from '@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2?inline'
 import type { EventKey, Species } from '../../domain/types'
 import type { ReportArt } from '../../report/art'
 import { PetIllustration } from './pets'
@@ -43,6 +44,7 @@ function solidStrokes(svg: string): string {
 const withNs = (svg: string) => (svg.startsWith('<svg') && !svg.includes('xmlns=') ? svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"') : svg)
 
 export const reportArt: ReportArt = {
+  fontCss: `@font-face{font-family:PetLogSans;font-style:normal;font-weight:300 900;font-display:block;src:url(${figtree}) format('woff2')}`,
   type(key: EventKey, emoji?: string) {
     const svg = renderToStaticMarkup(<TypeArt k={key} emoji={emoji} />)
     // Botón propio sin ilustración: la app dibuja el emoji, que el PDF no puede mostrar.

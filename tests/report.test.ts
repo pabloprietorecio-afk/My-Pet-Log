@@ -200,12 +200,14 @@ describe('portada (infografía)', () => {
     expect(m.cover.notes[0].text).toBe('tras desayunar')
     expect(m.cover.notes.map((n) => n.text)).toContain('Estuvo escondida toda la tarde')
     expect(m.cover.meds[0]).toMatchObject({ name: 'Prednisona', dose: '5 mg' })
+    expect(m.cover.keyFacts[0]).toMatch(/^Prednisona 5 mg/)
+    expect(m.cover.keyFacts).toContain('Último peso: 4 kg (−0,2 kg desde el 10/11/2026)')
   })
   it('el HTML abre con la portada y funciona sin ilustraciones', () => {
     const html = renderHtml(m)
     expect(html.indexOf('class="cover"')).toBeGreaterThan(0)
     expect(html.indexOf('class="cover"')).toBeLessThan(html.indexOf('1. Datos de la mascota'))
-    for (const t of ['Resumen del periodo', 'Evolución del peso', 'Episodios por día', 'Registros por tipo', 'Medicación actual', 'Consulta veterinaria', 'Observaciones']) {
+    for (const t of ['Resumen del periodo', 'Evolución del peso', 'Episodios por día', 'Frecuencia por tipo', 'Consulta veterinaria', 'Observaciones', 'Datos clave']) {
       expect(html).toContain(t)
     }
     expect(html).toContain('Luna &lt;b&gt;')

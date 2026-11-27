@@ -135,6 +135,8 @@ export interface ReportCover {
   vetVisits: { when: string; text: string }[]
   notes: { when: string; label: string; text: string }[]
   meds: { name: string; dose: string; schedule: string; adherence?: string }[]
+  /** «Datos clave»: frases cortas con datos ya contados (sin valoraciones). */
+  keyFacts: string[]
 }
 
 export interface ReportModel {
@@ -313,7 +315,7 @@ export function buildReport(input: ReportInput): ReportModel {
   if (vetEvents.length > 0) {
     summary.push({ label: 'Citas / visitas veterinarias', value: String(vetEvents.length) })
     const vt = types.find((t) => t.key === 'vet')
-    stats.push({ key: 'vet', emoji: vt?.emoji, label: 'Visitas veterinarias', value: String(vetEvents.length) })
+    stats.push({ key: 'vet', emoji: vt?.emoji, label: 'Citas veterinarias', value: String(vetEvents.length) })
   }
   const periodWeights = allWeights.filter((e) => e.at >= fromIso && e.at <= toIso)
   if (periodWeights.length > 0) {
@@ -454,7 +456,17 @@ export function buildReport(input: ReportInput): ReportModel {
   const rank = (k: string) => (PRIORITY.includes(k) ? PRIORITY.indexOf(k) : PRIORITY.length)
   stats.sort((a, b) => rank(a.key) - rank(b.key))
   const pctByName = new Map(rows.filter((r) => r.planned > 0).map((r) => [r.name, `${r.given + r.late} de ${r.planned} tomas`]))
+  const keyFacts: string[] = []
+  for (const t of currentTreatments.slice(0, 2)) keyFacts.push(`${t.name} ${t.dose} · ${t.schedule}`)
+  const medStat = stats.find((x) => x.key === 'medication')
+  if (medStat) keyFacts.push(`Medicación: ${medStat.value}${planned > 0 ? ' dadas' : ''}`)
+  if (coverWeight) keyFacts.push(`Último peso: ${coverWeight.last}${coverWeight.delta ? ` (${coverWeight.delta} desde el ${coverWeight.firstDate})` : ''}`)
+  const vomitStat = stats.find((x) => x.key === 'vomit')
+  if (vomitStat) keyFacts.push(`${vomitStat.label}: ${vomitStat.value}`)
+  if (vetVisits.length) keyFacts.push(`${vetVisits.length} ${plural(vetVisits.length, 'visita veterinaria', 'visitas veterinarias')}`)
+  keyFacts.push(`Registros en ${periodDays.withRecords} de ${periodDays.total} días`)
   const cover: ReportCover = {
+    keyFacts: keyFacts.slice(0, 5),
     stats,
     weight: coverWeight,
     vetVisits,

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { memoryMode } from '../../data/instance'
 import { makePeriod, type PeriodPreset } from '../../domain/report'
@@ -21,6 +21,7 @@ export function Report() {
   const [busy, setBusy] = useState<string | null>(null)
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
   const [preview, setPreview] = useState(false)
+  const [zoom, setZoom] = useState(false)
   const [fallback, setFallback] = useState<{ via: 'WhatsApp' | 'correo'; url: string; text: string } | null>(null)
   const [copied, setCopied] = useState(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -172,47 +173,28 @@ export function Report() {
 
       {preview && model && (
         <Sheet title={`Informe · ${period.label}`} onClose={() => setPreview(false)} full>
-          <iframe className="preview" title="Informe completo" sandbox="" srcDoc={html} />
+          <div className={`preview-wrap${zoom ? ' zoom' : ''}`}>
+            <iframe className="preview" title="Informe completo" sandbox="" srcDoc={html} />
+          </div>
+          <button className="preview-zoom" onClick={() => setZoom((z) => !z)} aria-pressed={zoom}>
+            {zoom ? '− Ver entero' : '+ Ampliar'}
+          </button>
         </Sheet>
       )}
     </>
   )
 }
 
-/** Ancho (px CSS) al que se dibuja la portada antes de reducirla: activa la maqueta de dos columnas. */
-const THUMB_W = 720
-
 /**
  * Miniatura de la portada (infografía) que ocupa el hueco libre de la pantalla.
- * Toda la tarjeta es un botón que abre el informe completo.
+ * La portada se escala sola al ancho; toda la tarjeta es un botón que abre el informe completo.
  */
 function ReportThumb({ html, onOpen, label }: { html: string; onOpen: () => void; label: string }) {
-  const ref = useRef<HTMLButtonElement>(null)
-  const [size, setSize] = useState({ w: 0, h: 0 })
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const measure = () => setSize({ w: el.clientWidth, h: el.clientHeight })
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-  const scale = size.w ? size.w / THUMB_W : 0
   // Sin barras de desplazamiento dentro de la miniatura.
   const doc = useMemo(() => html.replace('</head>', '<style>html,body{overflow:hidden}</style></head>'), [html])
   return (
-    <button ref={ref} type="button" className="rthumb" onClick={onOpen} disabled={!html} aria-label={label}>
-      {html && scale > 0 && (
-        <iframe
-          title="Vista previa del informe"
-          aria-hidden="true"
-          tabIndex={-1}
-          sandbox=""
-          srcDoc={doc}
-          style={{ width: THUMB_W, height: Math.ceil(size.h / scale) + 2, transform: `scale(${scale})` }}
-        />
-      )}
+    <button type="button" className="rthumb" onClick={onOpen} disabled={!html} aria-label={label}>
+      {html && <iframe title="Vista previa del informe" aria-hidden="true" tabIndex={-1} sandbox="" srcDoc={doc} />}
       {!html && <span className="rthumb-wait">Preparando…</span>}
       <span className="rthumb-cta" aria-hidden="true">
         <IconEyeOpen />

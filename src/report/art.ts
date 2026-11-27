@@ -12,6 +12,8 @@ export interface ReportArt {
   type(key: EventKey, emoji?: string): string | null
   /** Avatar ilustrado de la especie (caja 64×64), para mascotas sin foto. */
   pet(species: Species): string
+  /** `@font-face` con la tipografía de la app incrustada (familia «PetLogSans»), para que el HTML se vea igual en cualquier móvil. */
+  fontCss?: string
 }
 
 /** Color de cada tipo de registro (el mismo tono que su botón en la app). */

@@ -7,7 +7,7 @@ import { COVER_CSS, renderCoverHtml } from './coverHtml'
 const CSS = `
 :root{--ink:#0f2a26;--muted:#53665f;--line:#dbe3e0;--soft:#f1f5f3;--brand:#1c5cab}
 *{box-sizing:border-box}
-body{margin:0;background:#fff;color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:#fff;color:var(--ink);font:14px/1.5 PetLogSans,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 main{max-width:820px;margin:0 auto;padding:24px 20px 40px}
 header.top{border-bottom:3px solid var(--brand);padding-bottom:14px;margin-bottom:6px}
 header.top .app{font-size:12px;color:var(--muted);letter-spacing:.02em}
@@ -123,7 +123,7 @@ export function renderHtml(m: ReportModel, art?: ReportArt): string {
 
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Informe de ${esc(p.name)} · ${esc(m.period.label)}</title><style>${CSS}${COVER_CSS}</style></head>
+<title>Informe de ${esc(p.name)} · ${esc(m.period.label)}</title><style>${art?.fontCss ?? ''}${CSS}${COVER_CSS}</style></head>
 <body>
 ${renderCoverHtml(m, art)}
 <div class="sep" aria-hidden="true">Informe detallado</div>

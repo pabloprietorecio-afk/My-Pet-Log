@@ -5,8 +5,9 @@
 import type { jsPDF } from 'jspdf'
 import { svg2pdf } from 'svg2pdf.js'
 import type { ReportModel } from '../domain/report'
-import { pawPath, TYPE_TONE, type ReportArt } from './art'
-import { coverCharts, fichaRows, LIMITS, rest, SECTIONS, statIcon, tint, typeIconSvg, type SectionKey } from './cover'
+import { pawPath, type ReportArt } from './art'
+import { coverCharts, fichaRows, LIMITS, nameSize, NAVY as NAVY_HEX, POSTER as P, rest, SECTIONS, statIcon, typeIconSvg, type SectionKey } from './cover'
+import { HERO_PAWS, titleSize } from './coverHtml'
 import { glyph } from './glyphs'
 import { pdfSafe } from './pdfText'
 
@@ -16,13 +17,17 @@ const rgb = (hex: string): RGB => {
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
 }
 
-const INK = rgb('#14231f')
-const NAVY = rgb('#13205c')
-const MUTED = rgb('#4f5d58')
-const PAGE_W = 210
+const INK = rgb('#101a36')
+const NAVY = rgb(NAVY_HEX)
+const MUTED = rgb('#4a556f')
+const SOFT_INK = rgb('#27324f')
 const M = 10
-const CW = PAGE_W - 2 * M
-const GAP = 3
+/** Milímetros por unidad de diseño del cartel (780 de ancho → 190 mm). */
+const U = 190 / P.W
+const X = (px: number) => M + px * U
+const Y = (px: number) => M + px * U
+/** Tamaño de letra: unidades de diseño → puntos. */
+const PT = (px: number) => px * U * 2.8346
 
 /** Pega un SVG (cadena) en el PDF, ajustado a la caja (como `xMidYMid meet`). */
 async function placeSvg(doc: jsPDF, svg: string, x: number, y: number, w: number, h: number) {
@@ -95,74 +100,60 @@ interface Box {
   h: number
 }
 
-/** Marco de tarjeta con cabecera en degradado; devuelve la caja del contenido. */
-async function cardFrame(doc: jsPDF, k: SectionKey, b: Box, title = SECTIONS[k].title): Promise<Box> {
+/** Texto en unidades del cartel. Devuelve la altura usada (en unidades). */
+function T(doc: jsPDF, s: string, x: number, y: number, o: Omit<TextOpts, 'size' | 'maxW' | 'lh'> & { size: number; maxW: number; lh?: number }): number {
+  return text(doc, s, X(x), Y(y), { ...o, size: PT(o.size), maxW: o.maxW * U, lh: (o.lh ?? o.size * 1.22) * U }) / U
+}
+const icon = (doc: jsPDF, svg: string, x: number, y: number, size: number) => placeSvg(doc, svg, X(x), Y(y), size * U, size * U)
+
+/** Marco de tarjeta con cabecera de color; devuelve la caja del contenido (unidades del cartel). */
+async function cardFrame(doc: jsPDF, k: SectionKey, b: Box, title = SECTIONS[k].title, extra = ''): Promise<Box> {
   const s = SECTIONS[k]
-  const R = 4
-  const HH = 8.5
-  doc.setFillColor(255, 255, 255)
-  doc.setDrawColor(...rgb(tint(s.color, 0.7)))
-  doc.setLineWidth(0.4)
-  doc.roundedRect(b.x, b.y, b.w, b.h, R, R, 'FD')
-  // Cabecera: SVG con esquinas superiores redondeadas y degradado horizontal.
-  const W = b.w * 10
-  const H = HH * 10
-  const r = R * 10
-  const head = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"><defs><linearGradient id="h${k}" x1="0" y1="0" x2="1" y2="0"><stop offset="0.5" stop-color="${s.color}"/><stop offset="1" stop-color="${tint(s.color, 0.22)}"/></linearGradient></defs><path d="M0 ${r}A${r} ${r} 0 0 1 ${r} 0H${W - r}A${r} ${r} 0 0 1 ${W} ${r}V${H}H0Z" fill="url(#h${k})"/></svg>`
-  await placeSvg(doc, head, b.x, b.y, b.w, HH)
-  await placeSvg(doc, glyph(s.glyph, '#ffffff', 2), b.x + 3, b.y + (HH - 4.6) / 2, 4.6, 4.6)
+  const R = 18
+  doc.setFillColor(...rgb(s.soft))
+  doc.setDrawColor(...rgb(s.border))
+  doc.setLineWidth(2 * U)
+  doc.roundedRect(X(b.x), Y(b.y), b.w * U, b.h * U, R * U, R * U, 'FD')
+  const head = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${b.w} ${P.head}"><path d="M0 ${R}A${R} ${R} 0 0 1 ${R} 0H${b.w - R}A${R} ${R} 0 0 1 ${b.w} ${R}V${P.head}H0Z" fill="${s.color}"/></svg>`
+  await placeSvg(doc, head, X(b.x), Y(b.y), b.w * U, P.head * U)
+  await icon(doc, glyph(s.glyph, s.ink, 2.1), b.x + 14, b.y + (P.head - 27) / 2, 27)
+  const fs = titleSize(title, b.w)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(255, 255, 255)
-  doc.text(fit(doc, title, b.w - 12, 11, 'bold'), b.x + 9.4, b.y + HH / 2 + 1.4)
-  return { x: b.x + 3, y: b.y + HH + 2.6, w: b.w - 6, h: b.h - HH - 5 }
+  doc.setFontSize(PT(fs))
+  doc.setTextColor(...rgb(s.ink))
+  doc.text(pdfSafe(title), X(b.x + 51), Y(b.y + P.head / 2 + fs * 0.35))
+  if (extra) {
+    doc.setFontSize(PT(12.5))
+    doc.text(pdfSafe(extra), X(b.x + b.w - 14), Y(b.y + P.head / 2 + 4.5), { align: 'right' })
+  }
+  return { x: b.x + 14, y: b.y + P.head + 10, w: b.w - 28, h: b.h - P.head - 20 }
 }
 
-function more(doc: jsPDF, s: string, b: Box) {
-  text(doc, s, b.x, b.y + b.h - 3.4, { size: 7.5, color: MUTED, maxW: b.w, maxLines: 1 })
-}
+const more = (doc: jsPDF, s: string, b: Box) => T(doc, s, b.x, b.y + b.h - 13, { size: 12, color: MUTED, maxW: b.w, maxLines: 1 })
 
-/** Dibuja la portada en la página actual del documento. */
+/** Dibuja la portada (el mismo cartel que `coverHtml.ts`) en la página actual. */
 export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
   const p = m.pet
   const c = m.cover
+  const H = P.hero
 
   // ── Cabecera ────────────────────────────────────────────────────────────
-  const HERO_H = 58
-  const heroW = (CW - GAP) * 0.6
-  const fichaX = M + heroW + GAP
-  const fichaW = CW - heroW - GAP
-  const heroBg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${heroW * 10} ${HERO_H * 10}"><defs><linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3e4"/><stop offset=".45" stop-color="#fff8ef"/><stop offset="1" stop-color="#eef1ff"/></linearGradient></defs><rect width="${heroW * 10}" height="${HERO_H * 10}" rx="40" fill="url(#hero)"/>${[
-    [50, 80, 30, -18],
-    [150, 520, 24, 12],
-    [520, 60, 22, 20],
-    [1040, 470, 34, -10],
-    [930, 80, 20, 30],
-    [760, 530, 18, -25],
-  ]
-    .map(([x, y, r, a]) => `<path d="${pawPath(x, y, r)}" fill="#ffd8ad" fill-opacity=".55" transform="rotate(${a} ${x} ${y})"/>`)
-    .join('')}</svg>`
-  await placeSvg(doc, heroBg, M, M, heroW, HERO_H)
+  const paws = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 ${H.h + 40}">${HERO_PAWS.map(([x, y, r, a]) => `<path d="${pawPath(x, y, r)}" fill="#fbe3c8" transform="rotate(${a} ${x} ${y})"/>`).join('')}</svg>`
+  await placeSvg(doc, paws, X(-20), Y(-20), 820 * U, (H.h + 40) * U)
 
-  // Foto o ilustración
-  const AV = 42
-  const ax = M + 4
-  const ay = M + (HERO_H - AV) / 2
-  doc.setFillColor(255, 255, 255)
-  doc.roundedRect(ax - 1.2, ay - 1.2, AV + 2.4, AV + 2.4, 8, 8, 'F')
   let drewPhoto = false
   if (p.photo) {
     try {
       const props = doc.getImageProperties(p.photo)
       const r = props.width / props.height
-      // «object-fit: cover» con recorte redondeado.
-      const iw = r >= 1 ? AV * r : AV
-      const ih = r >= 1 ? AV : AV / r
+      const box = H.photo * U
+      const iw = r >= 1 ? box * r : box
+      const ih = r >= 1 ? box : box / r
       doc.saveGraphicsState()
-      doc.roundedRect(ax, ay, AV, AV, 7, 7, null)
+      doc.roundedRect(X(0), Y(0), box, box, 30 * U, 30 * U, null)
       doc.clip()
       doc.discardPath()
-      doc.addImage(p.photo, props.fileType, ax - (iw - AV) / 2, ay - (ih - AV) / 2, iw, ih)
+      doc.addImage(p.photo, props.fileType, X(0) - (iw - box) / 2, Y(0) - (ih - box) / 2, iw, ih)
       doc.restoreGraphicsState()
       drewPhoto = true
     } catch {
@@ -170,307 +161,224 @@ export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
     }
   }
   if (!drewPhoto) {
-    const bg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420"><defs><linearGradient id="av" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#ffe9cf"/><stop offset="1" stop-color="#ffd5a6"/></linearGradient></defs><rect width="420" height="420" rx="70" fill="url(#av)"/></svg>`
-    await placeSvg(doc, bg, ax, ay, AV, AV)
-    await placeSvg(doc, art ? art.pet(p.speciesKey) : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="${pawPath(50, 56, 26)}" fill="#f2a65e"/></svg>`, ax, ay, AV, AV)
+    const bg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250"><defs><linearGradient id="av" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#ffe9cf"/><stop offset="1" stop-color="#ffd5a6"/></linearGradient></defs><rect width="250" height="250" rx="30" fill="url(#av)"/></svg>`
+    await icon(doc, bg, 0, 0, H.photo)
+    await icon(doc, art ? art.pet(p.speciesKey) : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="${pawPath(50, 56, 26)}" fill="#f2a65e"/></svg>`, 0, 0, H.photo)
   }
 
-  const tx = ax + AV + 5
-  const tw = M + heroW - tx - 4
-  let ty = M + 9
-  text(doc, 'PETLOG', tx, ty, { size: 8.5, style: 'bold', color: rgb('#a24a0c'), maxW: tw })
-  ty += 4.6
-  // Nombre: lo más grande posible sin salirse (32 → 18 pt).
-  let ns = 32
+  // Títulos (bloque centrado en vertical)
+  const tx = H.titlesX
+  const tw = H.titlesW
+  let ns = nameSize(p.name)
   doc.setFont('helvetica', 'bold')
-  for (; ns > 18; ns -= 1) {
-    doc.setFontSize(ns)
-    if (doc.getTextWidth(pdfSafe(p.name)) <= tw) break
+  for (; ns > 22; ns -= 2) {
+    doc.setFontSize(PT(ns))
+    if (doc.getTextWidth(pdfSafe(p.name)) <= tw * U) break
   }
-  ty += text(doc, p.name, tx, ty, { size: ns, style: 'bold', color: NAVY, maxW: tw, maxLines: 1 }) + 1
-  ty += text(doc, 'Informe para el veterinario', tx, ty, { size: 12, style: 'bold', color: NAVY, maxW: tw, maxLines: 2 }) + 2
-  await placeSvg(doc, glyph('calendar', '#13205c', 1.9), tx, ty - 0.3, 4.4, 4.4)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9.5)
-  const pl = pdfSafe(`${m.period.label} · `)
-  const range = `${m.period.fromDay} - ${m.period.toDay}`
-  const plW = doc.getTextWidth(pl)
-  if (plW + doc.getTextWidth(range) <= tw - 6) {
-    doc.setTextColor(...rgb('#a24a0c'))
-    doc.text(pl, tx + 6, ty + 3.2)
-    doc.setTextColor(...NAVY)
-    doc.text(range, tx + 6 + plW, ty + 3.2)
-    ty += 5
-  } else {
-    doc.setTextColor(...rgb('#a24a0c'))
-    doc.text(fit(doc, m.period.label, tw - 6, 9.5, 'bold'), tx + 6, ty + 3.2)
-    doc.setTextColor(...NAVY)
-    doc.text(range, tx + 6, ty + 7.2)
-    ty += 9
-  }
-  text(doc, `Generado el ${m.generatedAt}`, tx, ty + 0.6, { size: 8.5, color: MUTED, maxW: tw })
+  const blockH = ns * 0.95 + 8 + 29 * 1.12 * 2 + 12 + 26 + 4 + 18
+  let ty = (H.h - blockH) / 2
+  ty += T(doc, p.name, tx, ty, { size: ns, style: 'bold', color: NAVY, maxW: tw + 12, maxLines: 1, lh: ns * 0.95 }) + 8
+  ty += T(doc, 'Informe de salud ·', tx, ty, { size: 27, style: 'bold', color: NAVY, maxW: tw + 12, maxLines: 1, lh: 32 })
+  ty += T(doc, m.period.label, tx, ty, { size: m.period.label.length > 18 ? 19 : 27, style: 'bold', color: NAVY, maxW: tw + 12, maxLines: 1, lh: 32 }) + 12
+  await icon(doc, glyph('calendar', NAVY_HEX, 2), tx, ty, 26)
+  T(doc, `${m.period.fromDay} - ${m.period.toDay}`, tx + 33, ty + 2, { size: 18, color: NAVY, maxW: tw, maxLines: 1 })
+  ty += 30
+  T(doc, `Generado: ${m.generatedAt}`, tx + 33, ty, { size: 14, color: rgb('#33405e'), maxW: tw, maxLines: 1 })
 
   // Ficha
-  doc.setFillColor(...rgb('#eef1ff'))
-  doc.roundedRect(fichaX, M, fichaW, HERO_H, 4, 4, 'F')
+  const fx = H.fichaX
+  const fw = P.W - fx
+  doc.setFillColor(...rgb('#dce8fb'))
+  doc.roundedRect(X(fx), Y(0), fw * U, H.h * U, 26 * U, 26 * U, 'F')
   const rows = fichaRows(m)
-  const lh = 3.6
-  // Altura de cada fila (las largas usan dos líneas) para centrar el bloque.
-  doc.setFontSize(8.6)
-  const rowLines = rows.map((r) => {
-    doc.setFont('helvetica', 'normal')
-    const lw = doc.getTextWidth(pdfSafe(`${r.label}:`)) + 1.2
-    doc.setFont('helvetica', 'bold')
-    return doc.getTextWidth(pdfSafe(r.value)) + lw > fichaW - 12 ? 2 : 1
-  })
-  const gapRow = 1.5
-  const totalH = rowLines.reduce((s, n) => s + n * lh + gapRow, -gapRow)
-  let fy = M + Math.max(3, (HERO_H - totalH) / 2)
+  const fs = rows.length <= 6 ? 15.5 : rows.length === 7 ? 14 : 13
+  const slot = (H.h - 24) / rows.length
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i]
-    if (fy + rowLines[i] * lh > M + HERO_H - 2) break
-    await placeSvg(doc, glyph(r.glyph, '#2f44a0', 1.9), fichaX + 3.5, fy - 0.3, 4.2, 4.2)
-    const x0 = fichaX + 9.5
-    const w0 = fichaW - 12
-    doc.setFontSize(8.6)
+    const cy = 12 + slot * i + slot / 2
+    const isz = rows.length <= 6 ? 27 : 23
+    await icon(doc, glyph(r.glyph, NAVY_HEX, 2.2), fx + 16, cy - isz / 2, isz)
+    const x0 = fx + 16 + isz + 12
+    const w0 = fw - (x0 - fx) - 12
+    doc.setFontSize(PT(fs))
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...rgb('#3d4a6b'))
     const lab = pdfSafe(`${r.label}:`)
-    doc.text(lab, x0, fy + 2.9)
-    const lw = doc.getTextWidth(lab) + 1.2
+    const lw = doc.getTextWidth(lab) / U + 5
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...NAVY)
-    if (rowLines[i] === 1) doc.text(pdfSafe(r.value), x0 + lw, fy + 2.9)
+    const val = pdfSafe(r.value)
+    const one = doc.getTextWidth(val) / U + lw <= w0
+    const y0 = one ? cy - fs * 0.6 : cy - fs * 1.2
+    T(doc, lab, x0, y0, { size: fs, color: NAVY, maxW: w0, maxLines: 1 })
+    if (one) T(doc, val, x0 + lw, y0, { size: fs, style: 'bold', color: NAVY, maxW: w0 - lw, maxLines: 1 })
     else {
-      // Primera línea tras la etiqueta; la segunda, debajo y recortada.
-      const words = pdfSafe(r.value).split(' ')
+      // Primera línea tras la etiqueta; el resto, debajo (recortado).
+      const words = val.split(' ')
       let first = ''
-      while (words.length && doc.getTextWidth(`${first}${first ? ' ' : ''}${words[0]}`) <= w0 - lw) first += `${first ? ' ' : ''}${words.shift()}`
-      doc.text(first, x0 + lw, fy + 2.9)
-      doc.text(fit(doc, words.join(' '), w0, 8.6, 'bold'), x0, fy + 2.9 + lh)
+      while (words.length && doc.getTextWidth(`${first}${first ? ' ' : ''}${words[0]}`) / U <= w0 - lw) first += `${first ? ' ' : ''}${words.shift()}`
+      T(doc, first, x0 + lw, y0, { size: fs, style: 'bold', color: NAVY, maxW: w0 - lw + 4, maxLines: 1 })
+      T(doc, words.join(' '), x0, y0 + fs * 1.2, { size: fs, style: 'bold', color: NAVY, maxW: w0, maxLines: 1 })
     }
-    fy += rowLines[i] * lh + gapRow
   }
 
-  // ── Rejilla ─────────────────────────────────────────────────────────────
-  const gy = M + HERO_H + GAP
-  const gBottom = 274
-  const avail = gBottom - gy - 2 * GAP
-  const r1 = (avail * 1.05) / 3
-  const r2 = avail / 3
-  const r3 = avail - r1 - r2
-  const col = (CW - 5 * GAP) / 6
-  const span = (n: number) => n * col + (n - 1) * GAP
-  const X = (i: number) => M + i * (col + GAP)
-  const y2 = gy + r1 + GAP
-  const y3 = y2 + r2 + GAP
-  const charts = coverCharts(m, { weightW: 300, weightH: 118, incW: 420, incH: 150, fontSize: 11 })
+  const r1 = P.r1
+  const r2 = P.r2
+  const r3 = P.r3
+  const wW = P.W - r1.split - P.gap
+  const charts = coverCharts(m, { weightW: wW - 32, weightH: r1.h - P.head - 24, incW: r2.split - 32, incH: r2.h - P.head - 50 })
 
-  // Resumen
+  // ── Resumen ─────────────────────────────────────────────────────────────
   {
-    const b = await cardFrame(doc, 'sum', { x: X(0), y: gy, w: span(3), h: r1 })
-    const rowH = 11.2
-    const maxRows = Math.floor((b.h - 4) / rowH)
-    const cap = Math.min(LIMITS.stats, maxRows * 2)
-    const shown = c.stats.slice(0, cap)
-    const nRows = Math.ceil(shown.length / 2)
-    const left0 = rest(c.stats.length, shown.length)
-    // Las filas se reparten el alto de la tarjeta (sin hueco vacío abajo), hasta 14 mm cada una.
-    const rh = nRows ? Math.min(14, (b.h - (left0 ? 5 : 0)) / nRows) : rowH
-    const cw = (b.w - 4) / 2
-    for (let i = 0; i < shown.length; i++) {
-      const s = shown[i]
-      const x = b.x + (i % 2) * (cw + 4)
-      const y = b.y + Math.floor(i / 2) * rh + (rh - 10.6) / 2 - 0.6
-      await placeSvg(doc, statIcon(art, s), x, y + 1, 8, 8)
-      const xt = x + 10
-      const wt = cw - 10
-      text(doc, s.label, xt, y, { size: 7.5, color: MUTED, maxW: wt, maxLines: 1 })
-      text(doc, s.value, xt, y + 3, { size: 10.5, style: 'bold', maxW: wt, maxLines: 1 })
-      if (s.detail) text(doc, s.detail, xt, y + 7.4, { size: 7.5, color: MUTED, maxW: wt, maxLines: 1 })
+    const b = await cardFrame(doc, 'sum', { x: 0, y: r1.y, w: r1.split, h: r1.h })
+    const stats = c.stats.slice(0, LIMITS.stats)
+    const left = rest(c.stats.length, stats.length)
+    const half = Math.ceil(stats.length / 2)
+    const dense = half >= 4
+    const bodyH = b.h - (left ? 16 : 0)
+    const rh = half ? bodyH / half : bodyH
+    const cw = (b.w - 22) / 2
+    doc.setDrawColor(...rgb('#f6c48b'))
+    doc.setLineWidth(2 * U)
+    doc.line(X(b.x + b.w / 2), Y(b.y + 4), X(b.x + b.w / 2), Y(b.y + bodyH - 4))
+    const isz = dense ? 34 : 38
+    const [fl, fv, fd] = dense ? [12.5, 15.5, 11.5] : [13.5, 16.5, 12.5]
+    for (let i = 0; i < stats.length; i++) {
+      const s = stats[i]
+      const col = i < half ? 0 : 1
+      const row = i < half ? i : i - half
+      const x = b.x + col * (cw + 22)
+      const cy = b.y + row * rh + rh / 2
+      await icon(doc, statIcon(art, s), x, cy - isz / 2, isz)
+      const xt = x + isz + 9
+      const wt = cw - isz - 9
+      const hh = fl * 1.2 + fv * 1.2 + (s.detail ? fd * 1.2 : 0)
+      let y = cy - hh / 2
+      y += T(doc, s.label, xt, y, { size: fl, color: SOFT_INK, maxW: wt, maxLines: 1, lh: fl * 1.2 })
+      y += T(doc, s.value, xt, y, { size: fv, style: 'bold', maxW: wt, maxLines: 1, lh: fv * 1.2 })
+      if (s.detail) T(doc, `(${s.detail})`, xt, y, { size: fd, color: SOFT_INK, maxW: wt, maxLines: 1, lh: fd * 1.2 })
     }
-    const left = rest(c.stats.length, shown.length)
     if (left) more(doc, `Y ${left} más en "Resumen del periodo".`, b)
   }
 
-  // Peso
+  // ── Peso ────────────────────────────────────────────────────────────────
   {
-    const b = await cardFrame(doc, 'weight', { x: X(3), y: gy, w: span(3), h: r1 })
-    const w = c.weight
-    if (!w) text(doc, 'Sin pesos registrados.', b.x, b.y, { size: 9, style: 'italic', color: MUTED, maxW: b.w })
-    else {
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(18)
-      doc.setTextColor(...rgb('#3a1f99'))
-      const big = pdfSafe(w.last)
-      doc.text(big, b.x, b.y + 6)
-      let x = b.x + doc.getTextWidth(big) + 2.5
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8.5)
-      doc.setTextColor(...MUTED)
-      doc.text(w.lastDate, x, b.y + 6)
-      x += doc.getTextWidth(w.lastDate) + 3
-      let top = b.y + 9.5
-      if (w.delta) {
-        const chip = pdfSafe(`${w.delta} desde el ${w.firstDate}`)
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(7.8)
-        const cwid = doc.getTextWidth(chip) + 5
-        let cx = x
-        let cy = b.y + 2
-        if (cx + cwid > b.x + b.w) {
-          cx = b.x
-          cy = b.y + 8.5
-          top = cy + 6.5
-        }
-        doc.setFillColor(...rgb('#efe9ff'))
-        doc.roundedRect(cx, cy, cwid, 5, 2.5, 2.5, 'F')
-        doc.setTextColor(...rgb('#3a1f99'))
-        doc.text(chip, cx + 2.5, cy + 3.5)
-      }
-      const note = m.weight.windowLabel === 'últimos 6 meses'
-      const bottom = b.y + b.h - (note ? 5 : 0)
-      if (charts.weight) await placeSvg(doc, charts.weight, b.x, top, b.w, bottom - top)
-      if (note) more(doc, 'Gráfica: mediciones de los últimos 6 meses.', b)
-    }
+    const six = m.weight.windowLabel === 'últimos 6 meses' && m.weight.points.length > 1
+    const b = await cardFrame(doc, 'weight', { x: r1.split + P.gap, y: r1.y, w: wW, h: r1.h }, undefined, six ? 'Últimos 6 meses' : '')
+    if (charts.weight) await placeSvg(doc, charts.weight, X(b.x), Y(b.y), b.w * U, b.h * U)
+    else T(doc, 'Sin pesos registrados.', b.x, b.y, { size: 15, style: 'italic', color: MUTED, maxW: b.w })
   }
 
-  // Episodios
+  // ── Episodios ───────────────────────────────────────────────────────────
   {
-    const b = await cardFrame(doc, 'inc', { x: X(0), y: y2, w: span(4), h: r2 }, charts.incTitle)
+    const b = await cardFrame(doc, 'inc', { x: 0, y: r2.y, w: r2.split, h: r2.h }, charts.incTitle, 'Vómitos, deposiciones y síntomas')
     let ly = b.y
     if (charts.legend.length) {
       let lx = b.x
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(PT(13))
       for (const l of charts.legend) {
         const lab = pdfSafe(l.label)
-        const lw = 4.4 + doc.getTextWidth(lab) + 5
-        if (lx + lw > b.x + b.w && lx > b.x) {
+        const lw = 19 + doc.getTextWidth(lab) / U + 16
+        if (lx + lw > b.x + b.w + 16 && lx > b.x) {
           lx = b.x
-          ly += 4.2
+          ly += 18
         }
         doc.setFillColor(...rgb(l.color))
-        doc.roundedRect(lx, ly + 0.6, 2.8, 2.8, 0.7, 0.7, 'F')
-        doc.setTextColor(...MUTED)
-        doc.text(lab, lx + 4.2, ly + 3)
+        doc.circle(X(lx + 6.5), Y(ly + 8), 6.5 * U, 'F')
+        doc.setTextColor(...SOFT_INK)
+        doc.text(lab, X(lx + 19), Y(ly + 12.5))
         lx += lw
       }
-      ly += 6
+      ly += 22
     }
-    await placeSvg(doc, charts.incidents, b.x, ly, b.w, b.y + b.h - ly)
+    await placeSvg(doc, charts.incidents, X(b.x), Y(ly), b.w * U, (b.y + b.h - ly) * U)
   }
 
-  // Registros por tipo
+  // ── Frecuencia ──────────────────────────────────────────────────────────
   {
-    const b = await cardFrame(doc, 'freq', { x: X(4), y: y2, w: span(2), h: r2 })
-    const rowH = 7.4
-    const fitRows = Math.floor((b.h - 5) / rowH)
-    const items = m.frequency.slice(0, Math.min(LIMITS.freq, fitRows))
-    if (!items.length) text(doc, 'Sin registros en el periodo.', b.x, b.y, { size: 9, style: 'italic', color: MUTED, maxW: b.w })
-    const fmax = Math.max(1, ...items.map((f) => f.count))
+    const fwid = P.W - r2.split - P.gap
+    const b = await cardFrame(doc, 'freq', { x: r2.split + P.gap, y: r2.y, w: fwid, h: r2.h })
+    const items = m.frequency.slice(0, LIMITS.freq)
+    const left = rest(m.frequency.length, items.length)
+    if (!items.length) T(doc, 'Sin registros en el periodo.', b.x, b.y, { size: 15, style: 'italic', color: MUTED, maxW: b.w })
+    const rh = items.length ? (b.h - (left ? 16 : 0)) / Math.max(items.length, 4) : 0
     for (let i = 0; i < items.length; i++) {
       const f = items[i]
-      const y = b.y + i * rowH
-      await placeSvg(doc, typeIconSvg(art, f.key, f.label, f.emoji), b.x, y + 0.3, 6, 6)
-      const barW = 12
-      const numW = 6
-      const lw = b.w - 8 - barW - numW - 4
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(9.5)
-      doc.setTextColor(...INK)
-      doc.text(fit(doc, f.label, lw, 9.5), b.x + 8, y + 4.4)
-      const bx = b.x + b.w - numW - barW - 2
-      doc.setFillColor(...rgb('#edf1ee'))
-      doc.roundedRect(bx, y + 2.4, barW, 2.4, 1.2, 1.2, 'F')
-      doc.setFillColor(...rgb(TYPE_TONE[f.key] ?? TYPE_TONE.custom))
-      doc.roundedRect(bx, y + 2.4, Math.max(2.4, (f.count / fmax) * barW), 2.4, 1.2, 1.2, 'F')
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(10.5)
-      doc.text(String(f.count), b.x + b.w, y + 4.6, { align: 'right' })
+      const cy = b.y + i * rh + rh / 2
+      await icon(doc, typeIconSvg(art, f.key, f.label, f.emoji), b.x + 4, cy - 16, 32)
+      T(doc, f.label, b.x + 50, cy - 10.5, { size: 17, maxW: b.w - 90, maxLines: 1 })
+      T(doc, String(f.count), b.x, cy - 12, { size: 19, style: 'bold', maxW: b.w - 4, align: 'right', maxLines: 1 })
       if (i < items.length - 1) {
-        doc.setDrawColor(...rgb('#eef1ee'))
-        doc.setLineWidth(0.25)
-        doc.line(b.x + 8, y + rowH - 0.4, b.x + b.w, y + rowH - 0.4)
+        doc.setDrawColor(...rgb('#e3e8ef'))
+        doc.setLineWidth(1.5 * U)
+        doc.line(X(b.x), Y(b.y + (i + 1) * rh), X(b.x + b.w), Y(b.y + (i + 1) * rh))
       }
     }
-    const left = rest(m.frequency.length, items.length)
     if (left) more(doc, `Y ${left} tipos más.`, b)
   }
 
-  // Fila inferior: listas con texto (medicación, veterinario, observaciones)
-  const listCard = async (
-    k: SectionKey,
-    x: number,
-    items: { head?: string; title?: string; body: string; sub?: string }[],
-    total: number,
-    empty: string,
-    moreText: (n: number) => string,
-  ) => {
-    const b = await cardFrame(doc, k, { x, y: y3, w: span(2), h: r3 })
-    if (!items.length) {
-      text(doc, empty, b.x, b.y, { size: 9, style: 'italic', color: MUTED, maxW: b.w })
-      return
-    }
+  // ── Fila inferior ───────────────────────────────────────────────────────
+  const listCard = async (k: 'vet' | 'notes', bx: Box, items: { when: string; tag?: string; body: string }[], total: number, empty: string, moreText: (n: number) => string) => {
+    const b = await cardFrame(doc, k, bx)
+    const s = SECTIONS[k]
+    if (!items.length) return void T(doc, empty, b.x, b.y, { size: 15, style: 'italic', color: MUTED, maxW: b.w })
     let y = b.y
     let shown = 0
-    const limit = b.y + b.h - (total > 1 ? 5 : 0)
     for (const it of items) {
-      // Altura prevista: si no cabe entera, se para (lo que falta se cuenta abajo).
-      doc.setFontSize(9)
-      const bodyLines = Math.min(3, (doc.splitTextToSize(pdfSafe(`${it.title ? `${it.title} ` : ''}${it.body}`), b.w) as string[]).length)
-      const need = (it.head ? 4 : 0) + bodyLines * 3.8 + (it.sub ? 3.6 : 0)
-      if (y + need > limit && shown > 0) break
-      if (it.head) {
-        if (k === 'vet') await placeSvg(doc, glyph('calendar', SECTIONS[k].color, 2), b.x, y + 0.1, 3.2, 3.2)
-        text(doc, it.head, b.x + (k === 'vet' ? 4.2 : 0), y, { size: 7.8, style: 'bold', color: rgb(SECTIONS[k].color), maxW: b.w - 4, maxLines: 1 })
-        y += 4
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(PT(15.5))
+      const lines = Math.min(3, (doc.splitTextToSize(pdfSafe(it.body || 'Sin nota'), (b.w - 12) * U) as string[]).length)
+      const need = 24 + lines * 19
+      if (shown > 0 && y + need > b.y + b.h - (total > shown + 1 ? 16 : 0)) break
+      await icon(doc, glyph('calendar', s.color, 2), b.x, y, 21)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(PT(13.5))
+      doc.setTextColor(...SOFT_INK)
+      const w1 = pdfSafe(it.when + (it.tag ? ' · ' : ''))
+      doc.text(w1, X(b.x + 28), Y(y + 15))
+      if (it.tag) {
+        doc.setTextColor(...rgb(s.color))
+        doc.text(fit(doc, it.tag, (b.w - 28) * U - doc.getTextWidth(w1), PT(13.5), 'bold'), X(b.x + 28) + doc.getTextWidth(w1) + 3.5 * U, Y(y + 15))
       }
-      if (it.title) {
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(9)
-        doc.setTextColor(...INK)
-        const t = fit(doc, it.title, b.w * 0.7, 9, 'bold')
-        doc.text(t, b.x, y + 3)
-        const tw = doc.getTextWidth(t) + 1.6
-        text(doc, it.body, b.x + tw, y, { size: 9, maxW: b.w - tw, maxLines: 1 })
-        y += 3.8
-      } else {
-        y += text(doc, it.body || 'Sin nota', b.x, y, { size: 9, maxW: b.w, maxLines: 3, style: it.body ? 'normal' : 'italic', lh: 3.8 })
-      }
-      if (it.sub) y += text(doc, it.sub, b.x, y, { size: 7.6, color: MUTED, maxW: b.w, maxLines: 1 })
-      y += 2.2
+      y += 25
+      const th = T(doc, it.body || 'Sin nota', b.x + 12, y, { size: 15.5, style: it.body ? 'bold' : 'italic', maxW: b.w - 12, maxLines: 3, lh: 19 })
+      doc.setDrawColor(...rgb(s.border))
+      doc.setLineWidth(2.5 * U)
+      doc.line(X(b.x + 2), Y(y), X(b.x + 2), Y(y + th))
+      y += th + 11
       shown++
     }
     const left = rest(total, shown)
     if (left) more(doc, moreText(left), b)
   }
-
-  await listCard(
-    'med',
-    X(0),
-    c.meds.slice(0, LIMITS.meds).map((t) => ({ title: t.name, body: t.dose, sub: `${t.schedule}${t.adherence ? ` · ${t.adherence} dadas` : ''}` })),
-    c.meds.length,
-    'Sin tratamientos activos registrados.',
-    (n) => `Y ${n} más en "Medicación actual".`,
-  )
   await listCard(
     'vet',
-    X(2),
-    c.vetVisits.slice(0, LIMITS.vet).map((v) => ({ head: v.when, body: v.text })),
+    { x: 0, y: r3.y, w: r3.a, h: r3.h },
+    c.vetVisits.slice(0, LIMITS.vet).map((v) => ({ when: v.when, body: v.text })),
     c.vetVisits.length,
     'Sin visitas veterinarias registradas en el periodo.',
     (n) => `Y ${n} más en la cronología.`,
   )
   await listCard(
     'notes',
-    X(4),
-    c.notes.slice(0, LIMITS.notes).map((n) => ({ head: `${n.when} · ${n.label}`, body: n.text })),
+    { x: r3.a + P.gap, y: r3.y, w: r3.b - r3.a - P.gap, h: r3.h },
+    c.notes.slice(0, LIMITS.notes).map((n) => ({ when: n.when, tag: n.label, body: n.text })),
     c.notes.length,
     'Sin notas en el periodo.',
-    (n) => `Y ${n} más en "Observaciones del propietario".`,
+    (n) => `Y ${n} más en el informe detallado.`,
   )
+  {
+    const b = await cardFrame(doc, 'key', { x: r3.b + P.gap, y: r3.y, w: P.W - r3.b - P.gap, h: r3.h })
+    const facts = c.keyFacts.slice(0, LIMITS.key)
+    const rh = facts.length ? b.h / facts.length : 0
+    for (let i = 0; i < facts.length; i++) {
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(PT(14.5))
+      const n = Math.min(2, (doc.splitTextToSize(pdfSafe(facts[i]), (b.w - 31) * U) as string[]).length)
+      const cy = b.y + i * rh + rh / 2
+      await icon(doc, glyph('check', '#2e9d57', 2.4), b.x, cy - (n * 17.5) / 2 - 1, 22)
+      T(doc, facts[i], b.x + 31, cy - (n * 17.5) / 2, { size: 14.5, style: 'bold', maxW: b.w - 31, maxLines: 2, lh: 17.5 })
+    }
+  }
 
-  // Aviso
-  text(doc, m.disclaimer, M + 8, gBottom + 2.2, { size: 7.5, style: 'italic', color: MUTED, maxW: CW - 16, align: 'center', lh: 3.2 })
+  T(doc, m.disclaimer, 30, P.discY, { size: 12, style: 'italic', color: MUTED, maxW: P.W - 60, align: 'center', lh: 15.5 })
 }
