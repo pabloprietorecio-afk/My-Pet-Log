@@ -97,6 +97,8 @@ npx cap open android
 
 ## Qué NO está hecho / no está verificado
 
+- **Foto con la cámara:** «Añadir foto» (ficha y registros) pregunta «Hacer foto» o «Elegir de la galería». La cámara se abre con la app de cámara del teléfono (`capture` + consulta `IMAGE_CAPTURE` en el manifiesto), sin pedir permiso de cámara. Probado en Chrome que se pide la cámara; **no probado en un teléfono**.
+
 - **No se ha ejecutado en un móvil ni en un emulador.** Todo se probó en Chrome (escritorio, viewport de móvil) y con tests. Sin verificar en dispositivo: hoja de compartir nativa, `Filesystem`, selector de fotos/cámara en el WebView, apertura de `wa.me`/`mailto:`, teclas decimales, comportamiento del *safe area*.
 - **Espejo de seguridad nativo:** la lógica está probada con un almacén simulado; la escritura real en `Directory.Data` no. Capacitor advierte de que el sistema puede reclamar IndexedDB (sobre todo iOS); por eso existe el espejo y la copia manual.
 - «Guardar» en nativo abre la hoja de compartir del sistema (elegir *Guardar en Archivos*); no escribe en una carpeta fija.

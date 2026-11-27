@@ -3570,3 +3570,33 @@ html.quick body {
     animation: none;
   }
 }
+
+/* ── Elegir cámara o galería al añadir una foto ── */
+.photo-choice {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--s3) var(--s3) calc(var(--s4) + env(safe-area-inset-bottom, 0px) + var(--safe-area-inset-bottom, 0px));
+  background: rgb(10 14 30 / 0.45);
+  animation: fade 0.15s ease-out;
+}
+.photo-choice-card {
+  width: min(100%, 26rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s4);
+  border-radius: 28px;
+  background: var(--surface, #fff);
+  color: var(--ink);
+  box-shadow: 0 24px 60px -12px rgb(10 14 40 / 0.45);
+}
+.photo-choice-card h2 {
+  margin: 0 0 var(--s1);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  text-align: center;
+}

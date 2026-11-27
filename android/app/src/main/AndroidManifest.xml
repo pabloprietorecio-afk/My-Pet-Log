@@ -188,6 +188,10 @@
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <!-- «Hacer foto»: permite encontrar la app de cámara del teléfono (Android 11+). No pide el permiso de cámara. -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
     </queries>
 
 </manifest>
