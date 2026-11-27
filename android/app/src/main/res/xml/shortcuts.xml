@@ -8,8 +8,8 @@
         android:shortcutLongLabel="@string/voice_label">
         <intent
             android:action="android.intent.action.VIEW"
-            android:data="petlog://voz"
+            android:data="petlog://voz-rapida"
             android:targetPackage="app.petlog.diario"
-            android:targetClass="app.petlog.diario.MainActivity" />
+            android:targetClass="app.petlog.diario.QuickVoiceActivity" />
     </shortcut>
 </shortcuts>

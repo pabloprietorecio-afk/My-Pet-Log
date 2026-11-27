@@ -11,7 +11,8 @@ import android.os.Build;
 import java.util.Collections;
 
 /**
- * Atajo «Anotar por voz» al mantener pulsado el icono de PetLog. Abre petlog://voz, igual que el micro del widget.
+ * Atajo «Anotar por voz» al mantener pulsado el icono de PetLog. Abre la ventana flotante de voz
+ * (QuickVoiceActivity), sin abrir la app.
  *
  * El atajo fijo está en res/xml/shortcuts.xml (meta-data de cada activity-alias del lanzador). Si el sistema no lo ha
  * publicado (getManifestShortcuts no lo devuelve), la app publica uno equivalente por código al abrirse, para que el
@@ -32,11 +33,12 @@ final class VoiceShortcut {
             boolean manifest = false;
             for (ShortcutInfo s : sm.getManifestShortcuts()) if (MANIFEST_ID.equals(s.getId())) manifest = true;
             if (manifest) {
+                // Un atajo dinámico de una versión anterior (que abría la app) se sustituye por el fijo.
                 sm.removeDynamicShortcuts(Collections.singletonList(DYNAMIC_ID));
                 return "manifest";
             }
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("petlog://voz"));
-            intent.setClass(ctx, MainActivity.class);
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("petlog://voz-rapida"));
+            intent.setClass(ctx, QuickVoiceActivity.class);
             ShortcutInfo info = new ShortcutInfo.Builder(ctx, DYNAMIC_ID)
                 .setShortLabel(ctx.getString(R.string.voice_label))
                 .setLongLabel(ctx.getString(R.string.voice_label))

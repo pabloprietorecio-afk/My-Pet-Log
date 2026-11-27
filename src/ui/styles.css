@@ -3342,3 +3342,203 @@ button.strip {
   .vh-head { min-height: 2.3rem; padding-top: 0.2rem; padding-bottom: 0.2rem; }
   .vh-phrases li { font-size: 0.8rem; padding: 0.2rem 0.5rem; }
 }
+
+
+/* ── Ventana flotante «Anotar por voz» (atajo del icono, sin abrir la app) ── */
+html.quick,
+html.quick body {
+  background: transparent;
+}
+.qv {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s4) var(--s3) calc(var(--s4) + env(safe-area-inset-bottom, 0px) + var(--safe-area-inset-bottom, 0px));
+  background: rgb(10 14 30 / 0.32);
+  animation: fade 0.18s ease-out;
+}
+.qv-card {
+  width: min(100%, 26rem);
+  background: var(--surface, #fff);
+  color: var(--ink);
+  border-radius: 28px;
+  padding: var(--s3) var(--s4) var(--s4);
+  box-shadow: 0 24px 60px -12px rgb(10 14 40 / 0.45), 0 2px 8px rgb(10 14 40 / 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  position: relative;
+  overflow: hidden;
+  animation: qv-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes qv-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+}
+.qv-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 2rem;
+}
+.qv-brand {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.04em;
+  color: var(--primary);
+}
+.qv-pet {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.qv-x {
+  margin-left: auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 0;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.qv-body {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+.qv-body .voice-orb {
+  flex: none;
+  margin: 0.4rem;
+}
+.qv-said {
+  min-width: 0;
+  flex: 1;
+}
+.qv-said p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.qv-said p.hint {
+  color: var(--muted);
+}
+.qv-said .qv-example {
+  margin-top: 0.35rem;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--muted);
+}
+.qv-said .qv-err,
+.qv-err {
+  font-family: var(--font-body);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--danger);
+  margin: 0;
+}
+.qv-type {
+  display: flex;
+  gap: var(--s2);
+}
+.qv-type .input {
+  flex: 1;
+  min-width: 0;
+}
+.qv-actions {
+  display: flex;
+  gap: var(--s2);
+}
+.qv-actions:empty {
+  display: none;
+}
+.qv-actions .btn {
+  flex: 1;
+}
+.qv-heard {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  font-style: italic;
+}
+.qv-ok {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ok);
+}
+.qv-ok .tick {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ok);
+  color: #fff;
+  font-size: 1.1rem;
+  animation: pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.qv-res .voice-done {
+  margin: 0;
+}
+.qv-answer {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.qv-note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+.qv-timer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+.qv-timer i {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  transform-origin: left;
+  animation: qv-count linear forwards;
+}
+@keyframes qv-count {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qv,
+  .qv-card,
+  .qv-ok .tick {
+    animation: none;
+  }
+}

@@ -17,13 +17,26 @@ import { IconMic } from './icons'
 
 type Phase = 'idle' | 'listening' | 'working' | 'result' | 'error' | 'help'
 
-export function VoiceSheet({ petId, petName, onClose, autoStart = true }: { petId: string; petName: string; onClose: () => void; autoStart?: boolean }) {
+export function VoiceSheet({
+  petId,
+  petName,
+  onClose,
+  autoStart = true,
+  startInHelp = false,
+}: {
+  petId: string
+  petName: string
+  onClose: () => void
+  autoStart?: boolean
+  /** Abrir directamente en «¿Qué puedo decir?» (desde la ventana flotante). */
+  startInHelp?: boolean
+}) {
   const settings = useSettings()
   const nav = useNavigate()
   const trs = useTreatments(petId)
   const pets = usePets()
   const types = useEventTypes(petId)
-  const [phase, setPhase] = useState<Phase>('idle')
+  const [phase, setPhase] = useState<Phase>(startInHelp ? 'help' : 'idle')
   const [partial, setPartial] = useState('')
   const [level, setLevel] = useState(0)
   const [heard, setHeard] = useState('')
@@ -92,7 +105,7 @@ export function VoiceSheet({ petId, petName, onClose, autoStart = true }: { petI
     void voiceAvailable().then((a) => {
       if (!alive.current) return
       setCanListen(a.recognition)
-      if (a.recognition && autoStart) void start()
+      if (a.recognition && autoStart && !startInHelp) void start()
     })
     return () => {
       alive.current = false

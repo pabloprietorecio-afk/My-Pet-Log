@@ -29,6 +29,17 @@
 
         </activity>
 
+        <!-- Atajo del icono «Anotar por voz»: ventana flotante sin abrir la app (QuickVoiceActivity). -->
+        <activity
+            android:name=".QuickVoiceActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:theme="@style/AppTheme.QuickVoice"
+            android:taskAffinity="app.petlog.diario.voz"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true" />
+
         <!-- Icono de la app: cat. Solo uno está activo; se cambia desde Ajustes. -->
         <activity-alias
             android:name=".IconCat"

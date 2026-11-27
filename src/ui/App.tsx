@@ -120,6 +120,9 @@ function DeepLinks() {
     const open = (url?: string) => {
       const m = url?.match(/^petlog:\/\/unirse\/(.+)$/)
       if (m) return nav(`/compartir?codigo=${encodeURIComponent(decodeURIComponent(m[1]))}`)
+      // Ventana flotante de voz → «Abrir»: petlog://abrir/<ruta de la app>
+      const o = url?.match(/^petlog:\/\/abrir(\/[\w\-/?=&]*)$/)
+      if (o) return nav(o[1])
       // Widget, atajo y ajustes rápidos: petlog://voz y petlog://anotar/<botón>?pet=<mascota>
       const v = url?.match(/^petlog:\/\/voz(?:\?pet=([\w-]+))?/)
       const a = url?.match(/^petlog:\/\/anotar\/([\w-]+)\?pet=([\w-]+)/)

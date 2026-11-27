@@ -47,9 +47,12 @@ export function PetShell() {
   useEffect(() => toast.hide(), [loc.pathname])
   const [switcher, setSwitcher] = useState(false)
   const [voice, setVoice] = useState(false)
-  // petlog://voz, el widget y el atajo abren la app con ?voz=1
+  const [voiceHelp, setVoiceHelp] = useState(false)
+  // petlog://voz, el widget y el atajo abren la app con ?voz=1 (la ventana flotante, con ?voz=ayuda para ver las frases)
   useEffect(() => {
-    if (new URLSearchParams(loc.search).has('voz')) {
+    const q = new URLSearchParams(loc.search)
+    if (q.has('voz')) {
+      setVoiceHelp(q.get('voz') === 'ayuda')
       setVoice(true)
       nav(loc.pathname, { replace: true })
     }
@@ -114,7 +117,7 @@ export function PetShell() {
       <main className="screen">
         <Outlet context={{ pet }} />
       </main>
-      {voice && <VoiceSheet petId={pet.id} petName={pet.name} onClose={() => setVoice(false)} />}
+      {voice && <VoiceSheet petId={pet.id} petName={pet.name} startInHelp={voiceHelp} onClose={() => { setVoice(false); setVoiceHelp(false) }} />}
       {!sub && (
         <div className="tabbar">
           <nav aria-label="Secciones">

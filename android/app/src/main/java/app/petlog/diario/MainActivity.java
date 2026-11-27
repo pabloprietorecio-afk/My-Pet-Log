@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(VoicePlugin.class);
         registerPlugin(WidgetsPlugin.class);
         registerPlugin(ShortcutPlugin.class);
+        registerPlugin(QuickVoicePlugin.class);
         super.onCreate(savedInstanceState);
         // Atajo «Anotar por voz» al mantener pulsado el icono (ver VoiceShortcut).
         VoiceShortcut.ensure(this);
