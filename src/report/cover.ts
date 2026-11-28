@@ -10,18 +10,19 @@ import type { CoverStat, ReportModel } from '../domain/report'
 import { formatDayMonth, formatNumber } from '../domain/time'
 import { fallbackTypeSvg, TYPE_TONE, type ReportArt } from './art'
 import { glyph, type Glyph } from './glyphs'
+import { tl } from '../i18n'
 
 export type SectionKey = 'sum' | 'weight' | 'inc' | 'freq' | 'vet' | 'notes' | 'key'
 
 /** Cabecera de cada tarjeta: color de fondo, color del texto y del borde. */
 export const SECTIONS: Record<SectionKey, { title: string; color: string; ink: string; border: string; soft: string; glyph: Glyph }> = {
-  sum: { title: 'Resumen del periodo', color: '#f28a1a', ink: '#ffffff', border: '#f9c98f', soft: '#fffaf3', glyph: 'clipboard' },
-  weight: { title: 'Evolución del peso', color: '#173a7a', ink: '#ffffff', border: '#a9bfe6', soft: '#ffffff', glyph: 'scale' },
-  inc: { title: 'Episodios por día', color: '#173a7a', ink: '#ffffff', border: '#a9bfe6', soft: '#ffffff', glyph: 'bars' },
-  freq: { title: 'Frecuencia por tipo', color: '#3d8b40', ink: '#ffffff', border: '#a9d3ab', soft: '#ffffff', glyph: 'list' },
-  vet: { title: 'Consulta veterinaria', color: '#5b3fb0', ink: '#ffffff', border: '#c3b5ec', soft: '#f3efff', glyph: 'steth' },
-  notes: { title: 'Observaciones', color: '#3f9150', ink: '#ffffff', border: '#a9d3b1', soft: '#f3faf4', glyph: 'note' },
-  key: { title: 'Datos clave', color: '#ffb52e', ink: '#2a1d00', border: '#ffd88a', soft: '#fffaf0', glyph: 'bulb' },
+  sum: { title: tl('Resumen del periodo'), color: '#f28a1a', ink: '#ffffff', border: '#f9c98f', soft: '#fffaf3', glyph: 'clipboard' },
+  weight: { title: tl('Evolución del peso'), color: '#173a7a', ink: '#ffffff', border: '#a9bfe6', soft: '#ffffff', glyph: 'scale' },
+  inc: { title: tl('Episodios por día'), color: '#173a7a', ink: '#ffffff', border: '#a9bfe6', soft: '#ffffff', glyph: 'bars' },
+  freq: { title: tl('Frecuencia por tipo'), color: '#3d8b40', ink: '#ffffff', border: '#a9d3ab', soft: '#ffffff', glyph: 'list' },
+  vet: { title: tl('Consulta veterinaria'), color: '#5b3fb0', ink: '#ffffff', border: '#c3b5ec', soft: '#f3efff', glyph: 'steth' },
+  notes: { title: tl('Observaciones'), color: '#3f9150', ink: '#ffffff', border: '#a9d3b1', soft: '#f3faf4', glyph: 'note' },
+  key: { title: tl('Datos clave'), color: '#ffb52e', ink: '#2a1d00', border: '#ffd88a', soft: '#fffaf0', glyph: 'bulb' },
 }
 
 /** Cuántos elementos caben en cada tarjeta (el resto está en las páginas siguientes). */
@@ -74,14 +75,14 @@ export function statIcon(art: ReportArt | undefined, s: CoverStat): string {
 export function fichaRows(m: ReportModel): { glyph: Glyph; label: string; value: string }[] {
   const p = m.pet
   const sexGlyph: Glyph = p.sex === 'Macho' ? 'male' : p.sex === 'Hembra' ? 'female' : 'sex'
-  const rows: { glyph: Glyph; label: string; value: string }[] = [{ glyph: 'paw', label: 'Especie', value: p.species }]
-  if (p.breed) rows.push({ glyph: 'tag', label: 'Raza', value: p.breed })
-  rows.push({ glyph: sexGlyph, label: 'Sexo', value: p.sex })
-  if (p.age) rows.push({ glyph: 'cake', label: 'Edad', value: p.age })
-  if (p.birthDate) rows.push({ glyph: 'calendar', label: 'Nacimiento', value: p.birthDate })
-  if (p.weight) rows.push({ glyph: 'scale', label: 'Último peso', value: `${p.weight.text} (${p.weight.date})` })
-  if (p.conditions.length) rows.push({ glyph: 'heart', label: 'Patologías', value: p.conditions.join(', ') })
-  if (p.allergies.length) rows.push({ glyph: 'alert', label: 'Alergias', value: p.allergies.join(', ') })
+  const rows: { glyph: Glyph; label: string; value: string }[] = [{ glyph: 'paw', label: tl('Especie'), value: p.species }]
+  if (p.breed) rows.push({ glyph: 'tag', label: tl('Raza'), value: p.breed })
+  rows.push({ glyph: sexGlyph, label: tl('Sexo'), value: p.sex })
+  if (p.age) rows.push({ glyph: 'cake', label: tl('Edad'), value: p.age })
+  if (p.birthDate) rows.push({ glyph: 'calendar', label: tl('Nacimiento'), value: p.birthDate })
+  if (p.weight) rows.push({ glyph: 'scale', label: tl('Último peso'), value: `${p.weight.text} (${p.weight.date})` })
+  if (p.conditions.length) rows.push({ glyph: 'heart', label: tl('Patologías'), value: p.conditions.join(', ') })
+  if (p.allergies.length) rows.push({ glyph: 'alert', label: tl('Alergias'), value: p.allergies.join(', ') })
   return rows.slice(0, 8)
 }
 
@@ -155,7 +156,7 @@ export function weightChart(m: ReportModel, W: number, H: number): string | unde
   s += bubble(P[P.length - 1], `${formatNumber(last.v)} ${unit}`, true)
   s += `<text x="${n1(P[0][0])}" y="${H - 8}" text-anchor="middle" font-family="${FONT}" font-size="15" fill="#3b4763">${esc(formatDayMonth(new Date(first.t)))}</text>`
   if (P.length > 1) s += `<text x="${n1(P[P.length - 1][0])}" y="${H - 8}" text-anchor="middle" font-family="${FONT}" font-size="15" fill="#3b4763">${esc(formatDayMonth(new Date(last.t)))}</text>`
-  const label = `Evolución del peso: ${pts.length} mediciones, la última ${formatNumber(last.v)} ${unit}.`
+  const label = tl('Evolución del peso: {0} mediciones, la última {1} {2}.', pts.length, formatNumber(last.v), unit)
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}"><title>${esc(label)}</title>${s}</svg>`
 }
 
@@ -170,11 +171,11 @@ export function coverCharts(m: ReportModel, o: { weightW: number; weightH: numbe
     width: o.incW,
     height: o.incH,
     fontSize: 14,
-    emptyText: 'Sin vómitos, deposiciones blandas ni síntomas registrados',
-    ariaLabel: `Episodios ${inc.bin === 'day' ? 'por día' : 'por semana'}.`,
+    emptyText: tl('Sin vómitos, deposiciones blandas ni síntomas registrados'),
+    ariaLabel: tl('Episodios {0}.', inc.bin === 'day' ? tl('por día') : tl('por semana')),
   })
   const legend = inc.series.map((s, i) => ({ label: s.label, color: palette.series[i % palette.series.length] }))
-  return { weight: weightChart(m, o.weightW, o.weightH), incidents, legend, incTitle: inc.bin === 'day' ? 'Episodios por día' : 'Episodios por semana' }
+  return { weight: weightChart(m, o.weightW, o.weightH), incidents, legend, incTitle: inc.bin === 'day' ? tl('Episodios por día') : tl('Episodios por semana') }
 }
 
 export { TYPE_TONE }

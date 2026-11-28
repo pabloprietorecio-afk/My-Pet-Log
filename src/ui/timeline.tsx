@@ -10,6 +10,7 @@ import { Sheet, confirmDialog } from './components'
 import { TypeIcon } from './art/TypeIcon'
 import { EventSheet } from './EventSheet'
 import { IconTrash } from './icons'
+import { tl } from '../i18n'
 
 export type Entry =
   | { kind: 'event'; at: string; id: string; type: EventType; ev: LogEvent }
@@ -37,7 +38,7 @@ export function useEntries(petId: string, from?: Date, to?: Date) {
 
 export function doseName(log: DoseLog, trById: Map<string, Treatment>) {
   const t = log.treatmentId ? trById.get(log.treatmentId) : undefined
-  const name = t?.name ?? log.adHoc?.name ?? 'Medicamento'
+  const name = t?.name ?? log.adHoc?.name ?? tl('Medicamento')
   const dose = t ? doseText(t) : log.adHoc?.dose !== undefined ? `${formatNumber(log.adHoc.dose)} ${log.adHoc.unit ?? ''}`.trim() : ''
   return { name, dose }
 }
@@ -56,7 +57,7 @@ export function EntryRow({ e, trById }: { e: Entry; trById: Map<string, Treatmen
           <span className="lab">{e.type.label}</span>
           {det && <span className="det">{det}</span>}
         </span>
-        {e.ev.photo ? <span aria-label="con foto">📷</span> : <span />}
+        {e.ev.photo ? <span aria-label={tl('con foto')}>📷</span> : <span />}
       </>
     )
   }
@@ -72,9 +73,9 @@ export function EntryRow({ e, trById }: { e: Entry; trById: Map<string, Treatmen
         <span className="lab">
           {name} {dose && <span className="muted" style={{ fontWeight: 600 }}>{dose}</span>}
         </span>
-        <span className="det">Medicación</span>
+        <span className="det">{tl('Medicación')}</span>
       </span>
-      <span className={`badge ${skipped ? '' : 'ok'}`}>{skipped ? 'Omitida' : 'Dada'}</span>
+      <span className={`badge ${skipped ? '' : 'ok'}`}>{skipped ? tl('Omitida') : tl('Dada')}</span>
     </>
   )
 }
@@ -82,7 +83,7 @@ export function EntryRow({ e, trById }: { e: Entry; trById: Map<string, Treatmen
 export function entryLabel(e: Entry, trById: Map<string, Treatment>) {
   if (e.kind === 'event') return `${formatTime(e.at)}, ${e.type.label}. ${describeEvent(e.type, e.ev)}. Editar`
   const { name } = doseName(e.log, trById)
-  return `${formatTime(e.at)}, ${name}, ${e.log.status === 'skipped' ? 'omitida' : 'dada'}. Ver toma`
+  return tl('{0}, {1}, {2}. Ver toma', formatTime(e.at), name, e.log.status === 'skipped' ? tl('omitida') : tl('dada'))
 }
 
 /** Hoja de edición para una entrada (registro o toma). */
@@ -92,21 +93,21 @@ export function EntryEditor({ petId, entry, trById, onClose }: { petId: string; 
   const skipped = entry.log.status === 'skipped'
   return (
     <Sheet
-      title="Toma"
+      title={tl('Toma')}
       icon={<TypeIcon k="medication" size={30} />}
       onClose={onClose}
       foot={
         <button
           className="btn danger block"
           onClick={async () => {
-            if (await confirmDialog('¿Eliminar este registro de toma?')) {
+            if (await confirmDialog(tl('¿Eliminar este registro de toma?'))) {
               await repo.deleteDoseLog(entry.log.id)
               onClose()
             }
           }}
         >
           <IconTrash />
-          Eliminar registro
+          {tl('Eliminar registro')}
         </button>
       }
     >
@@ -117,13 +118,13 @@ export function EntryEditor({ petId, entry, trById, onClose }: { petId: string; 
               {name} {dose}
             </b>
             <small>
-              {skipped ? 'Omitida' : 'Administrada'} · {formatDateTime(entry.log.at)}
+              {skipped ? tl('Omitida') : tl('Administrada')} · {formatDateTime(entry.log.at)}
             </small>
           </span>
-          <span className={`badge ${skipped ? '' : 'ok'}`}>{skipped ? 'Omitida' : 'Dada'}</span>
+          <span className={`badge ${skipped ? '' : 'ok'}`}>{skipped ? tl('Omitida') : tl('Dada')}</span>
         </div>
       </div>
-      <p className="hint">Para corregir una toma, elimínala y vuelve a registrarla desde Medicación.</p>
+      <p className="hint">{tl('Para corregir una toma, elimínala y vuelve a registrarla desde Medicación.')}</p>
     </Sheet>
   )
 }

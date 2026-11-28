@@ -1,6 +1,7 @@
 import { newId } from './ids'
 import type { EventKey, EventType, InputKind, LogEvent, Species } from './types'
 import { formatNumber } from './time'
+import { tl } from '../i18n'
 
 export interface LevelOption {
   value: number
@@ -10,9 +11,9 @@ export interface LevelOption {
 }
 
 const SEVERITY: LevelOption[] = [
-  { value: 1, label: 'Leve' },
-  { value: 2, label: 'Moderado' },
-  { value: 3, label: 'Intenso' },
+  { value: 1, label: tl('Leve') },
+  { value: 2, label: tl('Moderado') },
+  { value: 3, label: tl('Intenso') },
 ]
 
 const LEVELS: Partial<Record<EventKey, LevelOption[]>> = {
@@ -20,35 +21,35 @@ const LEVELS: Partial<Record<EventKey, LevelOption[]>> = {
   symptom: SEVERITY,
   custom: SEVERITY,
   stool: [
-    { value: 1, label: 'Normal' },
-    { value: 2, label: 'Blanda' },
-    { value: 3, label: 'Diarrea' },
+    { value: 1, label: tl('Normal') },
+    { value: 2, label: tl('Blanda') },
+    { value: 3, label: tl('Diarrea') },
   ],
   food: [
-    { value: 0, label: 'Nada', phrase: 'no comió' },
-    { value: 1, label: 'Poca', phrase: 'poca cantidad' },
-    { value: 2, label: 'Normal', phrase: 'cantidad normal' },
-    { value: 3, label: 'Mucha', phrase: 'mucha cantidad' },
+    { value: 0, label: tl('Nada'), phrase: tl('no comió') },
+    { value: 1, label: tl('Poca'), phrase: tl('poca cantidad') },
+    { value: 2, label: tl('Normal'), phrase: tl('cantidad normal') },
+    { value: 3, label: tl('Mucha'), phrase: tl('mucha cantidad') },
   ],
   water: [
-    { value: 1, label: 'Poca', phrase: 'poca cantidad' },
-    { value: 2, label: 'Normal', phrase: 'cantidad normal' },
-    { value: 3, label: 'Mucha', phrase: 'mucha cantidad' },
+    { value: 1, label: tl('Poca'), phrase: tl('poca cantidad') },
+    { value: 2, label: tl('Normal'), phrase: tl('cantidad normal') },
+    { value: 3, label: tl('Mucha'), phrase: tl('mucha cantidad') },
   ],
   mood: [
-    { value: 1, label: 'Decaído' },
-    { value: 2, label: 'Normal' },
-    { value: 3, label: 'Activo' },
+    { value: 1, label: tl('Decaído') },
+    { value: 2, label: tl('Normal') },
+    { value: 3, label: tl('Activo') },
   ],
   activity: [
-    { value: 1, label: 'Poca', phrase: 'poca actividad' },
-    { value: 2, label: 'Normal', phrase: 'actividad normal' },
-    { value: 3, label: 'Mucha', phrase: 'mucha actividad' },
+    { value: 1, label: tl('Poca'), phrase: tl('poca actividad') },
+    { value: 2, label: tl('Normal'), phrase: tl('actividad normal') },
+    { value: 3, label: tl('Mucha'), phrase: tl('mucha actividad') },
   ],
   shed: [
-    { value: 1, label: 'Empieza', phrase: 'empieza la muda' },
-    { value: 2, label: 'En curso', phrase: 'muda en curso' },
-    { value: 3, label: 'Completa', phrase: 'muda completa' },
+    { value: 1, label: tl('Empieza'), phrase: tl('empieza la muda') },
+    { value: 2, label: tl('En curso'), phrase: tl('muda en curso') },
+    { value: 3, label: tl('Completa'), phrase: tl('muda completa') },
   ],
 }
 
@@ -76,21 +77,32 @@ interface BuiltinDef {
   unit?: string
 }
 
+/** Nombres de serie tal como se guardaban en español (versiones anteriores y otros dispositivos). */
+const ES_BUILTIN_LABELS = new Set([
+  'Medicación', 'Vómito', 'Deposición', 'Comida', 'Agua', 'Peso', 'Estado', 'Síntoma', 'Veterinario', 'Otro', 'Muda',
+  'Temperatura', 'Actividad', 'Regurgitación', 'Defecación', 'Excrementos',
+])
+
+/** Etiqueta para mostrar: los botones de serie con su nombre original en español se ven en el idioma elegido. */
+export function displayLabel<T extends Pick<EventType, 'key' | 'label'>>(t: T): T {
+  return t.key !== 'custom' && ES_BUILTIN_LABELS.has(t.label) ? { ...t, label: tl(t.label) } : t
+}
+
 /** Todos los botones de serie (la etiqueta y la unidad pueden variar por especie). */
 export const BUILTIN_TYPES: BuiltinDef[] = [
-  { key: 'medication', label: 'Medicación', emoji: '💊', input: 'none' },
-  { key: 'vomit', label: 'Vómito', emoji: '🤮', input: 'level' },
-  { key: 'stool', label: 'Deposición', emoji: '💩', input: 'level' },
-  { key: 'food', label: 'Comida', emoji: '🍽️', input: 'level', unit: 'g' },
-  { key: 'water', label: 'Agua', emoji: '💧', input: 'level', unit: 'ml' },
-  { key: 'weight', label: 'Peso', emoji: '⚖️', input: 'number', unit: 'kg' },
-  { key: 'mood', label: 'Estado', emoji: '❤️', input: 'level' },
-  { key: 'symptom', label: 'Síntoma', emoji: '🌡️', input: 'level' },
-  { key: 'vet', label: 'Veterinario', emoji: '🩺', input: 'text' },
-  { key: 'other', label: 'Otro', emoji: '📝', input: 'text' },
-  { key: 'shed', label: 'Muda', emoji: '🦎', input: 'level' },
-  { key: 'temperature', label: 'Temperatura', emoji: '☀️', input: 'number', unit: '°C' },
-  { key: 'activity', label: 'Actividad', emoji: '⚡', input: 'level' },
+  { key: 'medication', label: tl('Medicación'), emoji: '💊', input: 'none' },
+  { key: 'vomit', label: tl('Vómito'), emoji: '🤮', input: 'level' },
+  { key: 'stool', label: tl('Deposición'), emoji: '💩', input: 'level' },
+  { key: 'food', label: tl('Comida'), emoji: '🍽️', input: 'level', unit: 'g' },
+  { key: 'water', label: tl('Agua'), emoji: '💧', input: 'level', unit: 'ml' },
+  { key: 'weight', label: tl('Peso'), emoji: '⚖️', input: 'number', unit: 'kg' },
+  { key: 'mood', label: tl('Estado'), emoji: '❤️', input: 'level' },
+  { key: 'symptom', label: tl('Síntoma'), emoji: '🌡️', input: 'level' },
+  { key: 'vet', label: tl('Veterinario'), emoji: '🩺', input: 'text' },
+  { key: 'other', label: tl('Otro'), emoji: '📝', input: 'text' },
+  { key: 'shed', label: tl('Muda'), emoji: '🦎', input: 'level' },
+  { key: 'temperature', label: tl('Temperatura'), emoji: '☀️', input: 'number', unit: '°C' },
+  { key: 'activity', label: tl('Actividad'), emoji: '⚡', input: 'level' },
 ]
 
 type BuiltinKey = BuiltinDef['key']
@@ -115,42 +127,42 @@ interface SpeciesDef {
  */
 export const SPECIES: Record<Species, SpeciesDef> = {
   dog: {
-    label: 'Perro',
-    pick: 'Perro',
+    label: tl('Perro'),
+    pick: tl('Perro'),
     weightUnit: 'kg',
     buttons: ['medication', 'vomit', 'stool', 'food', 'water', 'weight', 'mood', 'symptom', 'vet', 'other'],
   },
   cat: {
-    label: 'Gato',
-    pick: 'Gato',
+    label: tl('Gato'),
+    pick: tl('Gato'),
     weightUnit: 'kg',
     buttons: ['medication', 'vomit', 'stool', 'food', 'water', 'weight', 'mood', 'symptom', 'vet', 'other'],
   },
   rodent: {
-    label: 'Roedor',
-    pick: 'Hámster / roedor',
+    label: tl('Roedor'),
+    pick: tl('Hámster / roedor'),
     weightUnit: 'g',
     buttons: ['medication', 'food', 'water', 'weight', 'stool', 'activity', 'mood', 'symptom', 'vet', 'other'],
   },
   reptile: {
-    label: 'Reptil',
-    pick: 'Serpiente / reptil',
+    label: tl('Reptil'),
+    pick: tl('Serpiente / reptil'),
     weightUnit: 'g',
     buttons: ['medication', 'food', 'shed', 'stool', 'vomit', 'weight', 'temperature', 'symptom', 'vet', 'other'],
-    labels: { vomit: 'Regurgitación', stool: 'Defecación' },
+    labels: { vomit: tl('Regurgitación'), stool: tl('Defecación') },
   },
   rabbit: {
-    label: 'Conejo',
-    pick: 'Conejo',
+    label: tl('Conejo'),
+    pick: tl('Conejo'),
     weightUnit: 'kg',
     buttons: ['medication', 'food', 'water', 'stool', 'weight', 'activity', 'mood', 'symptom', 'vet', 'other'],
   },
   bird: {
-    label: 'Pájaro',
-    pick: 'Pájaro',
+    label: tl('Pájaro'),
+    pick: tl('Pájaro'),
     weightUnit: 'g',
     buttons: ['medication', 'food', 'water', 'stool', 'weight', 'shed', 'activity', 'symptom', 'vet', 'other'],
-    labels: { vomit: 'Regurgitación', stool: 'Excrementos' },
+    labels: { vomit: tl('Regurgitación'), stool: tl('Excrementos') },
   },
 }
 
@@ -220,7 +232,7 @@ export function isIncidentKey(key: EventKey): boolean {
 }
 
 /** Sugerencias de un toque en la hoja de «Síntoma». No es una lista clínica: solo atajos de texto. */
-export const SYMPTOM_SUGGESTIONS = ['Tos', 'Estornudos', 'Picor', 'Cojera', 'Temblores', 'Convulsión', 'Jadeo', 'Dolor'] as const
+export const SYMPTOM_SUGGESTIONS = [tl('Tos'), tl('Estornudos'), tl('Picor'), tl('Cojera'), tl('Temblores'), tl('Convulsión'), tl('Jadeo'), tl('Dolor')] as const
 
 /** Iconos antiguos que se renderizaban mal (📅 muestra «July 17») → nuevos, solo si el usuario no los cambió. */
 export const LEGACY_EMOJI: Partial<Record<EventKey, { from: string; to: string }>> = {
@@ -234,18 +246,18 @@ export function levelQuestion(key: EventKey): string {
   switch (key) {
     case 'food':
     case 'water':
-      return '¿Cuánto?'
+      return tl('¿Cuánto?')
     case 'stool':
-      return '¿Cómo era?'
+      return tl('¿Cómo era?')
     case 'mood':
-      return '¿Cómo está?'
+      return tl('¿Cómo está?')
     case 'activity':
-      return '¿Cuánta?'
+      return tl('¿Cuánta?')
     case 'shed':
-      return '¿En qué fase?'
+      return tl('¿En qué fase?')
     default:
-      return '¿Intensidad?'
+      return tl('¿Intensidad?')
   }
 }
 
-export const DOSE_UNITS = ['mg', 'ml', 'comprimido', 'cápsula', 'gotas', 'UI', 'g', 'sobre'] as const
+export const DOSE_UNITS = ['mg', 'ml', tl('comprimido'), tl('cápsula'), tl('gotas'), 'UI', 'g', tl('sobre')] as const

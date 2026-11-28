@@ -9,13 +9,14 @@ import { VoiceSheet } from './VoiceSheet'
 import { rememberPet } from './nav'
 import { Backdrop, type Scene } from './art/Backdrop'
 import { SettingIcon } from './art/TypeIcon'
+import { tl } from '../i18n'
 
 const TABS = [
-  { to: 'hoy', label: 'Hoy', Icon: IconToday },
-  { to: 'historial', label: 'Historial', Icon: IconList },
-  { to: 'medicacion', label: 'Medicación', Icon: IconPill },
-  { to: 'graficas', label: 'Gráficas', Icon: IconChart },
-  { to: 'informe', label: 'Informe', Icon: IconDoc },
+  { to: 'hoy', label: tl('Hoy'), Icon: IconToday },
+  { to: 'historial', label: tl('Historial'), Icon: IconList },
+  { to: 'medicacion', label: tl('Medicación'), Icon: IconPill },
+  { to: 'graficas', label: tl('Gráficas'), Icon: IconChart },
+  { to: 'informe', label: tl('Informe'), Icon: IconDoc },
 ]
 
 const SCENE: Record<string, Scene> = {
@@ -31,9 +32,9 @@ const SCENE: Record<string, Scene> = {
 
 /** Subpantallas de detalle: cabecera con «volver» y sin navegación inferior. */
 const SUB: Record<string, string> = {
-  ficha: 'Ficha',
-  botones: 'Personalizar botones',
-  consejos: 'Consejos',
+  ficha: tl('Ficha'),
+  botones: tl('Personalizar botones'),
+  consejos: tl('Consejos'),
 }
 
 export function PetShell() {
@@ -86,14 +87,14 @@ export function PetShell() {
       <Backdrop scene={scene} />
       {sub ? (
         <header className="topbar">
-          <Link className="icon-btn" to="hoy" replace aria-label="Volver">
+          <Link className="icon-btn" to="hoy" replace aria-label={tl('Volver')}>
             <IconBack />
           </Link>
-          <h1>{sub === 'Ficha' ? `Ficha de ${pet.name}` : sub === 'Consejos' ? `Consejos para ${pet.name}` : sub}</h1>
+          <h1>{sub === 'Ficha' ? tl('Ficha de {0}', pet.name) : sub === 'Consejos' ? tl('Consejos para {0}', pet.name) : sub}</h1>
         </header>
       ) : (
         <header className="topbar">
-          <button className="who" onClick={() => setSwitcher(true)} aria-label={`${pet.name}, ${meta}. Cambiar de mascota o editar su ficha`}>
+          <button className="who" onClick={() => setSwitcher(true)} aria-label={tl('{0}, {1}. Cambiar de mascota o editar su ficha', pet.name, meta)}>
             <Avatar pet={pet} />
             <span className="txt">
               <h1>
@@ -103,13 +104,13 @@ export function PetShell() {
               <span className="meta">{meta}</span>
             </span>
           </button>
-          <button className="icon-btn mic" onClick={() => setVoice(true)} aria-label="Anotar por voz">
+          <button className="icon-btn mic" onClick={() => setVoice(true)} aria-label={tl('Anotar por voz')}>
             <IconMic />
           </button>
-          <Link className="icon-btn" to="consejos" aria-label={`Consejos para ${pet.name}`}>
+          <Link className="icon-btn" to="consejos" aria-label={tl('Consejos para {0}', pet.name)}>
             <IconBulb />
           </Link>
-          <Link className="icon-btn" to="/ajustes" aria-label="Ajustes">
+          <Link className="icon-btn" to="/ajustes" aria-label={tl('Ajustes')}>
             <IconGear />
           </Link>
         </header>
@@ -120,7 +121,7 @@ export function PetShell() {
       {voice && <VoiceSheet petId={pet.id} petName={pet.name} startInHelp={voiceHelp} onClose={() => { setVoice(false); setVoiceHelp(false) }} />}
       {!sub && (
         <div className="tabbar">
-          <nav aria-label="Secciones">
+          <nav aria-label={tl('Secciones')}>
             {TABS.map(({ to, label, Icon }) => (
               <NavLink key={to} to={to} className="tab" replace>
                 <span className="ic">
@@ -133,7 +134,7 @@ export function PetShell() {
         </div>
       )}
       {switcher && (
-        <Sheet title="Mascotas" onClose={() => setSwitcher(false)}>
+        <Sheet title={tl('Mascotas')} onClose={() => setSwitcher(false)}>
           <div className="list">
             {(pets ?? []).map((p) => (
               <button key={p.id} className="list-item" onClick={() => go(`/pet/${p.id}/hoy`)} aria-current={p.id === pet.id}>
@@ -142,7 +143,7 @@ export function PetShell() {
                   <b>{p.name}</b>
                   <small>{speciesLabel(p.species)}{p.id === pet.id ? ' · ahora' : ''}</small>
                 </span>
-                {p.id === pet.id ? <span className="badge due">Actual</span> : <IconNext />}
+                {p.id === pet.id ? <span className="badge due">{tl('Actual')}</span> : <IconNext />}
               </button>
             ))}
           </div>
@@ -152,8 +153,8 @@ export function PetShell() {
                 <SettingIcon name="card" />
               </span>
               <span className="txt">
-                <b>Ficha de {pet.name}</b>
-                <small>Datos, salud y veterinario</small>
+                <b>{tl('Ficha de')}{' '}{pet.name}</b>
+                <small>{tl('Datos, salud y veterinario')}</small>
               </span>
               <IconNext />
             </button>
@@ -162,15 +163,15 @@ export function PetShell() {
                 <SettingIcon name="sliders" />
               </span>
               <span className="txt">
-                <b>Personalizar botones</b>
-                <small>Ordenar, ocultar o crear los tuyos</small>
+                <b>{tl('Personalizar botones')}</b>
+                <small>{tl('Ordenar, ocultar o crear los tuyos')}</small>
               </span>
               <IconNext />
             </button>
           </div>
           <button className="btn tonal block" onClick={() => go('/nueva')}>
             <IconPlus />
-            Añadir mascota
+            {tl('Añadir mascota')}
           </button>
         </Sheet>
       )}

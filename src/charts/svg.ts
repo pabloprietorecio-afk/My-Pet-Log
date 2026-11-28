@@ -3,6 +3,7 @@
  * (vía svg2pdf), así que solo usan atributos básicos y colores en hex.
  */
 import { formatNumber } from '../domain/time'
+import { tl } from '../i18n'
 
 export interface ChartPalette {
   ink: string
@@ -30,7 +31,7 @@ export const PALETTE_DARK: ChartPalette = {
   series: ['#3987e5', '#d95926', '#199e70', '#c98500'],
 }
 
-const FONT = "Figtree Variable, Figtree, Helvetica, Arial, sans-serif"
+const FONT = 'Figtree Variable, Figtree, Helvetica, Arial, sans-serif'
 
 export function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
@@ -88,7 +89,7 @@ export function barChart(o: {
   let body = ''
   if (max === 0 || n === 0) {
     body += `<line x1="${m.l}" y1="${H - m.b}" x2="${W - m.r}" y2="${H - m.b}" stroke="${p.grid}" stroke-width="1"/>`
-    body += emptyNote(W, H - m.b, o.emptyText ?? 'Sin registros en el periodo', p)
+    body += emptyNote(W, H - m.b, o.emptyText ?? tl('Sin registros en el periodo'), p)
     return wrap(W, H, o.ariaLabel, body)
   }
   const step = Math.max(1, Math.ceil(niceStep(max, 3)))
@@ -153,7 +154,7 @@ export function lineChart(o: {
   const real = o.points.filter((q): q is { t: number; v: number } => q.v !== null)
   const m = { l: o.yTicks ? 52 : 36, r: 14, t: 16, b: 14 + fs }
   if (real.length === 0) {
-    return wrap(W, H, o.ariaLabel, `<line x1="${m.l}" y1="${H - m.b}" x2="${W - m.r}" y2="${H - m.b}" stroke="${p.grid}"/>${emptyNote(W, H - m.b, o.emptyText ?? 'Sin registros en el periodo', p)}`)
+    return wrap(W, H, o.ariaLabel, `<line x1="${m.l}" y1="${H - m.b}" x2="${W - m.r}" y2="${H - m.b}" stroke="${p.grid}"/>${emptyNote(W, H - m.b, o.emptyText ?? tl('Sin registros en el periodo'), p)}`)
   }
   const ts = o.points.map((q) => q.t)
   let t0 = Math.min(...ts)
@@ -253,7 +254,7 @@ export function hBarChart(o: {
   const p = o.palette
   const rowH = 30
   const H = Math.max(60, o.items.length * rowH + 8)
-  if (o.items.length === 0) return wrap(W, 60, o.ariaLabel, emptyNote(W, 60, o.emptyText ?? 'Sin registros en el periodo', p))
+  if (o.items.length === 0) return wrap(W, 60, o.ariaLabel, emptyNote(W, 60, o.emptyText ?? tl('Sin registros en el periodo'), p))
   const labelW = 112
   const valueW = 52
   const trackW = W - labelW - valueW - 6

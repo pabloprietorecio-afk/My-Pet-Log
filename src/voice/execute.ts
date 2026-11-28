@@ -7,6 +7,7 @@ import { doseText, indexLogs, isTreatmentActive, slotKey, slotsInRange } from '.
 import { addDays, endOfLocalDay, formatTime, startOfLocalDay, startOfWeek } from '../domain/time'
 import type { DoseLog, EventType, Pet, Treatment } from '../domain/types'
 import { parseVoice, type VoiceAction, type VoiceContext, type VoiceQuery, type VoiceResult } from './parse'
+import { locale, tl } from '../i18n'
 
 export interface Done {
   kind: 'event' | 'dose'
@@ -54,7 +55,7 @@ function when(at: Date, now: Date, said: boolean): string {
   if (!said) return ''
   if (sameDay(at, now)) return ` · ${hhmm(at)}`
   if (sameDay(at, addDays(now, -1))) return ` · ayer ${hhmm(at)}`
-  return ` · ${at.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} ${hhmm(at)}`
+  return ` · ${at.toLocaleDateString(locale(), { day: 'numeric', month: 'short' })} ${hhmm(at)}`
 }
 
 /** Hueco de la toma más cercano a la hora dicha (o a ahora) que aún no está registrado. */
@@ -85,8 +86,8 @@ async function apply(petId: string, a: VoiceAction, ctx: VoiceContext): Promise<
   const slot = t.mode === 'scheduled' ? slotFor(t, logs, a.at) : null
   // Sin hora dicha, una toma programada se apunta a su hora de registro real (ahora); con hora dicha, a esa hora.
   const log = await repo.logDose({ petId, treatmentId: t.id, scheduledAt: slot?.scheduledAt, status: a.status, at: (a.status === 'skipped' && slot ? slot.at : a.at).toISOString() })
-  const verb = a.status === 'given' ? 'dada' : 'sin dar'
-  return { kind: 'dose', id: log.id, typeKey: 'medication', at: a.at, text: `${t.name} ${doseText(t)} ${verb}${slot ? ` (toma de las ${hhmm(slot.at)})` : when(a.at, ctx.now, a.timeSaid)}` }
+  const verb = a.status === 'given' ? tl('dada') : tl('sin dar')
+  return { kind: 'dose', id: log.id, typeKey: 'medication', at: a.at, text: `${t.name} ${doseText(t)} ${verb}${slot ? tl(' (toma de las {0})', hhmm(slot.at)) : when(a.at, ctx.now, a.timeSaid)}` }
 }
 
 export async function undoLast(): Promise<string | null> {
@@ -108,24 +109,24 @@ async function answer(petId: string, q: VoiceQuery, ctx: VoiceContext): Promise<
     const from = q.range === 'week' ? startOfWeek(now) : q.range === 'yesterday' ? startOfLocalDay(addDays(now, -1)) : startOfLocalDay(now)
     const to = q.range === 'yesterday' ? endOfLocalDay(addDays(now, -1)) : now
     const n = (await repo.listEvents(petId, from, to)).filter((e) => e.typeId === type.id).length
-    const range = q.range === 'week' ? 'esta semana' : q.range === 'yesterday' ? 'ayer' : 'hoy'
-    return `${pet}: ${n} ${n === 1 ? 'registro' : 'registros'} de ${type.label.toLowerCase()} ${range}.`
+    const range = q.range === 'week' ? tl('esta semana') : q.range === 'yesterday' ? tl('ayer') : tl('hoy')
+    return n === 1 ? tl('{0}: 1 registro de {1} {2}.', pet, type.label.toLowerCase(), range) : tl('{0}: {1} registros de {2} {3}.', pet, n, type.label.toLowerCase(), range)
   }
   if (q.medication) {
     const logs = (await repo.listDoseLogs(petId, addDays(now, -60), now))
       .filter((l) => l.status === 'given' && (!q.treatmentId || l.treatmentId === q.treatmentId))
       .sort((a, b) => b.at.localeCompare(a.at))
     const l = logs[0]
-    if (!l) return `No hay tomas dadas registradas${q.treatmentId ? ' de ese tratamiento' : ''} en los últimos 60 días.`
-    const name = l.adHoc?.name ?? ctx.treatments(petId).find((t) => t.id === l.treatmentId)?.name ?? 'Medicación'
-    return `Última toma: ${name}, ${when(new Date(l.at), now, true).replace(' · ', '')}.`
+    if (!l) return tl('No hay tomas dadas registradas{0} en los últimos 60 días.', q.treatmentId ? tl(' de ese tratamiento') : '')
+    const name = l.adHoc?.name ?? ctx.treatments(petId).find((t) => t.id === l.treatmentId)?.name ?? tl('Medicación')
+    return tl('Última toma: {0}, {1}.', name, when(new Date(l.at), now, true).replace(' · ', ''))
   }
   const type = ctx.types(petId).find((t) => t.id === q.typeId)!
   const evs = (await repo.listEvents(petId)).filter((e) => e.typeId === type.id).sort((a, b) => b.at.localeCompare(a.at))
   const e = evs[0]
-  if (!e) return `No hay registros de ${type.label.toLowerCase()}.`
+  if (!e) return tl('No hay registros de {0}.', type.label.toLowerCase())
   const det = describeEvent(type, e)
-  return `Último registro de ${type.label.toLowerCase()}: ${when(new Date(e.at), now, true).replace(' · ', '')}${det ? `, ${det}` : ''}.`
+  return tl('Último registro de {0}: {1}{2}.', type.label.toLowerCase(), when(new Date(e.at), now, true).replace(' · ', ''), det ? `, ${det}` : '')
 }
 
 /** Interpreta y ejecuta una frase. */
@@ -136,7 +137,7 @@ export async function runVoice(text: string, currentPetId: string): Promise<Outc
   if (r.kind === 'help') return { kind: 'help' }
   if (r.kind === 'undo') {
     const t = await undoLast()
-    return { kind: 'undone', text: t ? `Deshecho: ${t}` : 'No hay nada que deshacer de esta sesión de voz.' }
+    return { kind: 'undone', text: t ? tl('Deshecho: {0}', t) : tl('No hay nada que deshacer de esta sesión de voz.') }
   }
   if (r.kind === 'query') return { kind: 'answer', petId: r.petId, text: await answer(r.petId, r.query, ctx) }
   const done: Done[] = []
@@ -153,11 +154,11 @@ export async function runVoice(text: string, currentPetId: string): Promise<Outc
 /** Frase corta para leer en voz alta. */
 export function spoken(o: Outcome, petName?: string): string {
   if (o.kind === 'saved') {
-    if (!o.done.length) return o.needsTreatment ? '¿Qué medicamento? Dímelo por su nombre.' : 'No lo he entendido.'
+    if (!o.done.length) return o.needsTreatment ? tl('¿Qué medicamento? Dímelo por su nombre.') : tl('No lo he entendido.')
     const say = (t: string) => t.replace(/ · ayer (\d)/, ', ayer a las $1').replace(/ · (\d)/, ', a las $1').replace(/ · /g, ', ')
-    return `Anotado${petName ? ` para ${petName}` : ''}: ${o.done.map((d) => say(d.text)).join('; ')}.`
+    return tl('Anotado{0}: {1}.', petName ? tl(' para {0}', petName) : '', o.done.map((d) => say(d.text)).join('; '))
   }
-  if (o.kind === 'none') return 'No lo he entendido.'
-  if (o.kind === 'help') return 'Estas son las frases que entiendo.'
+  if (o.kind === 'none') return tl('No lo he entendido.')
+  if (o.kind === 'help') return tl('Estas son las frases que entiendo.')
   return o.text
 }

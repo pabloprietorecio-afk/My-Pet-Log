@@ -68,7 +68,7 @@ const petId = () => page.url().match(/pet\/([^/]+)/)?.[1]
 
 // ─────────────────────────────────────────────────────────────────────────
 section('1. Alta de mascota')
-await page.goto(BASE)
+await page.goto(BASE); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
 await wait(500)
 // Foto de prueba dibujada por el propio navegador (PNG válido de 320×240).
 const png = await page.evaluate(() => {
@@ -467,7 +467,7 @@ await page.getByRole('button', { name: 'Borrar todos los datos' }).click()
 await page.getByRole('alertdialog').getByRole('button', { name: 'Borrar todo' }).click()
 await wait(500)
 ok(await page.getByRole('link', { name: 'Añadir mi mascota' }).isVisible(), 'borrar todo vuelve a la bienvenida')
-await page.goto(BASE + '#/ajustes')
+await page.goto(BASE + '#/ajustes'); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
 await page.getByRole('button', { name: /^Copia de seguridad/ }).click()
 const fc3 = page.waitForEvent('filechooser')
 await page.getByRole('button', { name: /Restaurar/ }).click()

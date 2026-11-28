@@ -7,6 +7,7 @@
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { IconBack, IconNext } from './icons'
+import { tl } from '../i18n'
 
 export function useBox<T extends HTMLElement>() {
   // Ref de función: funciona aunque el elemento aparezca más tarde (p. ej. tras cargar datos).
@@ -150,7 +151,7 @@ export function Paged({
             b.kind === 'head' ? (
               <div key={`h${i}`} className="phead" role="presentation" style={{ height: `${headRem}rem` }}>
                 {(b.item as { head: string }).head}
-                {b.cont ? <span className="cont"> (continúa)</span> : null}
+                {b.cont ? <span className="cont"> {tl('(continúa)')}</span> : null}
               </div>
             ) : (
               <Row key={b.item.key} b={b} rowRem={rowRem} rowClass={rowClass} />
@@ -160,14 +161,14 @@ export function Paged({
       )}
       {n > 1 && (
         <div className="pager" style={{ height: `${PAGER_REM}rem` }}>
-          <button className="icon-btn" onClick={() => go(-1)} disabled={p === 0} aria-label="Página anterior">
+          <button className="icon-btn" onClick={() => go(-1)} disabled={p === 0} aria-label={tl('Página anterior')}>
             <IconBack />
           </button>
           <span className="dots" aria-live="polite">
-            <span className="sr">Página </span>
-            {p + 1} de {n}
+            <span className="sr">{tl('Página')}{' '}</span>
+            {p + 1} {tl('de')}{' '}{n}
           </span>
-          <button className="icon-btn" onClick={() => go(1)} disabled={p === n - 1} aria-label="Página siguiente">
+          <button className="icon-btn" onClick={() => go(1)} disabled={p === n - 1} aria-label={tl('Página siguiente')}>
             <IconNext />
           </button>
         </div>
@@ -206,7 +207,7 @@ export function useUsableHeight() {
     const w = window.innerWidth
     if (w !== best.current.w) best.current = { w, h: window.innerHeight }
     else best.current.h = Math.max(best.current.h, window.innerHeight)
-    return Math.round(best.current.h - px('--safe-area-inset-top') - px('--safe-area-inset-bottom'))
+    return Math.round(best.current.h - px('--safe-area-inset-top') - px('--safe-area-inset-bottom') - px('--ad-h'))
   }
   const [h, setH] = useState(read)
   useEffect(() => {

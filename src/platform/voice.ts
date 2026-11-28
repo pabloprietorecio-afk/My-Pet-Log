@@ -3,6 +3,7 @@
  * En ningún caso PetLog envía audio a servidores propios: el reconocimiento lo hace el sistema del teléfono.
  */
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
+import { tl } from '../i18n'
 
 interface VoicePlugin {
   available(): Promise<{ recognition: boolean; onDevice: boolean; permission: string }>
@@ -80,7 +81,7 @@ export async function listen(h: ListenHandlers = {}): Promise<string> {
     }
   }
   const SR = WebSR()
-  if (!SR) throw new VoiceError('Este dispositivo no tiene reconocimiento de voz', 'unavailable')
+  if (!SR) throw new VoiceError(tl('Este dispositivo no tiene reconocimiento de voz'), 'unavailable')
   return new Promise((resolve, reject) => {
     const r = new SR()
     webCurrent = r

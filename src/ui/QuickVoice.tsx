@@ -15,6 +15,7 @@ import { TypeIcon } from './art/TypeIcon'
 import { VoiceFace } from './art/VoiceFace'
 import { lastPet } from './nav'
 import { useTheme } from './theme'
+import { lang, tl } from '../i18n'
 
 type Phase = 'starting' | 'listening' | 'working' | 'result' | 'error' | 'typing'
 
@@ -80,7 +81,7 @@ export function QuickVoice() {
       const text = await listen({ onPartial: setPartial, onLevel: setLevel })
       if (!alive.current) return
       if (!text.trim()) {
-        setErr('No he oído nada. Toca la carita y habla cerca del teléfono.')
+        setErr(tl('No he oído nada. Toca la carita y habla cerca del teléfono.'))
         return setPhase('error')
       }
       await process(text)
@@ -90,12 +91,12 @@ export function QuickVoice() {
       if (code === 'cancelled') return close()
       setErr(
         code === 'permission'
-          ? 'PetLog necesita permiso de micrófono. Puedes darlo en Ajustes de Android → Aplicaciones → PetLog → Permisos.'
+          ? tl('PetLog necesita permiso de micrófono. Puedes darlo en Ajustes de Android → Aplicaciones → PetLog → Permisos.')
           : code === 'unavailable'
-            ? 'Este teléfono no tiene reconocimiento de voz. Puedes escribir la frase.'
+            ? tl('Este teléfono no tiene reconocimiento de voz. Puedes escribir la frase.')
             : code === 'network'
-              ? 'El dictado de este teléfono necesita conexión. Puedes escribir la frase.'
-              : `No se pudo escuchar (${(e as Error).message}).`,
+              ? tl('El dictado de este teléfono necesita conexión. Puedes escribir la frase.')
+              : tl('No se pudo escuchar ({0}).', (e as Error).message),
       )
       setPhase(code === 'unavailable' || code === 'network' ? 'typing' : 'error')
     }
@@ -140,7 +141,7 @@ export function QuickVoice() {
   const undo = async () => {
     setLeft(null)
     const t = await undoLast()
-    setOut({ kind: 'undone', text: t ? `Deshecho: ${t}` : 'No había nada que deshacer.' })
+    setOut({ kind: 'undone', text: t ? tl('Deshecho: {0}', t) : tl('No había nada que deshacer.') })
   }
 
   const listening = phase === 'listening'
@@ -151,11 +152,11 @@ export function QuickVoice() {
   return (
     <div className="qv" onClick={(e) => e.target === e.currentTarget && close()}>
       {showMic && (
-        <section className="qv-card qv-mic" role="dialog" aria-label="Anotar por voz" aria-live="polite">
+        <section className="qv-card qv-mic" role="dialog" aria-label={tl('Anotar por voz')} aria-live="polite">
           <header className="qv-head">
-            <span className="qv-brand">PetLog</span>
-            {pet && <span className="qv-pet">Para {pet.name}</span>}
-            <button className="qv-x" onClick={close} aria-label="Cerrar">
+            <span className="qv-brand">{tl('PetLog')}</span>
+            {pet && <span className="qv-pet">{tl('Para')}{' '}{pet.name}</span>}
+            <button className="qv-x" onClick={close} aria-label={tl('Cerrar')}>
               ×
             </button>
           </header>
@@ -165,17 +166,18 @@ export function QuickVoice() {
               style={{ ['--ring' as string]: ring }}
               onClick={() => (listening ? void stopListening() : void start())}
               disabled={phase === 'working' || phase === 'starting' || !pet}
-              aria-label={listening ? 'Terminar de hablar' : 'Hablar'}
+              aria-label={listening ? tl('Terminar de hablar') : tl('Hablar')}
             >
               <span className="halo" aria-hidden="true" />
               <VoiceFace className="face" />
             </button>
             <div className="qv-said">
-              {phase === 'starting' && <p className="hint">Preparando el micrófono…</p>}
-              {listening && <p className={partial ? '' : 'hint'}>{partial || '¿Qué ha pasado?'}</p>}
-              {listening && !partial && <p className="qv-example">Por ejemplo: «vómito leve», «le he dado la pastilla»</p>}
+              {phase === 'starting' && <p className="hint">{tl('Preparando el micrófono…')}</p>}
+              {phase === 'starting' && lang() !== 'es' && <p className="hint">{tl('Los comandos de voz, de momento, solo funcionan en español.')}</p>}
+              {listening && <p className={partial ? '' : 'hint'}>{partial || tl('¿Qué ha pasado?')}</p>}
+              {listening && !partial && <p className="qv-example">{tl('Por ejemplo: «vómito leve», «le he dado la pastilla»')}</p>}
               {phase === 'working' && <p>«{heard}»</p>}
-              {phase === 'error' && <p className="qv-err">{pet ? err : 'Todavía no hay ninguna mascota. Ábrela en PetLog para crearla.'}</p>}
+              {phase === 'error' && <p className="qv-err">{pet ? err : tl('Todavía no hay ninguna mascota. Ábrela en PetLog para crearla.')}</p>}
               {phase === 'typing' && err && <p className="qv-err">{err}</p>}
             </div>
           </div>
@@ -188,9 +190,9 @@ export function QuickVoice() {
                 setTyped('')
               }}
             >
-              <input className="input" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Escríbelo: «vómito leve»" aria-label="Frase" />
+              <input className="input" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={tl('Escríbelo: «vómito leve»')} aria-label={tl('Frase')} />
               <button className="btn tonal" type="submit" disabled={!typed.trim()}>
-                Anotar
+                {tl('Anotar')}
               </button>
             </form>
           )}
@@ -198,20 +200,20 @@ export function QuickVoice() {
             {listening ? (
               <>
                 <button className="btn tonal" onClick={close}>
-                  Cancelar
+                  {tl('Cancelar')}
                 </button>
                 <button className="btn primary" onClick={() => void stopListening()}>
-                  Listo
+                  {tl('Listo')}
                 </button>
               </>
             ) : phase === 'error' || phase === 'typing' ? (
               <>
                 <button className="btn tonal" onClick={() => void openFullApp(pet ? `/pet/${pet.id}/hoy` : '/')}>
-                  Abrir PetLog
+                  {tl('Abrir PetLog')}
                 </button>
                 {pet && phase === 'error' && (
                   <button className="btn primary" onClick={() => void start()}>
-                    Reintentar
+                    {tl('Reintentar')}
                   </button>
                 )}
               </>
@@ -221,10 +223,10 @@ export function QuickVoice() {
       )}
 
       {phase === 'result' && out && pet && (
-        <section className="qv-card qv-res" role="dialog" aria-label="Resultado" aria-live="polite" onPointerDown={() => setLeft(null)}>
+        <section className="qv-card qv-res" role="dialog" aria-label={tl('Resultado')} aria-live="polite" onPointerDown={() => setLeft(null)}>
           <header className="qv-head">
-            <span className="qv-brand">PetLog</span>
-            <button className="qv-x" onClick={close} aria-label="Cerrar">
+            <span className="qv-brand">{tl('PetLog')}</span>
+            <button className="qv-x" onClick={close} aria-label={tl('Cerrar')}>
               ×
             </button>
           </header>
@@ -235,7 +237,7 @@ export function QuickVoice() {
                 <span className="tick" aria-hidden="true">
                   ✓
                 </span>
-                Anotado{forName ? ` para ${forName}` : ''}
+                {tl('Anotado')}{forName ? ` para ${forName}` : ''}
               </p>
               <ul className="voice-done">
                 {out.done.map((d) => (
@@ -249,21 +251,21 @@ export function QuickVoice() {
               </ul>
             </>
           )}
-          {out.kind === 'saved' && out.needsTreatment && <p className="qv-err">Hay varios tratamientos: di el nombre del medicamento («le he dado la …»).</p>}
-          {out.kind === 'saved' && out.ignored.length > 0 && <p className="qv-note">No he entendido: «{out.ignored.join('», «')}».</p>}
+          {out.kind === 'saved' && out.needsTreatment && <p className="qv-err">{tl('Hay varios tratamientos: di el nombre del medicamento («le he dado la …»).')}</p>}
+          {out.kind === 'saved' && out.ignored.length > 0 && <p className="qv-note">{tl('No he entendido: «')}{out.ignored.join('», «')}».</p>}
           {(out.kind === 'answer' || out.kind === 'undone') && <p className="qv-answer">{out.text}</p>}
-          {out.kind === 'none' && <p className="qv-err">No lo he entendido. Prueba con el nombre de un botón: «vómito», «comida», «peso 4 kilos»…</p>}
+          {out.kind === 'none' && <p className="qv-err">{tl('No lo he entendido. Prueba con el nombre de un botón: «vómito», «comida», «peso 4 kilos»…')}</p>}
           <div className="qv-actions">
             {out.kind === 'saved' && out.done.length > 0 && (
               <button className="btn tonal" onClick={() => void undo()}>
-                Deshacer
+                {tl('Deshacer')}
               </button>
             )}
             <button className="btn tonal" onClick={() => void openFullApp(`/pet/${out.kind === 'saved' || out.kind === 'answer' ? out.petId : pet.id}/historial`)}>
-              Abrir
+              {tl('Abrir')}
             </button>
             <button className="btn primary" onClick={() => void start()}>
-              {out.kind === 'none' ? 'Repetir' : 'Otra'}
+              {out.kind === 'none' ? tl('Repetir') : tl('Otra')}
             </button>
           </div>
           {left !== null && (

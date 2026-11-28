@@ -10,6 +10,7 @@ import { coverCharts, fichaRows, LIMITS, nameSize, NAVY as NAVY_HEX, POSTER as P
 import { HERO_PAWS, titleSize } from './coverHtml'
 import { glyph } from './glyphs'
 import { pdfSafe } from './pdfText'
+import { tl } from '../i18n'
 
 type RGB = [number, number, number]
 const rgb = (hex: string): RGB => {
@@ -178,12 +179,12 @@ export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
   const blockH = ns * 0.95 + 8 + 29 * 1.12 * 2 + 12 + 26 + 4 + 18
   let ty = (H.h - blockH) / 2
   ty += T(doc, p.name, tx, ty, { size: ns, style: 'bold', color: NAVY, maxW: tw + 12, maxLines: 1, lh: ns * 0.95 }) + 8
-  ty += T(doc, 'Informe de salud ·', tx, ty, { size: 27, style: 'bold', color: NAVY, maxW: tw + 12, maxLines: 1, lh: 32 })
+  ty += T(doc, tl('Informe de salud ·'), tx, ty, { size: 27, style: 'bold', color: NAVY, maxW: tw + 12, maxLines: 1, lh: 32 })
   ty += T(doc, m.period.label, tx, ty, { size: m.period.label.length > 18 ? 19 : 27, style: 'bold', color: NAVY, maxW: tw + 12, maxLines: 1, lh: 32 }) + 12
   await icon(doc, glyph('calendar', NAVY_HEX, 2), tx, ty, 26)
   T(doc, `${m.period.fromDay} - ${m.period.toDay}`, tx + 33, ty + 2, { size: 18, color: NAVY, maxW: tw, maxLines: 1 })
   ty += 30
-  T(doc, `Generado: ${m.generatedAt}`, tx + 33, ty, { size: 14, color: rgb('#33405e'), maxW: tw, maxLines: 1 })
+  T(doc, tl('Generado: {0}', m.generatedAt), tx + 33, ty, { size: 14, color: rgb('#33405e'), maxW: tw, maxLines: 1 })
 
   // Ficha
   const fx = H.fichaX
@@ -256,20 +257,20 @@ export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
       y += T(doc, s.value, xt, y, { size: fv, style: 'bold', maxW: wt, maxLines: 1, lh: fv * 1.2 })
       if (s.detail) T(doc, `(${s.detail})`, xt, y, { size: fd, color: SOFT_INK, maxW: wt, maxLines: 1, lh: fd * 1.2 })
     }
-    if (left) more(doc, `Y ${left} más en "Resumen del periodo".`, b)
+    if (left) more(doc, tl('Y {0} más en "Resumen del periodo".', left), b)
   }
 
   // ── Peso ────────────────────────────────────────────────────────────────
   {
-    const six = m.weight.windowLabel === 'últimos 6 meses' && m.weight.points.length > 1
-    const b = await cardFrame(doc, 'weight', { x: r1.split + P.gap, y: r1.y, w: wW, h: r1.h }, undefined, six ? 'Últimos 6 meses' : '')
+    const six = !!m.weight.sixMonths && m.weight.points.length > 1
+    const b = await cardFrame(doc, 'weight', { x: r1.split + P.gap, y: r1.y, w: wW, h: r1.h }, undefined, six ? tl('Últimos 6 meses') : '')
     if (charts.weight) await placeSvg(doc, charts.weight, X(b.x), Y(b.y), b.w * U, b.h * U)
-    else T(doc, 'Sin pesos registrados.', b.x, b.y, { size: 15, style: 'italic', color: MUTED, maxW: b.w })
+    else T(doc, tl('Sin pesos registrados.'), b.x, b.y, { size: 15, style: 'italic', color: MUTED, maxW: b.w })
   }
 
   // ── Episodios ───────────────────────────────────────────────────────────
   {
-    const b = await cardFrame(doc, 'inc', { x: 0, y: r2.y, w: r2.split, h: r2.h }, charts.incTitle, 'Vómitos, deposiciones y síntomas')
+    const b = await cardFrame(doc, 'inc', { x: 0, y: r2.y, w: r2.split, h: r2.h }, charts.incTitle, tl('Vómitos, deposiciones y síntomas'))
     let ly = b.y
     if (charts.legend.length) {
       let lx = b.x
@@ -299,7 +300,7 @@ export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
     const b = await cardFrame(doc, 'freq', { x: r2.split + P.gap, y: r2.y, w: fwid, h: r2.h })
     const items = m.frequency.slice(0, LIMITS.freq)
     const left = rest(m.frequency.length, items.length)
-    if (!items.length) T(doc, 'Sin registros en el periodo.', b.x, b.y, { size: 15, style: 'italic', color: MUTED, maxW: b.w })
+    if (!items.length) T(doc, tl('Sin registros en el periodo.'), b.x, b.y, { size: 15, style: 'italic', color: MUTED, maxW: b.w })
     const rh = items.length ? (b.h - (left ? 16 : 0)) / Math.max(items.length, 4) : 0
     for (let i = 0; i < items.length; i++) {
       const f = items[i]
@@ -313,7 +314,7 @@ export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
         doc.line(X(b.x), Y(b.y + (i + 1) * rh), X(b.x + b.w), Y(b.y + (i + 1) * rh))
       }
     }
-    if (left) more(doc, `Y ${left} tipos más.`, b)
+    if (left) more(doc, tl('Y {0} tipos más.', left), b)
   }
 
   // ── Fila inferior ───────────────────────────────────────────────────────
@@ -326,7 +327,7 @@ export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
     for (const it of items) {
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(PT(15.5))
-      const lines = Math.min(3, (doc.splitTextToSize(pdfSafe(it.body || 'Sin nota'), (b.w - 12) * U) as string[]).length)
+      const lines = Math.min(3, (doc.splitTextToSize(pdfSafe(it.body || tl('Sin nota')), (b.w - 12) * U) as string[]).length)
       const need = 24 + lines * 19
       if (shown > 0 && y + need > b.y + b.h - (total > shown + 1 ? 16 : 0)) break
       await icon(doc, glyph('calendar', s.color, 2), b.x, y, 21)
@@ -340,7 +341,7 @@ export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
         doc.text(fit(doc, it.tag, (b.w - 28) * U - doc.getTextWidth(w1), PT(13.5), 'bold'), X(b.x + 28) + doc.getTextWidth(w1) + 3.5 * U, Y(y + 15))
       }
       y += 25
-      const th = T(doc, it.body || 'Sin nota', b.x + 12, y, { size: 15.5, style: it.body ? 'bold' : 'italic', maxW: b.w - 12, maxLines: 3, lh: 19 })
+      const th = T(doc, it.body || tl('Sin nota'), b.x + 12, y, { size: 15.5, style: it.body ? 'bold' : 'italic', maxW: b.w - 12, maxLines: 3, lh: 19 })
       doc.setDrawColor(...rgb(s.border))
       doc.setLineWidth(2.5 * U)
       doc.line(X(b.x + 2), Y(y), X(b.x + 2), Y(y + th))
@@ -355,16 +356,16 @@ export async function drawCover(doc: jsPDF, m: ReportModel, art?: ReportArt) {
     { x: 0, y: r3.y, w: r3.a, h: r3.h },
     c.vetVisits.slice(0, LIMITS.vet).map((v) => ({ when: v.when, body: v.text })),
     c.vetVisits.length,
-    'Sin visitas veterinarias registradas en el periodo.',
-    (n) => `Y ${n} más en la cronología.`,
+    tl('Sin visitas veterinarias registradas en el periodo.'),
+    (n) => tl('Y {0} más en la cronología.', n),
   )
   await listCard(
     'notes',
     { x: r3.a + P.gap, y: r3.y, w: r3.b - r3.a - P.gap, h: r3.h },
     c.notes.slice(0, LIMITS.notes).map((n) => ({ when: n.when, tag: n.label, body: n.text })),
     c.notes.length,
-    'Sin notas en el periodo.',
-    (n) => `Y ${n} más en el informe detallado.`,
+    tl('Sin notas en el periodo.'),
+    (n) => tl('Y {0} más en el informe detallado.', n),
   )
   {
     const b = await cardFrame(doc, 'key', { x: r3.b + P.gap, y: r3.y, w: P.W - r3.b - P.gap, h: r3.h })

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useBanner } from '../../monetize/useBanner'
 import { useOutletContext } from 'react-router-dom'
 import { reportCharts } from '../../charts/reportCharts'
 import { makePeriod } from '../../domain/report'
@@ -9,11 +10,13 @@ import { IconBack, IconDown, IconNext } from '../icons'
 import { useBox } from '../layout'
 import { useReportModel } from '../reportData'
 import { useChartPalette } from '../theme'
+import { tl } from '../../i18n'
 
 type Range = '7d' | '30d' | '90d'
 
 /** Una gráfica cada vez, ocupando todo el hueco: se lee mejor y no hay scroll. */
 export function Charts() {
+  useBanner()
   const { pet } = useOutletContext<{ pet: Pet }>()
   const [range, setRange] = useState<Range>('30d')
   const [idx, setIdx] = useState(0)
@@ -25,7 +28,7 @@ export function Charts() {
   const now = useMemo(() => new Date(), [range])
   const period = useMemo(() => {
     if (range === '90d') {
-      return { preset: 'custom' as const, from: startOfLocalDay(addDays(now, -89)), to: endOfLocalDay(now), label: 'Últimos 90 días' }
+      return { preset: 'custom' as const, from: startOfLocalDay(addDays(now, -89)), to: endOfLocalDay(now), label: tl('Últimos 90 días') }
     }
     return makePeriod(range, now)
   }, [range, now])
@@ -40,35 +43,35 @@ export function Charts() {
   return (
     <>
       <Seg<Range>
-        label="Periodo de las gráficas"
+        label={tl('Periodo de las gráficas')}
         value={range}
         onChange={setRange}
         options={[
-          { value: '7d', label: '7 días' },
-          { value: '30d', label: '30 días' },
-          { value: '90d', label: '90 días' },
+          { value: '7d', label: tl('7 días') },
+          { value: '30d', label: tl('30 días') },
+          { value: '90d', label: tl('90 días') },
         ]}
       />
       {model && !hasAny ? (
-        <Empty emoji="📈" title="Aún no hay datos para graficar">
-          <p>Las gráficas se crean solas a partir de lo que registres.</p>
+        <Empty emoji="📈" title={tl('Aún no hay datos para graficar')}>
+          <p>{tl('Las gráficas se crean solas a partir de lo que registres.')}</p>
         </Empty>
       ) : (
         <>
           <div className="chart-nav">
-            <button className="icon-btn soft" onClick={() => setIdx(i - 1)} disabled={i === 0} aria-label="Gráfica anterior">
+            <button className="icon-btn soft" onClick={() => setIdx(i - 1)} disabled={i === 0} aria-label={tl('Gráfica anterior')}>
               <IconBack />
             </button>
-            <button className="chart-pick" onClick={() => setPicking(true)} aria-label={`${c?.title ?? 'Gráfica'}. Elegir otra gráfica`}>
+            <button className="chart-pick" onClick={() => setPicking(true)} aria-label={tl('{0}. Elegir otra gráfica', c?.title ?? 'Gráfica')}>
               <b>
-                <span>{c?.title ?? 'Gráficas'}</span>
+                <span>{c?.title ?? tl('Gráficas')}</span>
                 <IconDown />
               </b>
               <small>
                 {charts.length ? `${i + 1} de ${charts.length}` : ' '}
               </small>
             </button>
-            <button className="icon-btn soft" onClick={() => setIdx(i + 1)} disabled={i >= charts.length - 1} aria-label="Gráfica siguiente">
+            <button className="icon-btn soft" onClick={() => setIdx(i + 1)} disabled={i >= charts.length - 1} aria-label={tl('Gráfica siguiente')}>
               <IconNext />
             </button>
           </div>
@@ -91,7 +94,7 @@ export function Charts() {
                 <span />
               )}
               <button className="link-btn" onClick={() => setShowData(true)} disabled={!c}>
-                Ver datos
+                {tl('Ver datos')}
               </button>
             </div>
           </section>
@@ -99,7 +102,7 @@ export function Charts() {
       )}
 
       {picking && (
-        <Sheet title="Gráficas" onClose={() => setPicking(false)}>
+        <Sheet title={tl('Gráficas')} onClose={() => setPicking(false)}>
           <div className="list">
             {charts.map((x, j) => (
               <button
@@ -115,7 +118,7 @@ export function Charts() {
                   <b>{x.title}</b>
                   {x.note && <small>{x.note}</small>}
                 </span>
-                {j === i ? <span className="badge due">Viendo</span> : <IconNext />}
+                {j === i ? <span className="badge due">{tl('Viendo')}</span> : <IconNext />}
               </button>
             ))}
           </div>
@@ -123,7 +126,7 @@ export function Charts() {
       )}
       {showData && c && (
         <Sheet title={c.title} onClose={() => setShowData(false)}>
-          <p className="hint">{period.label}. Datos tal como se registraron.</p>
+          <p className="hint">{period.label}{tl('. Datos tal como se registraron.')}</p>
           <div className="data-text">{c.text.split('; ').join('\n')}</div>
         </Sheet>
       )}

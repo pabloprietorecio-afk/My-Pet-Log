@@ -12,6 +12,7 @@ import { reportArt } from '../art/reportArt'
 import { Seg, Sheet } from '../components'
 import { IconChat, IconCode, IconDownload, IconEyeOpen, IconMail, IconShare } from '../icons'
 import { useReportModel } from '../reportData'
+import { tl } from '../../i18n'
 
 export function Report() {
   const { pet } = useOutletContext<{ pet: Pet }>()
@@ -39,13 +40,13 @@ export function Report() {
       const r = await fn()
       if (r) setMsg({ kind: 'ok', text: r })
     } catch (e) {
-      setMsg({ kind: 'err', text: `No se pudo completar: ${e instanceof Error ? e.message : 'error desconocido'}` })
+      setMsg({ kind: 'err', text: tl('No se pudo completar: {0}', e instanceof Error ? e.message : tl('error desconocido')) })
     } finally {
       setBusy(null)
     }
   }
-  const outcome = (o: string, saved = 'Archivo guardado.') => (o === 'cancelled' ? undefined : o === 'downloaded' ? saved : 'Listo.')
-  const title = `Informe de ${pet.name} · ${period.label}`
+  const outcome = (o: string, saved = tl('Archivo guardado.')) => (o === 'cancelled' ? undefined : o === 'downloaded' ? saved : tl('Listo.'))
+  const title = tl('Informe de {0} · {1}', pet.name, period.label)
   const off = !model || !!busy
   const send = (via: 'WhatsApp' | 'correo') => {
     if (!model) return
@@ -64,27 +65,27 @@ export function Report() {
   return (
     <>
       <Seg<PeriodPreset>
-        label="Periodo del informe"
+        label={tl('Periodo del informe')}
         value={preset}
         onChange={setPreset}
         options={[
           { value: '24h', label: '24 h' },
-          { value: '7d', label: '7 días' },
-          { value: '30d', label: '30 días' },
-          { value: 'custom', label: 'Fechas' },
+          { value: '7d', label: tl('7 días') },
+          { value: '30d', label: tl('30 días') },
+          { value: 'custom', label: tl('Fechas') },
         ]}
       />
       {preset === 'custom' && (
         <div className="two" style={{ flex: 'none' }}>
           <div className="field">
             <label htmlFor="r-from" className="lbl">
-              Desde
+              {tl('Desde')}
             </label>
             <input id="r-from" className="input" type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} />
           </div>
           <div className="field">
             <label htmlFor="r-to" className="lbl">
-              Hasta
+              {tl('Hasta')}
             </label>
             <input id="r-to" className="input" type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} />
           </div>
@@ -92,10 +93,10 @@ export function Report() {
       )}
 
       <div className="bar">
-        <h2 className="eyebrow">Vista previa</h2>
+        <h2 className="eyebrow">{tl('Vista previa')}</h2>
         <span className="rthumb-range">{model ? `${model.period.fromDay} – ${model.period.toDay}` : ''}</span>
       </div>
-      <ReportThumb html={html} onOpen={() => setPreview(true)} label={model ? `Ver informe completo de ${pet.name} (${model.period.fromDay} – ${model.period.toDay})` : 'Preparando el informe'} />
+      <ReportThumb html={html} onOpen={() => setPreview(true)} label={model ? tl('Ver informe completo de {0} ({1} – {2})', pet.name, model.period.fromDay, model.period.toDay) : tl('Preparando el informe')} />
 
       <button
         className="btn primary block big"
@@ -103,18 +104,18 @@ export function Report() {
         disabled={off}
         onClick={() =>
           run('share', async () =>
-            outcome(await shareFile(await pdfBlob(model!, reportArt), reportFileName(model!, 'pdf'), title, reportToText(model!)), 'PDF descargado.'),
+            outcome(await shareFile(await pdfBlob(model!, reportArt), reportFileName(model!, 'pdf'), title, reportToText(model!)), tl('PDF descargado.')),
           )
         }
       >
         <IconShare />
-        {busy === 'share' ? 'Generando PDF…' : 'Compartir informe en PDF'}
+        {busy === 'share' ? tl('Generando PDF…') : tl('Compartir informe en PDF')}
       </button>
-      <div className="actions-row" role="group" aria-label="Otras formas de enviar o guardar">
+      <div className="actions-row" role="group" aria-label={tl('Otras formas de enviar o guardar')}>
         <button
           className="act"
           disabled={off}
-          onClick={() => run('pdf', async () => outcome(await saveFile(await pdfBlob(model!, reportArt), reportFileName(model!, 'pdf'), title), 'PDF descargado.'))}
+          onClick={() => run('pdf', async () => outcome(await saveFile(await pdfBlob(model!, reportArt), reportFileName(model!, 'pdf'), title), tl('PDF descargado.')))}
         >
           <IconDownload />
           {busy === 'pdf' ? '…' : 'PDF'}
@@ -122,31 +123,31 @@ export function Report() {
         <button
           className="act"
           disabled={off}
-          onClick={() => run('html', async () => outcome(await saveFile(htmlBlob(model!, reportArt), reportFileName(model!, 'html'), title), 'HTML descargado.'))}
+          onClick={() => run('html', async () => outcome(await saveFile(htmlBlob(model!, reportArt), reportFileName(model!, 'html'), title), tl('HTML descargado.')))}
         >
           <IconCode />
-          HTML
+          {tl('HTML')}
         </button>
         <button className="act" disabled={!model} onClick={() => send('WhatsApp')}>
           <IconChat />
-          WhatsApp
+          {tl('WhatsApp')}
         </button>
         <button className="act" disabled={!model} onClick={() => send('correo')}>
           <IconMail />
-          Correo
+          {tl('Correo')}
         </button>
       </div>
       <p className={`status${msg ? ` ${msg.kind}` : ''}`} role="status">
         {msg
           ? msg.text
           : memoryMode
-            ? 'Si este visor bloquea descargas o ventanas, te ofreceré copiar el texto. En la app instalada funciona todo.'
-            : 'WhatsApp y Correo envían un resumen en texto; el PDF va con «Compartir».'}
+            ? tl('Si este visor bloquea descargas o ventanas, te ofreceré copiar el texto. En la app instalada funciona todo.')
+            : tl('WhatsApp y Correo envían un resumen en texto; el PDF va con «Compartir».')}
       </p>
 
       {fallback && (
         <Sheet
-          title={`Enviar por ${fallback.via}`}
+          title={tl('Enviar por {0}', fallback.via)}
           onClose={() => setFallback(null)}
           foot={
             <button
@@ -155,29 +156,28 @@ export function Report() {
                 setCopied(await copyText(fallback.text))
               }}
             >
-              {copied ? 'Texto copiado' : 'Copiar texto'}
+              {copied ? tl('Texto copiado') : tl('Copiar texto')}
             </button>
           }
         >
           <p className="muted">
-            No se ha podido abrir {fallback.via === 'WhatsApp' ? 'WhatsApp' : 'tu app de correo'} desde aquí. Copia el resumen y pégalo en el chat o en el
-            correo, o prueba con el enlace.
+            {tl('No se ha podido abrir')}{' '}{fallback.via === 'WhatsApp' ? 'WhatsApp' : tl('tu app de correo')} {tl('desde aquí. Copia el resumen y pégalo en el chat o en el correo, o prueba con el enlace.')}
           </p>
-          <textarea className="input" readOnly value={fallback.text} rows={7} aria-label="Resumen del informe" onFocus={(e) => e.currentTarget.select()} />
+          <textarea className="input" readOnly value={fallback.text} rows={7} aria-label={tl('Resumen del informe')} onFocus={(e) => e.currentTarget.select()} />
           <a className="btn block" href={fallback.url} target="_blank" rel="noopener noreferrer">
-            Abrir {fallback.via === 'WhatsApp' ? 'WhatsApp' : 'el correo'}
+            {tl('Abrir')}{' '}{fallback.via === 'WhatsApp' ? 'WhatsApp' : tl('el correo')}
           </a>
-          {copied === false && <p className="hint">Si «Copiar» no funciona, mantén pulsado el texto para seleccionarlo.</p>}
+          {copied === false && <p className="hint">{tl('Si «Copiar» no funciona, mantén pulsado el texto para seleccionarlo.')}</p>}
         </Sheet>
       )}
 
       {preview && model && (
-        <Sheet title={`Informe · ${period.label}`} onClose={() => setPreview(false)} full>
+        <Sheet title={tl('Informe · {0}', period.label)} onClose={() => setPreview(false)} full>
           <div className={`preview-wrap${zoom ? ' zoom' : ''}`}>
-            <iframe className="preview" title="Informe completo" sandbox="" srcDoc={html} />
+            <iframe className="preview" title={tl('Informe completo')} sandbox="" srcDoc={html} />
           </div>
           <button className="preview-zoom" onClick={() => setZoom((z) => !z)} aria-pressed={zoom}>
-            {zoom ? '− Ver entero' : '+ Ampliar'}
+            {zoom ? tl('− Ver entero') : '+ Ampliar'}
           </button>
         </Sheet>
       )}
@@ -194,11 +194,11 @@ function ReportThumb({ html, onOpen, label }: { html: string; onOpen: () => void
   const doc = useMemo(() => html.replace('</head>', '<style>html,body{overflow:hidden}</style></head>'), [html])
   return (
     <button type="button" className="rthumb" onClick={onOpen} disabled={!html} aria-label={label}>
-      {html && <iframe title="Vista previa del informe" aria-hidden="true" tabIndex={-1} sandbox="" srcDoc={doc} />}
-      {!html && <span className="rthumb-wait">Preparando…</span>}
+      {html && <iframe title={tl('Vista previa del informe')} aria-hidden="true" tabIndex={-1} sandbox="" srcDoc={doc} />}
+      {!html && <span className="rthumb-wait">{tl('Preparando…')}</span>}
       <span className="rthumb-cta" aria-hidden="true">
         <IconEyeOpen />
-        Ver informe completo
+        {tl('Ver informe completo')}
       </span>
     </button>
   )

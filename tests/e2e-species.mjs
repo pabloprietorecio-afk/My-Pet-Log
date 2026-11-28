@@ -21,11 +21,13 @@ const CASES = [
   { pick: 'Conejo', name: 'Coco', weight: '1,8', unit: 'kg', must: ['Actividad', 'Deposición'], not: ['Vómito'] },
   { pick: 'Pájaro', name: 'Piu', weight: '35', unit: 'g', must: ['Muda', 'Excrementos'], not: ['Vómito'] },
 ]
-await page.goto(BASE)
+await page.goto(BASE); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
+await page.evaluate(() => localStorage.setItem('petlog-dev-premium', '1')) // varias mascotas: sin límite de la versión gratis
+await page.reload(); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 })
 await page.evaluate(() => window.__petlog.repo.wipeAll())
 for (const c of CASES) {
   console.log('\n' + c.pick)
-  await page.goto(BASE + '#/nueva')
+  await page.goto(BASE + '#/nueva'); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
   await page.getByLabel('Nombre').fill(c.name)
   await page.getByRole('radio', { name: c.pick }).click()
   ok((await page.getByText(/^Especie: /).innerText()).length > 9, 'la etiqueta muestra la especie elegida')

@@ -39,14 +39,15 @@ import {
   type QuerySnapshot,
 } from 'firebase/firestore/lite'
 import { SyncError, type RemoteRecord, type SyncBackend } from './backend'
+import { tl } from '../i18n'
 
 const PAGE = 200
 
 function wrap(e: unknown): never {
   const code = (e as { code?: string })?.code ?? ''
-  if (code.includes('permission-denied')) throw new SyncError('No tienes acceso a esta mascota compartida.', 'not-member')
+  if (code.includes('permission-denied')) throw new SyncError(tl('No tienes acceso a esta mascota compartida.'), 'not-member')
   if (code.includes('unavailable') || code.includes('network') || code.includes('deadline')) {
-    throw new SyncError('Sin conexión. Se sincronizará cuando vuelva.', 'network')
+    throw new SyncError(tl('Sin conexión. Se sincronizará cuando vuelva.'), 'network')
   }
   throw e instanceof Error ? e : new Error(String(e))
 }
@@ -102,7 +103,7 @@ export class FirebaseBackend implements SyncBackend {
       await setDoc(doc(this.hh(hid), 'members', uid), { invite, joinedAt: serverTimestamp() })
     } catch (e) {
       const code = (e as { code?: string })?.code ?? ''
-      if (code.includes('permission-denied')) throw new SyncError('La invitación no es válida o ha caducado. Pide una nueva.', 'bad-invite')
+      if (code.includes('permission-denied')) throw new SyncError(tl('La invitación no es válida o ha caducado. Pide una nueva.'), 'bad-invite')
       wrap(e)
     }
   }

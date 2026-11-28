@@ -1,3 +1,4 @@
+import { tl } from '../i18n'
 /** Reduce una imagen a JPEG con lado máximo y devuelve un data-URL. */
 export async function fileToSmallDataUrl(file: File, maxSide = 1024, quality = 0.78): Promise<string> {
   const bmp = await createImageBitmap(file)
@@ -42,7 +43,7 @@ export function pickImage(): Promise<File | null> {
     const card = document.createElement('div')
     card.className = 'photo-choice-card'
     const title = document.createElement('h2')
-    title.textContent = 'Añadir foto'
+    title.textContent = tl('Añadir foto')
     card.append(title)
     const prev = document.activeElement as HTMLElement | null
     const done = (v: Promise<File | null> | null) => {
@@ -66,9 +67,9 @@ export function pickImage(): Promise<File | null> {
       return b
     }
     // La cámara o la galería se abren dentro del propio toque (los navegadores lo exigen).
-    const first = button('📷  Hacer foto', 'primary', () => done(openPicker(true)))
-    button('🖼️  Elegir de la galería', 'tonal', () => done(openPicker(false)))
-    button('Cancelar', '', () => done(null))
+    const first = button(tl('📷  Hacer foto'), 'primary', () => done(openPicker(true)))
+    button(tl('🖼️  Elegir de la galería'), 'tonal', () => done(openPicker(false)))
+    button(tl('Cancelar'), '', () => done(null))
     back.onclick = (e) => e.target === back && done(null)
     back.append(card)
     document.body.append(back)

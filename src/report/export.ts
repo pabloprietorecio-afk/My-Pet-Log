@@ -1,6 +1,7 @@
 import type { ReportModel } from '../domain/report'
 import type { ReportArt } from './art'
 import { renderHtml } from './html'
+import { tl } from '../i18n'
 
 const safe = (s: string) =>
   s
@@ -12,7 +13,7 @@ const safe = (s: string) =>
 export function reportFileName(m: ReportModel, ext: 'pdf' | 'html', now = new Date()): string {
   const p = (n: number) => String(n).padStart(2, '0')
   const date = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`
-  return `PetLog-${safe(m.pet.name) || 'mascota'}-informe-${date}.${ext}`
+  return tl('PetLog-{0}-informe-{1}.{2}', safe(m.pet.name) || tl('mascota'), date, ext)
 }
 
 export const htmlBlob = (m: ReportModel, art?: ReportArt) => new Blob([renderHtml(m, art)], { type: 'text/html;charset=utf-8' })

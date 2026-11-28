@@ -13,6 +13,7 @@ import type { DoseLog, Treatment } from '../domain/types'
 import { addDays, endOfLocalDay, formatTime, startOfLocalDay } from '../domain/time'
 import { useToast } from './components'
 import { IconCheck } from './icons'
+import { tl } from '../i18n'
 
 export interface SlotItem {
   treatment: Treatment
@@ -78,13 +79,13 @@ export function useDoseActions(petId: string) {
               <IconCheck />
             </span>
             <span className="msg">
-              💊 {t.name} {doseText(t)} dada
+              💊 {t.name} {doseText(t)} {tl('dada')}
             </span>
             <span className="when">{formatTime(log.at)}</span>
           </div>
           <div className="toast-actions" style={{ justifyContent: 'flex-end' }}>
             <button className="tbtn" onClick={undo(log.id)}>
-              Deshacer
+              {tl('Deshacer')}
             </button>
           </div>
         </>,
@@ -122,18 +123,18 @@ export function DoseList({ petId, items, now }: { petId: string; items: SlotItem
             </div>
             <div className="actions">
               {done ? (
-                <button className="link-btn" onClick={() => act.remove(it.log!)} aria-label={`Deshacer ${it.treatment.name} de las ${formatTime(it.slot.at)}`}>
-                  Deshacer
+                <button className="link-btn" onClick={() => act.remove(it.log!)} aria-label={tl('Deshacer {0} de las {1}', it.treatment.name, formatTime(it.slot.at))}>
+                  {tl('Deshacer')}
                 </button>
               ) : (
                 <>
                   {(it.state === 'due' || it.state === 'overdue') && (
-                    <button className="btn sm" onClick={() => act.skip(it.treatment, it.slot)} aria-label={`Omitir ${it.treatment.name} de las ${formatTime(it.slot.at)}`}>
-                      Omitir
+                    <button className="btn sm" onClick={() => act.skip(it.treatment, it.slot)} aria-label={tl('Omitir {0} de las {1}', it.treatment.name, formatTime(it.slot.at))}>
+                      {tl('Omitir')}
                     </button>
                   )}
-                  <button className="btn primary sm" onClick={() => act.give(it.treatment, it.slot)} aria-label={`Dar ${it.treatment.name} de las ${formatTime(it.slot.at)} ahora`}>
-                    Dada
+                  <button className="btn primary sm" onClick={() => act.give(it.treatment, it.slot)} aria-label={tl('Dar {0} de las {1} ahora', it.treatment.name, formatTime(it.slot.at))}>
+                    {tl('Dada')}
                   </button>
                 </>
               )}

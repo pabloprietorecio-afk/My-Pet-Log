@@ -3,6 +3,7 @@ import { repo } from '../data/instance'
 import { SyncError } from './backend'
 import { FIREBASE_CONFIG } from './config'
 import type { SyncEngine } from './engine'
+import { tl } from '../i18n'
 
 let engine: Promise<SyncEngine> | null = null
 
@@ -23,7 +24,7 @@ export function getSync(): Promise<SyncEngine> {
     })()
   }
   if (engine) return engine
-  if (!FIREBASE_CONFIG) return Promise.reject(new SyncError('La sincronización aún no está configurada.', 'not-configured'))
+  if (!FIREBASE_CONFIG) return Promise.reject(new SyncError(tl('La sincronización aún no está configurada.'), 'not-configured'))
   if (!engine) {
     const cfg = FIREBASE_CONFIG
     engine = (async () => {

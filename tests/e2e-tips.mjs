@@ -19,7 +19,7 @@ const opened = []
 ctx.on('page', (p) => opened.push(p.url()))
 await ctx.route(/^https:\/\/(?!localhost)/, (r) => r.fulfill({ status: 200, body: 'ok' }))
 
-await page.goto(BASE)
+await page.goto(BASE); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
 await page.evaluate(() => window.__petlog.repo.wipeAll())
 const counts = await page.evaluate(async () => {
   const m = await import('/src/domain/tips.ts')
@@ -28,7 +28,7 @@ const counts = await page.evaluate(async () => {
 for (const species of ['dog', 'cat', 'rabbit', 'rodent', 'bird', 'reptile']) {
   console.log('\n' + species)
   const id = await page.evaluate(async (species) => (await window.__petlog.repo.createPet({ name: 'Prueba', species, sex: 'unknown', conditions: [], allergies: [] })).id, species)
-  await page.goto(`${BASE}#/pet/${id}/hoy`)
+  await page.goto(`${BASE}#/pet/${id}/hoy`); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
   await page.getByRole('link', { name: 'Consejos para Prueba' }).click()
   await page.waitForSelector('.tip-card')
   const seen = new Set()

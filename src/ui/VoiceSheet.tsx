@@ -14,6 +14,7 @@ import { TypeIcon } from './art/TypeIcon'
 import { VoiceFace } from './art/VoiceFace'
 import { Sheet } from './components'
 import { IconMic } from './icons'
+import { lang, tl } from '../i18n'
 
 type Phase = 'idle' | 'listening' | 'working' | 'result' | 'error' | 'help'
 
@@ -78,7 +79,7 @@ export function VoiceSheet({
       const text = await listen({ onPartial: setPartial, onLevel: setLevel })
       if (!alive.current) return
       if (!text.trim()) {
-        setErr('No he oído nada. Toca la carita y habla cerca del teléfono.')
+        setErr(tl('No he oído nada. Toca la carita y habla cerca del teléfono.'))
         setPhase((p) => (p === 'help' ? p : 'error'))
         return
       }
@@ -89,12 +90,12 @@ export function VoiceSheet({
       if (code === 'cancelled') return setPhase((p) => (p === 'help' ? p : 'idle'))
       setErr(
         code === 'permission'
-          ? 'PetLog necesita permiso de micrófono. Puedes darlo en los ajustes de Android → Aplicaciones → PetLog → Permisos.'
+          ? tl('PetLog necesita permiso de micrófono. Puedes darlo en los ajustes de Android → Aplicaciones → PetLog → Permisos.')
           : code === 'unavailable'
-            ? 'Este teléfono no tiene reconocimiento de voz. Puedes escribir la frase abajo.'
+            ? tl('Este teléfono no tiene reconocimiento de voz. Puedes escribir la frase abajo.')
             : code === 'network'
-              ? 'El dictado de este teléfono necesita conexión. Puedes escribir la frase abajo.'
-              : `No se pudo escuchar (${(e as Error).message}).`,
+              ? tl('El dictado de este teléfono necesita conexión. Puedes escribir la frase abajo.')
+              : tl('No se pudo escuchar ({0}).', (e as Error).message),
       )
       setPhase((p) => (p === 'help' ? p : 'error'))
     }
@@ -116,7 +117,7 @@ export function VoiceSheet({
 
   const undo = async () => {
     const t = await undoLast()
-    setOut({ kind: 'undone', text: t ? `Deshecho: ${t}` : 'No había nada que deshacer.' })
+    setOut({ kind: 'undone', text: t ? tl('Deshecho: {0}', t) : tl('No había nada que deshacer.') })
   }
 
   const openHelp = () => {
@@ -129,7 +130,7 @@ export function VoiceSheet({
   const showMain = phase !== 'result' && phase !== 'help'
 
   return (
-    <Sheet title="Anotar por voz" onClose={onClose} icon={<IconMic />}>
+    <Sheet title={tl('Anotar por voz')} onClose={onClose} icon={<IconMic />}>
       <div className="voice">
         {showMain && (
           <button
@@ -137,7 +138,7 @@ export function VoiceSheet({
             style={{ ['--ring' as string]: ring }}
             onClick={() => (listening ? void stopListening() : void start())}
             disabled={canListen === false || phase === 'working'}
-            aria-label={listening ? 'Terminar de hablar' : 'Hablar'}
+            aria-label={listening ? tl('Terminar de hablar') : tl('Hablar')}
           >
             <span className="halo" aria-hidden="true" />
             <VoiceFace className="face" />
@@ -146,11 +147,11 @@ export function VoiceSheet({
 
         {showMain && (
           <div className="voice-text" aria-live="polite">
-            {listening && <p className={`said${partial ? '' : ' hint'}`}>{partial || 'Te escucho…'}</p>}
+            {listening && <p className={`said${partial ? '' : ' hint'}`}>{partial || tl('Te escucho…')}</p>}
             {phase === 'working' && <p className="said">«{heard}»</p>}
             {phase === 'error' && <p className="voice-err">{err}</p>}
-            {phase === 'idle' && canListen !== false && <p className="said hint">Toca la carita y di qué ha pasado.</p>}
-            {canListen === false && <p className="said hint">Este dispositivo no tiene dictado. Escribe la frase.</p>}
+            {phase === 'idle' && canListen !== false && <p className="said hint">{tl('Toca la carita y di qué ha pasado.')}</p>}
+            {canListen === false && <p className="said hint">{tl('Este dispositivo no tiene dictado. Escribe la frase.')}</p>}
           </div>
         )}
 
@@ -158,11 +159,12 @@ export function VoiceSheet({
           <>
             {!(listening && partial) && (
               <p className="voice-example">
-                Ejemplo: di <b>«{example}»</b>
+                {tl('Ejemplo: di')}{' '}<b>«{example}»</b>
               </p>
             )}
+            {lang() !== 'es' && <p className="voice-note">{tl('Los comandos de voz, de momento, solo funcionan en español.')}</p>}
             <button className="voice-help-btn" onClick={openHelp}>
-              <span aria-hidden="true">💡</span> ¿Qué puedo decir?
+              <span aria-hidden="true">💡</span> {tl('¿Qué puedo decir?')}
             </button>
           </>
         )}
@@ -194,9 +196,9 @@ export function VoiceSheet({
               setTyped('')
             }}
           >
-            <input className="input" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="O escríbelo: «vómito leve»" aria-label="Frase" />
+            <input className="input" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={tl('O escríbelo: «vómito leve»')} aria-label={tl('Frase')} />
             <button className="btn tonal" type="submit" disabled={!typed.trim()}>
-              Anotar
+              {tl('Anotar')}
             </button>
           </form>
         )}
@@ -204,7 +206,7 @@ export function VoiceSheet({
         {phase !== 'help' && (
           <label className="voice-speak">
             <input type="checkbox" checked={!!settings?.voiceSpeak} onChange={(e) => void repo.saveSettings({ voiceSpeak: e.target.checked })} />
-            <span>Confirmar en voz alta</span>
+            <span>{tl('Confirmar en voz alta')}</span>
           </label>
         )}
       </div>
@@ -224,8 +226,8 @@ function Help({ groups, canListen, onSpeak, onBack }: { groups: VoiceHelp[]; can
   const [open, setOpen] = useState<HelpCategory | null>('log')
   return (
     <div className="voice-help">
-      <p className="voice-help-title">¿Qué puedo decir?</p>
-      <p className="voice-help-sub">Toca una categoría para ver sus frases</p>
+      <p className="voice-help-title">{tl('¿Qué puedo decir?')}</p>
+      <p className="voice-help-sub">{tl('Toca una categoría para ver sus frases')}</p>
       <div className="voice-help-list">
         {groups.map((g) => {
           const on = open === g.id
@@ -256,11 +258,11 @@ function Help({ groups, canListen, onSpeak, onBack }: { groups: VoiceHelp[]; can
       </div>
       <div className="voice-actions">
         <button className="btn tonal" onClick={onBack}>
-          Volver
+          {tl('Volver')}
         </button>
         {canListen && (
           <button className="btn primary" onClick={onSpeak}>
-            Hablar
+            {tl('Hablar')}
           </button>
         )}
       </div>
@@ -298,7 +300,7 @@ function Result({
         <>
           {out.done.length > 0 && (
             <>
-              <p className="voice-ok">Anotado{other ? ` para ${other}` : petName ? ` para ${petName}` : ''}</p>
+              <p className="voice-ok">{tl('Anotado')}{other ? ` para ${other}` : petName ? ` para ${petName}` : ''}</p>
               <ul className="voice-done">
                 {out.done.map((d) => (
                   <li key={d.id}>
@@ -313,27 +315,27 @@ function Result({
           )}
           {out.needsTreatment && (
             <p className="voice-err">
-              Hay varios tratamientos: di el nombre del medicamento («le he dado la …») o anótalo en{' '}
+              {tl('Hay varios tratamientos: di el nombre del medicamento («le he dado la …») o anótalo en')}{' '}
               <button className="link-btn" onClick={() => onOpen(`/pet/${out.petId}/medicacion`)}>
-                Medicación
+                {tl('Medicación')}
               </button>
               .
             </p>
           )}
-          {out.ignored.length > 0 && <p className="voice-note">No he entendido: «{out.ignored.join('», «')}».</p>}
+          {out.ignored.length > 0 && <p className="voice-note">{tl('No he entendido: «')}{out.ignored.join('», «')}».</p>}
           <div className="voice-actions">
             {out.done.length > 0 && (
               <button className="btn tonal" onClick={onUndo}>
-                Deshacer
+                {tl('Deshacer')}
               </button>
             )}
             {out.done.length > 0 && (
               <button className="btn tonal" onClick={() => onOpen(`/pet/${out.petId}/historial`)}>
-                Ver o editar
+                {tl('Ver o editar')}
               </button>
             )}
             <button className="btn primary" onClick={onAgain}>
-              Otra
+              {tl('Otra')}
             </button>
           </div>
         </>
@@ -343,20 +345,20 @@ function Result({
           <p className="voice-answer">{out.text}</p>
           <div className="voice-actions">
             <button className="btn primary" onClick={onAgain}>
-              Otra
+              {tl('Otra')}
             </button>
           </div>
         </>
       )}
       {out.kind === 'none' && (
         <>
-          <p className="voice-err">No lo he entendido.</p>
+          <p className="voice-err">{tl('No lo he entendido.')}</p>
           <div className="voice-actions">
             <button className="btn tonal" onClick={onHelp}>
-              ¿Qué puedo decir?
+              {tl('¿Qué puedo decir?')}
             </button>
             <button className="btn primary" onClick={onAgain}>
-              Repetir
+              {tl('Repetir')}
             </button>
           </div>
         </>

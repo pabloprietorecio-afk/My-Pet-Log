@@ -13,6 +13,7 @@ import {
 import type { EventKey, Pet } from '../domain/types'
 import { IconClose } from './icons'
 import { PetIllustration } from './art/pets'
+import { tl } from '../i18n'
 
 export const tint = (key: EventKey): CSSProperties => ({ ['--tint' as string]: `var(--t-${key})` })
 
@@ -77,7 +78,7 @@ export function Sheet({
             {icon}
             <span>{title}</span>
           </h2>
-          <button className="icon-btn" onClick={onClose} aria-label="Cerrar">
+          <button className="icon-btn" onClick={onClose} aria-label={tl('Cerrar')}>
             <IconClose />
           </button>
         </div>
@@ -182,7 +183,7 @@ export function TagInput({
       {values.length > 0 && (
         <div className="chips">
           {values.map((v) => (
-            <button key={v} type="button" className="chip" onClick={() => onChange(values.filter((x) => x !== v))} aria-label={`Quitar ${v}`}>
+            <button key={v} type="button" className="chip" onClick={() => onChange(values.filter((x) => x !== v))} aria-label={tl('Quitar {0}', v)}>
               {v} ✕
             </button>
           ))}
@@ -203,7 +204,7 @@ export function TagInput({
           }}
         />
         <button type="button" className="btn" onClick={add} disabled={!draft.trim()}>
-          Añadir
+          {tl('Añadir')}
         </button>
       </div>
     </Field>
@@ -234,7 +235,7 @@ let openConfirm: ((r: ConfirmReq) => void) | null = null
 
 /** Confirmación propia (el confirm() del sistema desentona y algunos visores lo bloquean). */
 export function confirmDialog(message: string, opts: { confirmLabel?: string; danger?: boolean } = {}): Promise<boolean> {
-  const req = { message, confirmLabel: opts.confirmLabel ?? 'Eliminar', danger: opts.danger ?? true }
+  const req = { message, confirmLabel: opts.confirmLabel ?? tl('Eliminar'), danger: opts.danger ?? true }
   if (!openConfirm) return Promise.resolve(window.confirm(message))
   return new Promise((resolve) => openConfirm!({ ...req, resolve }))
 }
@@ -270,7 +271,7 @@ export function ConfirmHost() {
         <p id={msgId}>{req.message}</p>
         <div className="two">
           <button className="btn" onClick={() => done(false)}>
-            Cancelar
+            {tl('Cancelar')}
           </button>
           <button className={`btn ${req.danger ? 'danger-solid' : 'primary'}`} onClick={() => done(true)} autoFocus>
             {req.confirmLabel}

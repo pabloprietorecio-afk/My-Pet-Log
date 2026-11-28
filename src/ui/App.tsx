@@ -27,6 +27,20 @@ import { Settings } from './screens/Settings'
 import { Today } from './screens/Today'
 import { PetShell } from './Shell'
 import { useTheme } from './theme'
+import { hasChosenLang, tl } from '../i18n'
+import { LanguageScreen } from './screens/Language'
+import { Premium } from './screens/Premium'
+import { usePremium } from '../monetize/hooks'
+import { FREE_PETS } from '../monetize/config'
+
+/** Pruebas automáticas (Playwright): se salta la pantalla de idioma salvo que se pida expresamente. */
+function automated(): boolean {
+  try {
+    return navigator.webdriver === true && localStorage.getItem('petlog-test-lang-screen') !== '1'
+  } catch {
+    return false
+  }
+}
 
 function Home() {
   const pets = usePets()
@@ -38,7 +52,7 @@ function Home() {
   const items: PagedItem[] = pets.map((p) => ({
     key: p.id,
     onClick: () => nav(`/pet/${p.id}/hoy`),
-    label: `Abrir ${p.name}`,
+    label: tl('Abrir {0}', p.name),
     node: (
       <>
         <Avatar pet={p} />
@@ -54,8 +68,8 @@ function Home() {
     <div className="app">
       <Backdrop scene="home" />
       <header className="topbar">
-        <h1 style={{ paddingLeft: 'var(--s2)' }}>PetLog</h1>
-        <Link to="/ajustes" className="icon-btn" aria-label="Ajustes">
+        <h1 style={{ paddingLeft: 'var(--s2)' }}>{tl('PetLog')}</h1>
+        <Link to="/ajustes" className="icon-btn" aria-label={tl('Ajustes')}>
           <IconGear />
         </Link>
       </header>
@@ -70,23 +84,23 @@ function Home() {
                 <PetIllustration species="cat" />
               </span>
             </div>
-            <h2>El diario de salud de tu mascota</h2>
-            <p>Un toque para anotar lo que pasa. Un informe claro para el veterinario. Todo se queda en tu teléfono.</p>
+            <h2>{tl('El diario de salud de tu mascota')}</h2>
+            <p>{tl('Un toque para anotar lo que pasa. Un informe claro para el veterinario. Todo se queda en tu teléfono.')}</p>
             <Link to="/nueva" className="btn pill-cta" style={{ marginTop: 'var(--s3)' }}>
               <IconPlus />
-              Añadir mi mascota
+              {tl('Añadir mi mascota')}
             </Link>
             <Link to="/compartir?codigo=" className="link-btn invited">
-              ¿Te han invitado? Unirme con un código
+              {tl('¿Te han invitado? Unirme con un código')}
             </Link>
           </div>
         ) : (
           <>
-            <h2 className="eyebrow" style={{ padding: '0 var(--s1)' }}>¿De quién vas a anotar?</h2>
-            <Paged items={items} rowRem={4.5} rowClass="nt pets" label="Mascotas" />
+            <h2 className="eyebrow" style={{ padding: '0 var(--s1)' }}>{tl('¿De quién vas a anotar?')}</h2>
+            <Paged items={items} rowRem={4.5} rowClass="nt pets" label={tl('Mascotas')} />
             <Link to="/nueva" className="btn tonal block" style={{ flex: 'none' }}>
               <IconPlus />
-              Añadir mascota
+              {tl('Añadir mascota')}
             </Link>
           </>
         )}
@@ -96,14 +110,18 @@ function Home() {
 }
 
 function NewPet() {
+  const pets = usePets()
+  const { premium } = usePremium()
+  // Versión gratis: hasta FREE_PETS mascotas.
+  if (pets && !premium && pets.length >= FREE_PETS) return <Navigate to="/premium?motivo=mascotas" replace />
   return (
     <div className="app">
       <Backdrop scene="form" />
       <header className="topbar">
-        <Link to="/" className="icon-btn" aria-label="Volver">
+        <Link to="/" className="icon-btn" aria-label={tl('Volver')}>
           <IconBack />
         </Link>
-        <h1>Nueva mascota</h1>
+        <h1>{tl('Nueva mascota')}</h1>
       </header>
       <main className="screen">
         <PetForm />
@@ -141,12 +159,14 @@ function DeepLinks() {
 
 export function App() {
   useTheme()
+  // Primera vez: elegir idioma antes que nada.
+  if (!hasChosenLang() && !automated()) return <LanguageScreen />
   return (
     <ToastProvider>
       <ConfirmHost />
       {memoryMode && (
         <div className="demo-banner" role="note">
-          Vista de demostración: los datos se borran al cerrar y el visor puede bloquear descargas o abrir otras apps. En la app instalada funciona todo.
+          {tl('Vista de demostración: los datos se borran al cerrar y el visor puede bloquear descargas o abrir otras apps. En la app instalada funciona todo.')}
         </div>
       )}
       <HashRouter>
@@ -156,6 +176,7 @@ export function App() {
           <Route path="/nueva" element={<NewPet />} />
           <Route path="/ajustes" element={<Settings />} />
           <Route path="/compartir" element={<Share />} />
+          <Route path="/premium" element={<Premium />} />
           {import.meta.env.DEV && <Route path="/galeria" element={<Gallery />} />}
           {import.meta.env.DEV && <Route path="/arte" element={<ArtGallery />} />}
           {import.meta.env.DEV && <Route path="/icono" element={<IconStudio />} />}

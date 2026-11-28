@@ -14,15 +14,15 @@ const page = await ctx.newPage()
 const errs = []
 page.on('pageerror', (e) => errs.push(e.message))
 
-await page.goto('http://localhost:5199/')
+await page.goto('http://localhost:5199/'); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
 await page.getByRole('link', { name: 'Añadir mi mascota' }).click()
 await page.getByLabel('Nombre').fill('Oso')
 await page.getByRole('radio', { name: 'Perro' }).click()
 await page.getByRole('button', { name: 'Crear mascota' }).click()
 await page.waitForURL(/\/hoy$/)
 
-await page.goto('about:blank')
-await page.goto('http://localhost:5199/#/voz-rapida')
+await page.goto('about:blank'); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
+await page.goto('http://localhost:5199/#/voz-rapida'); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
 await page.waitForSelector('.qv-mic')
 ok(await page.evaluate(() => document.documentElement.classList.contains('quick')), 'arranca en modo ventana flotante')
 ok((await page.locator('.topbar, nav').count()) === 0, 'no abre la app (sin cabecera ni navegación)')

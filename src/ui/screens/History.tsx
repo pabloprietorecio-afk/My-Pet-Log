@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useBanner } from '../../monetize/useBanner'
 import { useOutletContext } from 'react-router-dom'
 import { useNow } from '../../data/hooks'
 import type { Pet } from '../../domain/types'
@@ -9,10 +10,12 @@ import { TypeIcon } from '../art/TypeIcon'
 import { PetIllustration } from '../art/pets'
 import { Paged, type PagedItem } from '../layout'
 import { EntryEditor, EntryRow, entryLabel, useEntries, type Entry } from '../timeline'
+import { tl } from '../../i18n'
 
 type Period = 'today' | '7' | '30' | 'all'
 
 export function History() {
+  useBanner()
   const { pet } = useOutletContext<{ pet: Pet }>()
   const [period, setPeriod] = useState<Period>('7')
   const [filter, setFilter] = useState<Set<string>>(new Set())
@@ -36,7 +39,7 @@ export function History() {
   const push = (e: Entry) =>
     items.push({ key: e.id, node: <EntryRow e={e} trById={trById} />, onClick: () => setEdit(e), label: entryLabel(e, trById) })
   if (upcoming.length) {
-    items.push({ key: 'h-next', head: 'Próximos' })
+    items.push({ key: 'h-next', head: tl('Próximos') })
     upcoming.forEach(push)
   }
   let day = ''
@@ -60,20 +63,20 @@ export function History() {
     })
   const filterText =
     filter.size === 0
-      ? 'Todos los tipos'
-      : [...filter].map((id) => (id === 'dose' ? 'Medicación' : types.find((t) => t.id === id)?.label ?? '')).filter(Boolean).join(', ')
+      ? tl('Todos los tipos')
+      : [...filter].map((id) => (id === 'dose' ? tl('Medicación') : types.find((t) => t.id === id)?.label ?? '')).filter(Boolean).join(', ')
 
   return (
     <>
       <Seg<Period>
-        label="Periodo"
+        label={tl('Periodo')}
         value={period}
         onChange={setPeriod}
         options={[
-          { value: 'today', label: 'Hoy' },
-          { value: '7', label: '7 días' },
-          { value: '30', label: '30 días' },
-          { value: 'all', label: 'Todo' },
+          { value: 'today', label: tl('Hoy') },
+          { value: '7', label: tl('7 días') },
+          { value: '30', label: tl('30 días') },
+          { value: 'all', label: tl('Todo') },
         ]}
       />
       <div className="bar">
@@ -82,7 +85,7 @@ export function History() {
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{filterText}</span>
         </button>
         <span className="hint" style={{ fontWeight: 650 }}>
-          {filtered.length} {filtered.length === 1 ? 'registro' : 'registros'}
+          {filtered.length} {filtered.length === 1 ? tl('registro') : tl('registros')}
         </span>
       </div>
 
@@ -91,10 +94,10 @@ export function History() {
           items={items}
           rowRem={3.75}
           resetKey={`${period}|${[...filter].join()}`}
-          label="Historial"
+          label={tl('Historial')}
           empty={
-            <Empty emoji={<PetIllustration species="cat" />} title={filter.size ? 'Nada de ese tipo' : 'Sin registros en este periodo'}>
-              <p>{filter.size ? 'Prueba con otro tipo o un periodo más largo.' : 'Lo que registres aparecerá aquí, ordenado por día y hora.'}</p>
+            <Empty emoji={<PetIllustration species="cat" />} title={filter.size ? tl('Nada de ese tipo') : tl('Sin registros en este periodo')}>
+              <p>{filter.size ? tl('Prueba con otro tipo o un periodo más largo.') : tl('Lo que registres aparecerá aquí, ordenado por día y hora.')}</p>
             </Empty>
           }
         />
@@ -102,26 +105,26 @@ export function History() {
 
       {picking && (
         <Sheet
-          title="Mostrar"
+          title={tl('Mostrar')}
           onClose={() => setPicking(false)}
           foot={
             <>
               <button className="btn" onClick={() => setFilter(new Set())} disabled={filter.size === 0}>
-                Ver todo
+                {tl('Ver todo')}
               </button>
               <button className="btn primary" onClick={() => setPicking(false)}>
-                Aplicar
+                {tl('Aplicar')}
               </button>
             </>
           }
         >
           {usedTypes.length === 0 && !hasDoses ? (
-            <p className="muted">Todavía no hay registros que filtrar en este periodo.</p>
+            <p className="muted">{tl('Todavía no hay registros que filtrar en este periodo.')}</p>
           ) : (
-            <div className="chips" role="group" aria-label="Tipos de registro">
+            <div className="chips" role="group" aria-label={tl('Tipos de registro')}>
               {hasDoses && (
                 <button className="chip" aria-pressed={filter.has('dose')} onClick={() => toggle('dose')}>
-                  <TypeIcon k="medication" size={22} /> Medicación
+                  <TypeIcon k="medication" size={22} /> {tl('Medicación')}
                 </button>
               )}
               {usedTypes.map((t) => (
@@ -131,7 +134,7 @@ export function History() {
               ))}
             </div>
           )}
-          <p className="hint">Elige uno o varios. Sin selección se muestra todo.</p>
+          <p className="hint">{tl('Elige uno o varios. Sin selección se muestra todo.')}</p>
         </Sheet>
       )}
 

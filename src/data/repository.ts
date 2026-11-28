@@ -1,6 +1,6 @@
 import Dexie, { type DexieOptions, type Table } from 'dexie'
 import { newId } from '../domain/ids'
-import { LEGACY_EMOJI, missingBuiltinTypes, seedEventTypes } from '../domain/eventTypes'
+import { displayLabel, LEGACY_EMOJI, missingBuiltinTypes, seedEventTypes } from '../domain/eventTypes'
 import { scheduleChanged } from '../domain/schedule'
 import {
   SCHEMA_VERSION,
@@ -14,6 +14,7 @@ import {
   type Treatment,
 } from '../domain/types'
 import { addDays, toLocalDate } from '../domain/time'
+import { lang, tl } from '../i18n'
 
 export class PetLogDB extends Dexie {
   pets!: Table<Pet, string>
@@ -172,7 +173,7 @@ export class LocalRepository {
   async updatePet(id: string, patch: Partial<NewEntity<Pet>>): Promise<Pet> {
     return this.mutate(async () => {
       const cur = await this.db.pets.get(id)
-      if (!cur) throw new Error('Mascota no encontrada')
+      if (!cur) throw new Error(tl('Mascota no encontrada'))
       const next = { ...cur, ...patch, updatedAt: new Date().toISOString() }
       await this.db.pets.put(next)
       if (patch.species && patch.species !== cur.species) {
@@ -209,6 +210,7 @@ export class LocalRepository {
   async listEventTypes(petId: string, includeHidden = true): Promise<EventType[]> {
     const all = await this.db.eventTypes.where('petId').equals(petId).toArray()
     return all
+      .map(displayLabel)
       .filter(live)
       .filter((t) => includeHidden || !t.hidden)
       .sort((a, b) => a.order - b.order)
@@ -253,7 +255,7 @@ export class LocalRepository {
   async deleteCustomType(id: string): Promise<void> {
     await this.mutate(async () => {
       const t = await this.db.eventTypes.get(id)
-      if (!t || t.key !== 'custom') throw new Error('Solo se pueden eliminar botones propios')
+      if (!t || t.key !== 'custom') throw new Error(tl('Solo se pueden eliminar botones propios'))
       const now = new Date().toISOString()
       await this.db.eventTypes.update(id, { deletedAt: now, updatedAt: now })
     })
@@ -282,7 +284,7 @@ export class LocalRepository {
   async updateEvent(id: string, patch: Partial<NewEntity<LogEvent>>): Promise<LogEvent> {
     return this.mutate(async () => {
       const cur = await this.db.events.get(id)
-      if (!cur) throw new Error('Registro no encontrado')
+      if (!cur) throw new Error(tl('Registro no encontrado'))
       const next: LogEvent = { ...cur, ...patch, updatedAt: new Date().toISOString() }
       // Un campo borrado explícitamente (undefined) debe desaparecer.
       for (const k of Object.keys(next) as (keyof LogEvent)[]) if (next[k] === undefined) delete next[k]
@@ -308,7 +310,7 @@ export class LocalRepository {
 
   async listTreatments(petId: string): Promise<Treatment[]> {
     const all = await this.db.treatments.where('petId').equals(petId).toArray()
-    return all.filter(live).sort((a, b) => a.name.localeCompare(b.name, 'es'))
+    return all.filter(live).sort((a, b) => a.name.localeCompare(b.name, lang()))
   }
 
   async createTreatment(input: NewEntity<Treatment>): Promise<Treatment> {
@@ -330,7 +332,7 @@ export class LocalRepository {
   ): Promise<{ treatment: Treatment; revised: boolean }> {
     return this.mutate(async () => {
       const cur = await this.db.treatments.get(id)
-      if (!cur) throw new Error('Tratamiento no encontrado')
+      if (!cur) throw new Error(tl('Tratamiento no encontrado'))
       const clean = { ...patch, ...(patch.times ? { times: [...patch.times].sort() } : {}) }
       const today = toLocalDate(new Date())
       const calendarChanged = scheduleChanged(cur, { ...clean, startDate: undefined })

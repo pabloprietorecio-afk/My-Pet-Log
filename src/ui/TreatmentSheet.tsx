@@ -5,12 +5,13 @@ import type { ScheduleMode, Treatment } from '../domain/types'
 import { addDays, formatNumber, isValidTime, toLocalDate } from '../domain/time'
 import { Field, Seg, Sheet, confirmDialog, useToast } from './components'
 import { IconTrash } from './icons'
+import { tl } from '../i18n'
 
 const EVERY: { value: number; label: string }[] = [
-  { value: 1, label: 'Cada día' },
-  { value: 2, label: 'Día sí, día no' },
-  { value: 3, label: 'Cada 3 días' },
-  { value: 7, label: 'Cada semana' },
+  { value: 1, label: tl('Cada día') },
+  { value: 2, label: tl('Día sí, día no') },
+  { value: 3, label: tl('Cada 3 días') },
+  { value: 7, label: tl('Cada semana') },
 ]
 
 export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; treatment?: Treatment; onClose: () => void }) {
@@ -30,10 +31,10 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
 
   const save = async () => {
     const d = Number(dose.trim().replace(',', '.'))
-    if (!name.trim()) return setError('Escribe el nombre del medicamento.')
-    if (!Number.isFinite(d) || d <= 0) return setError('Escribe una dosis válida.')
-    if (mode === 'scheduled' && times.length === 0) return setError('Añade al menos una hora.')
-    if (end && end < start) return setError('La fecha de fin es anterior al inicio.')
+    if (!name.trim()) return setError(tl('Escribe el nombre del medicamento.'))
+    if (!Number.isFinite(d) || d <= 0) return setError(tl('Escribe una dosis válida.'))
+    if (mode === 'scheduled' && times.length === 0) return setError(tl('Añade al menos una hora.'))
+    if (end && end < start) return setError(tl('La fecha de fin es anterior al inicio.'))
     const data = {
       name: name.trim(),
       dose: d,
@@ -49,11 +50,11 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
     try {
       if (treatment) {
         const r = await repo.updateTreatment(treatment.id, data)
-        if (r.revised) toast.show(<span className="msg">Se guarda como pauta nueva desde hoy; el historial anterior se conserva.</span>, 6000)
+        if (r.revised) toast.show(<span className="msg">{tl('Se guarda como pauta nueva desde hoy; el historial anterior se conserva.')}</span>, 6000)
       } else await repo.createTreatment({ petId, ...data })
       onClose()
     } catch {
-      setError('No se pudo guardar.')
+      setError(tl('No se pudo guardar.'))
     }
   }
 
@@ -61,16 +62,16 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
 
   return (
     <Sheet
-      title={treatment ? 'Editar tratamiento' : 'Nuevo tratamiento'}
+      title={treatment ? tl('Editar tratamiento') : tl('Nuevo tratamiento')}
       onClose={onClose}
       foot={
         <>
           {treatment && (
             <button
               className="btn danger"
-              aria-label="Eliminar tratamiento"
+              aria-label={tl('Eliminar tratamiento')}
               onClick={async () => {
-                if (await confirmDialog('¿Eliminar este tratamiento? Las tomas ya registradas seguirán en el historial.')) {
+                if (await confirmDialog(tl('¿Eliminar este tratamiento? Las tomas ya registradas seguirán en el historial.'))) {
                   await repo.deleteTreatment(treatment.id)
                   onClose()
                 }
@@ -80,27 +81,27 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
             </button>
           )}
           <button className="btn primary" onClick={save}>
-            Guardar tratamiento
+            {tl('Guardar tratamiento')}
           </button>
         </>
       }
     >
       <div className="field">
         <label htmlFor="tr-name" className="lbl">
-          Medicamento
+          {tl('Medicamento')}
         </label>
-        <input id="tr-name" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="p. ej. Prednisona" autoFocus={!treatment} />
+        <input id="tr-name" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={tl('p. ej. Prednisona')} autoFocus={!treatment} />
       </div>
       <div className="two">
         <div className="field">
           <label htmlFor="tr-dose" className="lbl">
-            Dosis
+            {tl('Dosis')}
           </label>
           <input id="tr-dose" className="input" inputMode="decimal" value={dose} onChange={(e) => setDose(e.target.value)} placeholder="5" />
         </div>
         <div className="field">
           <label htmlFor="tr-unit" className="lbl">
-            Unidad
+            {tl('Unidad')}
           </label>
           <select id="tr-unit" className="input" value={unit} onChange={(e) => setUnit(e.target.value)}>
             {[...new Set([...DOSE_UNITS, unit])].map((u) => (
@@ -110,27 +111,27 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
         </div>
       </div>
       <Seg
-        label="Tipo de pauta"
+        label={tl('Tipo de pauta')}
         value={mode}
         onChange={setMode}
         options={[
-          { value: 'scheduled', label: 'Con horario' },
-          { value: 'asNeeded', label: 'Si hace falta' },
+          { value: 'scheduled', label: tl('Con horario') },
+          { value: 'asNeeded', label: tl('Si hace falta') },
         ]}
       />
       {mode === 'scheduled' && (
         <>
-          <Field label="Horas de las tomas">
+          <Field label={tl('Horas de las tomas')}>
             <div className="chips">
               {[...times].sort().map((t) => (
-                <button key={t} type="button" className="chip" aria-label={`Quitar las ${t}`} onClick={() => setTimes(times.filter((x) => x !== t))}>
+                <button key={t} type="button" className="chip" aria-label={tl('Quitar las {0}', t)} onClick={() => setTimes(times.filter((x) => x !== t))}>
                   {t} ✕
                 </button>
               ))}
               <span className="row" style={{ gap: 'var(--s1)' }}>
-                <input className="input" type="time" value={newTime} aria-label="Nueva hora" onChange={(e) => setNewTime(e.target.value)} style={{ width: '8.75rem', minHeight: 'var(--tap)' }} />
+                <input className="input" type="time" value={newTime} aria-label={tl('Nueva hora')} onChange={(e) => setNewTime(e.target.value)} style={{ width: '8.75rem', minHeight: 'var(--tap)' }} />
                 <button type="button" className="btn sm tonal" disabled={!isValidTime(newTime) || times.includes(newTime)} onClick={() => setTimes([...times, newTime])}>
-                  Añadir
+                  {tl('Añadir')}
                 </button>
               </span>
             </div>
@@ -138,7 +139,7 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
           <div className="two">
             <div className="field">
               <label htmlFor="tr-every" className="lbl">
-                Frecuencia
+                {tl('Frecuencia')}
               </label>
               <select id="tr-every" className="input" value={every} onChange={(e) => setEvery(Number(e.target.value))}>
                 {EVERY.map((o) => (
@@ -150,12 +151,12 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
             </div>
             <div className="field">
               <label htmlFor="tr-grace" className="lbl">
-                Cuenta «a tiempo»
+                {tl('Cuenta «a tiempo»')}
               </label>
               <select id="tr-grace" className="input" value={grace} onChange={(e) => setGrace(Number(e.target.value))}>
                 {[30, 60, 90, 120].map((g) => (
                   <option key={g} value={g}>
-                    ± {g} min
+                    ± {g} {tl('min')}
                   </option>
                 ))}
               </select>
@@ -166,22 +167,22 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
       <div className="two">
         <div className="field">
           <label htmlFor="tr-start" className="lbl">
-            Empieza
+            {tl('Empieza')}
           </label>
           <input id="tr-start" className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
         </div>
         <div className="field">
           <label htmlFor="tr-end" className="lbl">
-            Termina (opcional)
+            {tl('Termina (opcional)')}
           </label>
           <input id="tr-end" className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
         </div>
       </div>
       <div className="field">
         <label htmlFor="tr-notes" className="lbl">
-          Notas (opcional)
+          {tl('Notas (opcional)')}
         </label>
-        <input id="tr-notes" className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="p. ej. con comida" />
+        <input id="tr-notes" className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={tl('p. ej. con comida')} />
       </div>
       {error && (
         <p className="error" role="alert">
@@ -196,7 +197,7 @@ export function TreatmentSheet({ petId, treatment, onClose }: { petId: string; t
             onClose()
           }}
         >
-          Finalizar tratamiento (hasta ayer)
+          {tl('Finalizar tratamiento (hasta ayer)')}
         </button>
       )}
     </Sheet>

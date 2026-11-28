@@ -3,6 +3,7 @@ import { reportCharts } from '../charts/reportCharts'
 import type { ReportModel } from '../domain/report'
 import type { ReportArt } from './art'
 import { COVER_CSS, renderCoverHtml } from './coverHtml'
+import { lang, tl } from '../i18n'
 
 const CSS = `
 :root{--ink:#0f2a26;--muted:#53665f;--line:#dbe3e0;--soft:#f1f5f3;--brand:#1c5cab}
@@ -47,7 +48,7 @@ details.alt{font-size:12px;color:var(--muted)}
 `
 
 const li = (items: string[]) =>
-  items.length ? `<ul class="tags">${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="empty">Sin datos registrados.</p>'
+  items.length ? `<ul class="tags">${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : `<p class="empty">${tl('Sin datos registrados.')}</p>`
 
 /**
  * Informe como HTML autónomo (sin recursos externos).
@@ -60,20 +61,20 @@ export function renderHtml(m: ReportModel, art?: ReportArt): string {
   const vetLine = [p.vet.name, p.vet.clinic, p.vet.phone].filter(Boolean).join(' · ')
 
   const petBlock = `<dl>
-    ${kv('Especie', p.species)}${kv('Raza', p.breed)}${kv('Sexo', p.sex)}
-    ${kv('Edad', p.age)}${kv('Nacimiento', p.birthDate)}
-    ${kv('Último peso', p.weight ? `${p.weight.text} (${p.weight.date})` : undefined)}
-    ${kv('Veterinario habitual', vetLine || undefined)}
+    ${kv(tl('Especie'), p.species)}${kv(tl('Raza'), p.breed)}${kv(tl('Sexo'), p.sex)}
+    ${kv(tl('Edad'), p.age)}${kv(tl('Nacimiento'), p.birthDate)}
+    ${kv(tl('Último peso'), p.weight ? `${p.weight.text} (${p.weight.date})` : undefined)}
+    ${kv(tl('Veterinario habitual'), vetLine || undefined)}
   </dl>`
 
   const treatments = m.currentTreatments.length
-    ? `<table><thead><tr><th>Medicamento</th><th>Dosis</th><th>Pauta</th><th>Desde</th><th>Notas</th></tr></thead><tbody>${m.currentTreatments
+    ? `<table><thead><tr><th>${tl('Medicamento')}</th><th>${tl('Dosis')}</th><th>${tl('Pauta')}</th><th>${tl('Desde')}</th><th>${tl('Notas')}</th></tr></thead><tbody>${m.currentTreatments
         .map(
           (t) =>
             `<tr><td><b>${esc(t.name)}</b></td><td>${esc(t.dose)}</td><td>${esc(t.schedule)}</td><td>${esc(t.since)}${t.until ? ` – ${esc(t.until)}` : ''}</td><td>${esc(t.notes ?? '')}</td></tr>`,
         )
         .join('')}</tbody></table>`
-    : '<p class="empty">Sin tratamientos activos registrados.</p>'
+    : `<p class="empty">${tl('Sin tratamientos activos registrados.')}</p>`
 
   const summary = `<dl>${m.summary.map((s) => `<dt>${esc(s.label)}</dt><dd>${esc(s.value)}</dd>`).join('')}</dl>`
 
@@ -89,17 +90,17 @@ export function renderHtml(m: ReportModel, art?: ReportArt): string {
               .join('')}</ul>`,
         )
         .join('')
-    : '<p class="empty">No hay registros en este periodo.</p>'
+    : `<p class="empty">${tl('No hay registros en este periodo.')}</p>`
 
   const medRows = m.medication.rows
   const medTable = medRows.length
-    ? `<table><thead><tr><th>Medicamento</th><th>Pauta</th><th class="n">Previstas</th><th class="n">A tiempo</th><th class="n">Con retraso</th><th class="n">Omitidas</th><th class="n">Sin registrar</th><th class="n">Adicionales</th></tr></thead><tbody>${medRows
+    ? `<table><thead><tr><th>${tl('Medicamento')}</th><th>${tl('Pauta')}</th><th class="n">${tl('Previstas')}</th><th class="n">${tl('A tiempo')}</th><th class="n">${tl('Con retraso')}</th><th class="n">${tl('Omitidas')}</th><th class="n">${tl('Sin registrar')}</th><th class="n">${tl('Adicionales')}</th></tr></thead><tbody>${medRows
         .map(
           (r) =>
             `<tr><td><b>${esc(r.name)}</b><br><span class="sub">${esc(r.dose)} · ${esc(r.period)}</span></td><td>${esc(r.schedule)}</td><td class="n">${r.planned}</td><td class="n">${r.given}</td><td class="n">${r.late}</td><td class="n">${r.skipped}</td><td class="n">${r.unrecorded}</td><td class="n">${r.extra}</td></tr>`,
         )
-        .join('')}</tbody></table>${m.medication.adHoc ? `<p class="note">Además, ${m.medication.adHoc} toma(s) suelta(s) sin tratamiento asociado.</p>` : ''}`
-    : '<p class="empty">Sin medicación en el periodo.</p>'
+        .join('')}</tbody></table>${m.medication.adHoc ? `<p class="note">${tl('Además, {0} toma(s) suelta(s) sin tratamiento asociado.', m.medication.adHoc)}</p>` : ''}`
+    : `<p class="empty">${tl('Sin medicación en el periodo.')}</p>`
 
   const charts = reportCharts(m, PALETTE_LIGHT, 380)
   const chartsHtml = charts
@@ -107,41 +108,41 @@ export function renderHtml(m: ReportModel, art?: ReportArt): string {
       (c) =>
         `<div class="chart"><h3>${esc(c.title)}</h3>${c.note ? `<p class="note">${esc(c.note)}</p>` : ''}${c.svg}${
           c.legend ? `<div class="legend">${c.legend.map((l) => `<span><i style="background:${l.color}"></i>${esc(l.label)}</span>`).join('')}</div>` : ''
-        }<details class="alt"><summary>Ver datos</summary>${esc(c.text)}</details></div>`,
+        }<details class="alt"><summary>${tl('Ver datos')}</summary>${esc(c.text)}</details></div>`,
     )
     .join('')
 
   const notes = m.ownerNotes.length
     ? `<table><tbody>${m.ownerNotes.map((n) => `<tr><td class="n">${esc(n.when)}</td><td><b>${esc(n.label)}</b></td><td>${esc(n.text)}</td></tr>`).join('')}</tbody></table>`
-    : '<p class="empty">Sin notas en el periodo.</p>'
+    : `<p class="empty">${tl('Sin notas en el periodo.')}</p>`
 
   const photos = m.photos.length
-    ? `<h2>Fotografías adjuntas</h2><div class="photos">${m.photos
+    ? `<h2>${tl('Fotografías adjuntas')}</h2><div class="photos">${m.photos
         .map((f) => `<figure><img alt="${esc(f.label)} ${esc(f.when)}" src="${esc(f.dataUrl)}"><figcaption>${esc(f.label)} · ${esc(f.when)}</figcaption></figure>`)
         .join('')}</div>`
     : ''
 
   return `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Informe de ${esc(p.name)} · ${esc(m.period.label)}</title><style>${art?.fontCss ?? ''}${CSS}${COVER_CSS}</style></head>
+<html lang="${lang()}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${tl('Informe de {0}', esc(p.name))} · ${esc(m.period.label)}</title><style>${art?.fontCss ?? ''}${CSS}${COVER_CSS}</style></head>
 <body>
 ${renderCoverHtml(m, art)}
-<div class="sep" aria-hidden="true">Informe detallado</div>
+<div class="sep" aria-hidden="true">${tl('Informe detallado')}</div>
 <main>
-<header class="top"><div class="app">PetLog · Informe detallado para el veterinario</div>
+<header class="top"><div class="app">${tl('PetLog · Informe detallado para el veterinario')}</div>
 <h1>${esc(p.name)}</h1>
-<div class="sub">${esc(m.period.label)} · ${esc(m.period.fromText)} – ${esc(m.period.toText)}<br>Generado el ${esc(m.generatedAt)}</div></header>
+<div class="sub">${esc(m.period.label)} · ${esc(m.period.fromText)} – ${esc(m.period.toText)}<br>${tl('Generado el {0}', esc(m.generatedAt))}</div></header>
 
-<h2>1. Datos de la mascota</h2>${petBlock}
-<h2>2. Patologías y alergias</h2>
-<h3>Patologías (según el propietario)</h3>${li(p.conditions)}
-<h3>Alergias</h3>${li(p.allergies)}
-<h2>3. Medicación actual</h2>${treatments}
-<h2>4. Resumen del periodo</h2>${summary}
-<h2>5. Cronología de incidencias</h2>${timeline}
-<h2>6. Tabla de medicación</h2>${medTable}
-<h2>7–8. Peso y gráficas</h2>${chartsHtml || '<p class="empty">Sin datos para graficar.</p>'}
-<h2>9. Observaciones del propietario</h2>${notes}
+<h2>${tl('1. Datos de la mascota')}</h2>${petBlock}
+<h2>${tl('2. Patologías y alergias')}</h2>
+<h3>${tl('Patologías (según el propietario)')}</h3>${li(p.conditions)}
+<h3>${tl('Alergias')}</h3>${li(p.allergies)}
+<h2>${tl('3. Medicación actual')}</h2>${treatments}
+<h2>${tl('4. Resumen del periodo')}</h2>${summary}
+<h2>${tl('5. Cronología de incidencias')}</h2>${timeline}
+<h2>${tl('6. Tabla de medicación')}</h2>${medTable}
+<h2>${tl('7–8. Peso y gráficas')}</h2>${chartsHtml || `<p class="empty">${tl('Sin datos para graficar.')}</p>`}
+<h2>${tl('9. Observaciones del propietario')}</h2>${notes}
 ${photos}
 <p class="disc">${esc(m.disclaimer)}</p>
 </main></body></html>`

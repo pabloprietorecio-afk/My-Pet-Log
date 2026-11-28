@@ -18,6 +18,7 @@ import { Paged, useBox, useUsableHeight, type PagedItem } from '../layout'
 import { MedSheet } from '../MedSheet'
 import { EntryEditor, EntryRow, entryLabel, useEntries, type Entry } from '../timeline'
 import { TreatmentSheet } from '../TreatmentSheet'
+import { tl } from '../../i18n'
 
 type SheetState =
   | { kind: 'event'; type: EventType; event?: LogEvent }
@@ -39,12 +40,12 @@ function AfterLog({ type, event, onNote }: { type: EventType; event: LogEvent; o
           <IconCheck />
         </span>
         <TypeIcon k={type.key} emoji={type.emoji} size={24} />
-        <span className="msg">{type.label} anotado</span>
+        <span className="msg">{type.label} {tl('anotado')}</span>
         <span className="when">{formatTime(event.at)}</span>
       </div>
       {options.length > 0 && (
         <div className="toast-opts" role="group" aria-label={`${levelQuestion(type.key)} (opcional)`}>
-          <span className="ask">{levelQuestion(type.key)} (opcional)</span>
+          <span className="ask">{levelQuestion(type.key)} {tl('(opcional)')}</span>
           <div className="opts" style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
             {options.map((o) => (
               <button
@@ -65,7 +66,7 @@ function AfterLog({ type, event, onNote }: { type: EventType; event: LogEvent; o
       )}
       <div className="toast-actions">
         <button className="tbtn" onClick={onNote}>
-          Añadir nota o foto
+          {tl('Añadir nota o foto')}
         </button>
         <button
           className="tbtn"
@@ -74,7 +75,7 @@ function AfterLog({ type, event, onNote }: { type: EventType; event: LogEvent; o
             toast.hide()
           }}
         >
-          Deshacer
+          {tl('Deshacer')}
         </button>
       </div>
     </>
@@ -188,7 +189,7 @@ export function Today() {
     <>
       {focus ? (
         <div className={`strip${focus.state === 'overdue' ? ' alert' : ''}`}>
-          <button className="main" onClick={() => setSheet({ kind: 'doses' })} aria-label={`Tomas de hoy: ${slots.length}. Ver todas`}>
+          <button className="main" onClick={() => setSheet({ kind: 'doses' })} aria-label={tl('Tomas de hoy: {0}. Ver todas', slots.length)}>
             <span className="time">{formatTime(focus.slot.at)}</span>
             <span className="txt">
               <span className="ttl">
@@ -198,17 +199,17 @@ export function Today() {
                 <span className={focus.state === 'overdue' ? 'error' : undefined} style={{ fontSize: 'inherit' }}>
                   {doseStateLabel(focus.state, focus.slot.scheduledAt, now)}
                 </span>
-                {slots.length > 1 ? ` · ${doneSlots} de ${slots.length} hoy` : ''}
+                {slots.length > 1 ? tl(' · {0} de {1} hoy', doneSlots, slots.length) : ''}
               </span>
             </span>
           </button>
           <button
             className="btn primary sm"
             onClick={() => act.give(focus.treatment, focus.slot)}
-            aria-label={`Dar ${focus.treatment.name} de las ${formatTime(focus.slot.at)} ahora`}
+            aria-label={tl('Dar {0} de las {1} ahora', focus.treatment.name, formatTime(focus.slot.at))}
           >
             <IconCheck />
-            Dada
+            {tl('Dada')}
           </button>
         </div>
       ) : slots.length > 0 ? (
@@ -218,9 +219,9 @@ export function Today() {
               <IconCheck />
             </span>
             <span className="txt">
-              <span className="ttl">Tomas de hoy al día</span>
+              <span className="ttl">{tl('Tomas de hoy al día')}</span>
               <span className="sub">
-                {doneSlots} de {slots.length} registradas
+                {doneSlots} {tl('de')}{' '}{slots.length} {tl('registradas')}
               </span>
             </span>
           </span>
@@ -229,15 +230,15 @@ export function Today() {
       ) : null}
 
       {!compact && <div className="bar today-bar" style={{ minHeight: '2.25rem' }}>
-        <h2 className="eyebrow">¿Qué ha pasado?</h2>
+        <h2 className="eyebrow">{tl('¿Qué ha pasado?')}</h2>
         <Link className="link-btn" to="../botones">
-          Personalizar
+          {tl('Personalizar')}
         </Link>
       </div>}
 
       {visible.length === 0 ? (
-        <Empty emoji="🔘" title="No hay botones visibles">
-          <p>Actívalos en «Personalizar».</p>
+        <Empty emoji="🔘" title={tl('No hay botones visibles')}>
+          <p>{tl('Actívalos en «Personalizar».')}</p>
         </Empty>
       ) : (
         <div
@@ -255,7 +256,7 @@ export function Today() {
             const n = count(t)
             const alert = t.key === 'medication' && pending > 0
             const aria = alert
-              ? `${t.label}, ${pending} ${pending === 1 ? 'toma pendiente' : 'tomas pendientes'}`
+              ? `${t.label}, ${pending} ${pending === 1 ? tl('toma pendiente') : tl('tomas pendientes')}`
               : `${t.label}${n ? `, ${n} hoy` : ''}`
             const wide = rest !== 0 && i === visible.length - 1
             return (
@@ -300,10 +301,10 @@ export function Today() {
           </span>
           <span className="txt">
             <span className="ttl">
-              Hoy: {todayCount} {todayCount === 1 ? 'registro' : 'registros'}
+              {tl('Hoy:')}{' '}{todayCount} {todayCount === 1 ? tl('registro') : tl('registros')}
             </span>
             <span className="sub">
-              {lastEvent && lastType ? `Último: ${lastType.label.toLowerCase()} a las ${formatTime(lastEvent.at)}` : 'Toca un botón y quedará anotado con la hora'}
+              {lastEvent && lastType ? tl('Último: {0} a las {1}', lastType.label.toLowerCase(), formatTime(lastEvent.at)) : tl('Toca un botón y quedará anotado con la hora')}
             </span>
           </span>
         </span>
@@ -314,10 +315,10 @@ export function Today() {
       {sheet?.kind === 'med' && <MedSheet petId={pet.id} onClose={() => setSheet(null)} onNewTreatment={() => setSheet({ kind: 'treatment' })} />}
       {sheet?.kind === 'treatment' && <TreatmentSheet petId={pet.id} onClose={() => setSheet(null)} />}
       {sheet?.kind === 'doses' && (
-        <Sheet title="Tomas de hoy" onClose={() => setSheet(null)}>
+        <Sheet title={tl('Tomas de hoy')} onClose={() => setSheet(null)}>
           <DoseList petId={pet.id} items={slots} now={now} />
           <Link className="btn block" to="../medicacion">
-            Ver tratamientos
+            {tl('Ver tratamientos')}
           </Link>
         </Sheet>
       )}
@@ -340,21 +341,21 @@ function TodaySheet({ petId, now, onClose }: { petId: string; now: Date; onClose
   }))
   if (edit) return <EntryEditor petId={petId} entry={edit} trById={trById} onClose={() => setEdit(null)} />
   return (
-    <Sheet title="Hoy" onClose={onClose}>
+    <Sheet title={tl('Hoy')} onClose={onClose}>
       <div className="box">
         <Paged
           items={items}
           rowRem={3.75}
-          label="Registros de hoy"
+          label={tl('Registros de hoy')}
           empty={
-            <Empty emoji={<PetIllustration species="cat" />} title="Nada todavía">
-              <p>Toca un botón de la pantalla Hoy y quedará anotado con la hora.</p>
+            <Empty emoji={<PetIllustration species="cat" />} title={tl('Nada todavía')}>
+              <p>{tl('Toca un botón de la pantalla Hoy y quedará anotado con la hora.')}</p>
             </Empty>
           }
         />
       </div>
       <Link className="btn block" to="../historial">
-        Abrir historial completo
+        {tl('Abrir historial completo')}
       </Link>
     </Sheet>
   )

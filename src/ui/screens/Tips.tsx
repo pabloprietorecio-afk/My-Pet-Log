@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useBanner } from '../../monetize/useBanner'
 import { useOutletContext } from 'react-router-dom'
 import { TIP_SCOPE, TIP_TOPICS, TIPS, type TipTopic } from '../../domain/tips'
 import type { Pet } from '../../domain/types'
 import { openExternal } from '../../platform/files'
 import { TipArt, TipPet, TopicIcon } from '../art/TipArt'
 import { IconBack, IconNext } from '../icons'
+import { tl } from '../../i18n'
 
 /** Consejos de cuidado de la especie: fichas ilustradas por tema, una a una (sin scroll). */
 export function Tips() {
+  useBanner()
   const { pet } = useOutletContext<{ pet: Pet }>()
   const tips = useMemo(() => {
     const all = TIPS[pet.species] ?? []
@@ -24,7 +27,7 @@ export function Tips() {
 
   useEffect(() => setI(0), [pet.species])
 
-  if (!tip) return <p className="empty">No hay consejos para esta especie todavía.</p>
+  if (!tip) return <p className="empty">{tl('No hay consejos para esta especie todavía.')}</p>
 
   const go = (n: number) => {
     const next = (n + tips.length) % tips.length
@@ -55,7 +58,7 @@ export function Tips() {
 
   return (
     <div className="tips">
-      <div className="tip-topics" role="tablist" aria-label="Temas">
+      <div className="tip-topics" role="tablist" aria-label={tl('Temas')}>
         {topics.map(({ key, label }) => (
           <button key={key} role="tab" aria-selected={tip.topic === key} className={`tip-topic tip-${key}`} onClick={() => pickTopic(key)}>
             <TopicIcon topic={key} />
@@ -69,7 +72,7 @@ export function Tips() {
         className={`tip-card tip-${tip.topic} enter-${dir}`}
         tabIndex={0}
         aria-roledescription="ficha"
-        aria-label={`${tip.title}. Ficha ${pos + 1} de ${inTopic.length}`}
+        aria-label={tl('{0}. Ficha {1} de {2}', tip.title, pos + 1, inTopic.length)}
         onPointerDown={onDown}
         onPointerUp={onUp}
         onPointerCancel={() => (start.current = null)}
@@ -84,7 +87,7 @@ export function Tips() {
           <p>{tip.text}</p>
           <div className="tip-foot">
             <p className="tip-src">
-              Fuente:{' '}
+              {tl('Fuente:')}{' '}
               {tip.sources.map((s, k) => (
                 <span key={s.url}>
                   {k > 0 && ', '}
@@ -95,7 +98,7 @@ export function Tips() {
               ))}
             </p>
             <div className="tip-pager">
-              <button className="icon-btn" onClick={() => go(i - 1)} aria-label="Ficha anterior">
+              <button className="icon-btn" onClick={() => go(i - 1)} aria-label={tl('Ficha anterior')}>
                 <IconBack />
               </button>
               <div className="dots" aria-hidden="true">
@@ -104,9 +107,9 @@ export function Tips() {
                 ))}
               </div>
               <span className="sr-only">
-                Ficha {pos + 1} de {inTopic.length}
+                {tl('Ficha')}{' '}{pos + 1} {tl('de')}{' '}{inTopic.length}
               </span>
-              <button className="icon-btn" onClick={() => go(i + 1)} aria-label="Ficha siguiente">
+              <button className="icon-btn" onClick={() => go(i + 1)} aria-label={tl('Ficha siguiente')}>
                 <IconNext />
               </button>
             </div>
@@ -114,7 +117,7 @@ export function Tips() {
         </div>
       </article>
 
-      <p className="tips-note">{TIP_SCOPE[pet.species] ? `${TIP_SCOPE[pet.species]} ` : ''}Consejos generales: ante cualquier duda, tu veterinario.</p>
+      <p className="tips-note">{TIP_SCOPE[pet.species] ? `${TIP_SCOPE[pet.species]} ` : ''}{tl('Consejos generales: ante cualquier duda, tu veterinario.')}</p>
     </div>
   )
 }

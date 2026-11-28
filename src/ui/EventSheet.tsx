@@ -7,6 +7,7 @@ import { fileToSmallDataUrl, pickImage } from '../platform/photo'
 import { Field, Sheet, confirmDialog } from './components'
 import { IconTrash } from './icons'
 import { TypeIcon } from './art/TypeIcon'
+import { tl } from '../i18n'
 
 const parseNum = (s: string): number | undefined => {
   const n = Number(s.trim().replace(',', '.'))
@@ -38,10 +39,10 @@ export function EventSheet({
 
   const save = async () => {
     const num = parseNum(value)
-    if (needsNumber && (num === undefined || num <= 0)) return setError(`Escribe un valor válido en ${type.unit ?? 'número'}.`)
-    if (type.key === 'other' && !note.trim()) return setError('Escribe qué ha pasado.')
-    if (type.key === 'symptom' && !note.trim()) return setError('Elige o escribe qué síntoma has visto.')
-    if (value.trim() !== '' && num === undefined) return setError('La cantidad no es un número válido.')
+    if (needsNumber && (num === undefined || num <= 0)) return setError(tl('Escribe un valor válido en {0}.', type.unit ?? 'número'))
+    if (type.key === 'other' && !note.trim()) return setError(tl('Escribe qué ha pasado.'))
+    if (type.key === 'symptom' && !note.trim()) return setError(tl('Elige o escribe qué síntoma has visto.'))
+    if (value.trim() !== '' && num === undefined) return setError(tl('La cantidad no es un número válido.'))
     setBusy(true)
     try {
       const data = {
@@ -56,7 +57,7 @@ export function EventSheet({
       else await repo.addEvent({ petId, typeId: type.id, ...data })
       onClose()
     } catch {
-      setError('No se pudo guardar. Inténtalo de nuevo.')
+      setError(tl('No se pudo guardar. Inténtalo de nuevo.'))
       setBusy(false)
     }
   }
@@ -71,10 +72,10 @@ export function EventSheet({
       return t.startsWith(name) ? t : `${name}. ${t}`
     })
   }
-  const levelTitle = type.key === 'food' ? 'Cuánto comió' : type.key === 'water' ? 'Cuánto bebió' : type.key === 'stool' ? 'Consistencia' : type.key === 'mood' ? 'Cómo está' : 'Intensidad'
+  const levelTitle = type.key === 'food' ? tl('Cuánto comió') : type.key === 'water' ? tl('Cuánto bebió') : type.key === 'stool' ? tl('Consistencia') : type.key === 'mood' ? tl('Cómo está') : tl('Intensidad')
 
   const remove = async () => {
-    if (event && (await confirmDialog(`¿Eliminar este registro de ${type.label.toLowerCase()}?`))) {
+    if (event && (await confirmDialog(tl('¿Eliminar este registro de {0}?', type.label.toLowerCase())))) {
       await repo.deleteEvent(event.id)
       onClose()
     }
@@ -88,18 +89,18 @@ export function EventSheet({
       foot={
         <>
           {event && (
-            <button className="btn danger" onClick={remove} aria-label="Eliminar registro">
+            <button className="btn danger" onClick={remove} aria-label={tl('Eliminar registro')}>
               <IconTrash />
             </button>
           )}
           <button className="btn primary" onClick={save} disabled={busy}>
-            {event ? 'Guardar cambios' : 'Guardar'}
+            {event ? tl('Guardar cambios') : tl('Guardar')}
           </button>
         </>
       }
     >
       {isSymptom && (
-        <Field label="¿Qué has visto?">
+        <Field label={tl('¿Qué has visto?')}>
           <div className="chips">
             {SYMPTOM_SUGGESTIONS.map((n) => (
               <button key={n} type="button" className="chip" aria-pressed={note.trim().startsWith(n)} onClick={() => pickSymptom(n)}>
@@ -130,14 +131,14 @@ export function EventSheet({
       {(needsNumber || type.unit) && (
         <div className="field">
           <label htmlFor="ev-value" className="lbl">
-            {needsNumber ? `Valor (${type.unit})` : `${type.unit === 'g' ? 'Gramos' : type.unit === 'ml' ? 'Mililitros' : `Cantidad en ${type.unit}`} exactos (opcional)`}
+            {needsNumber ? tl('Valor ({0})', type.unit) : tl('{0} exactos (opcional)', type.unit === 'g' ? 'Gramos' : type.unit === 'ml' ? 'Mililitros' : `Cantidad en ${type.unit}`)}
           </label>
           <input id="ev-value" className="input" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder={needsNumber ? 'p. ej. 4,2' : ''} autoFocus={needsNumber} />
         </div>
       )}
       <div className="field">
         <label htmlFor="ev-note" className="lbl">
-          {type.key === 'vet' ? 'Motivo o resultado' : isSymptom ? 'Descripción' : 'Nota'}
+          {type.key === 'vet' ? tl('Motivo o resultado') : isSymptom ? tl('Descripción') : tl('Nota')}
           {type.key === 'other' || isSymptom ? '' : ' (opcional)'}
         </label>
         <textarea
@@ -148,13 +149,13 @@ export function EventSheet({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           autoFocus={type.input === 'text'}
-          placeholder={isSymptom ? 'Elige arriba o escribe, p. ej. «se rasca la oreja»' : type.key === 'other' ? 'Qué ha pasado' : ''}
+          placeholder={isSymptom ? tl('Elige arriba o escribe, p. ej. «se rasca la oreja»') : type.key === 'other' ? tl('Qué ha pasado') : ''}
         />
       </div>
       <div className="when-row">
         <div className="field">
           <label htmlFor="ev-when" className="lbl">
-            {type.key === 'vet' ? 'Fecha y hora (puede ser futura)' : 'Fecha y hora'}
+            {type.key === 'vet' ? tl('Fecha y hora (puede ser futura)') : tl('Fecha y hora')}
           </label>
           <input
             id="ev-when"
@@ -168,27 +169,27 @@ export function EventSheet({
           />
         </div>
         {photo ? (
-          <button type="button" className="thumb" onClick={() => setPhoto(undefined)} aria-label="Quitar la foto">
-            <img src={photo} alt="Foto adjunta" />
+          <button type="button" className="thumb" onClick={() => setPhoto(undefined)} aria-label={tl('Quitar la foto')}>
+            <img src={photo} alt={tl('Foto adjunta')} />
             <span aria-hidden="true">✕</span>
           </button>
         ) : (
           <button
             type="button"
             className="btn photo-btn"
-            aria-label="Añadir foto"
+            aria-label={tl('Añadir foto')}
             onClick={async () => {
               const f = await pickImage()
               if (f) {
                 try {
                   setPhoto(await fileToSmallDataUrl(f))
                 } catch {
-                  setError('No se pudo leer esa imagen.')
+                  setError(tl('No se pudo leer esa imagen.'))
                 }
               }
             }}
           >
-            📷 Foto
+            {tl('📷 Foto')}
           </button>
         )}
       </div>

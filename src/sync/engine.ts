@@ -11,6 +11,7 @@ import type { DoseLog, Entity, EventType, LogEvent, Pet, Treatment } from '../do
 import type { BackupData, LocalRepository } from '../data/repository'
 import { SyncError, type RemoteRecord, type SyncBackend } from './backend'
 import { importKeys, newRawKey, open, randomToken, recordId, seal, type SyncKeys } from './crypto'
+import { tl } from '../i18n'
 
 export type TableName = 'pets' | 'eventTypes' | 'events' | 'treatments' | 'doseLogs'
 const TABLES: TableName[] = ['pets', 'eventTypes', 'events', 'treatments', 'doseLogs']
@@ -58,7 +59,7 @@ export function joinUrl(code: string): string {
 /** Acepta el código suelto, el enlace petlog:// o un texto que lo contenga (p. ej. un mensaje de WhatsApp). */
 export function parseCode(text: string): { hid: string; invite: string; key: string } {
   const m = text.match(/PL1\.([A-Za-z0-9_-]{16,64})\.([A-Za-z0-9_-]{16,64})\.([A-Za-z0-9_-]{40,64})/)
-  if (!m) throw new SyncError('El código de invitación no es válido. Cópialo entero, empieza por «PL1.».', 'bad-invite')
+  if (!m) throw new SyncError(tl('El código de invitación no es válido. Cópialo entero, empieza por «PL1.».'), 'bad-invite')
   return { hid: m[1], invite: m[2], key: m[3] }
 }
 
@@ -123,7 +124,7 @@ export class SyncEngine {
     const existing = await this.linkFor(petId)
     if (existing) return existing
     const pet = await this.repo.getPet(petId)
-    if (!pet) throw new SyncError('No se encuentra la mascota.')
+    if (!pet) throw new SyncError(tl('No se encuentra la mascota.'))
     const link: ShareLink = { petId, hid: randomToken(16), key: newRawKey(), invite: randomToken(16), lastPull: 0, owner: true }
     await this.backend.createHousehold(link.hid, link.invite)
     await this.saveLinks([...(await this.links()), link])
@@ -148,16 +149,16 @@ export class SyncEngine {
         const p = await open<Payload>(keys, rec)
         if (p.t === 'pets') petId = p.r.id
       } catch {
-        throw new SyncError('La clave del código no coincide con los datos. Pide que te vuelvan a enviar la invitación.', 'bad-invite')
+        throw new SyncError(tl('La clave del código no coincide con los datos. Pide que te vuelvan a enviar la invitación.'), 'bad-invite')
       }
       if (petId) break
     }
     if (!petId) {
       await this.backend.leave(hid).catch(() => undefined)
-      throw new SyncError('Esa mascota todavía no tiene datos compartidos. Pide a quien te invitó que abra PetLog con conexión e inténtalo de nuevo.')
+      throw new SyncError(tl('Esa mascota todavía no tiene datos compartidos. Pide a quien te invitó que abra PetLog con conexión e inténtalo de nuevo.'))
     }
     const other = await this.linkFor(petId)
-    if (other) throw new SyncError('Esta mascota ya está compartida en este móvil con otro código.')
+    if (other) throw new SyncError(tl('Esta mascota ya está compartida en este móvil con otro código.'))
     const link: ShareLink = { petId, hid, key, invite, lastPull: 0, owner: false }
     this.keys.set(hid, Promise.resolve(keys))
     await this.saveLinks([...(await this.links()), link])
@@ -180,7 +181,7 @@ export class SyncEngine {
   /** Nueva invitación: la anterior deja de servir para unirse (quien ya está dentro sigue dentro). */
   async renewInvite(petId: string): Promise<ShareLink> {
     const link = await this.linkFor(petId)
-    if (!link) throw new SyncError('Esta mascota no está compartida.')
+    if (!link) throw new SyncError(tl('Esta mascota no está compartida.'))
     const invite = randomToken(16)
     await this.backend.replaceInvite(link.hid, link.invite, invite)
     const links = (await this.links()).map((l) => (l.petId === petId ? { ...l, invite } : l))
@@ -337,6 +338,6 @@ export class SyncEngine {
 
 export function describe(e: unknown): string {
   if (e instanceof SyncError) return e.message
-  if (e instanceof Error && /network|fetch|offline|unavailable/i.test(e.message)) return 'Sin conexión. Se sincronizará cuando vuelva.'
+  if (e instanceof Error && /network|fetch|offline|unavailable/i.test(e.message)) return tl('Sin conexión. Se sincronizará cuando vuelva.')
   return e instanceof Error ? e.message : String(e)
 }

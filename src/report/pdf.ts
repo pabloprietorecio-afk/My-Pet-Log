@@ -6,6 +6,7 @@ import type { ReportModel } from '../domain/report'
 import type { ReportArt } from './art'
 import { drawCover } from './coverPdf'
 import { pdfSafe } from './pdfText'
+import { tl } from '../i18n'
 
 const PAGE_W = 210
 const PAGE_H = 297
@@ -154,7 +155,7 @@ async function drawSvg(w: Writer, svg: string, width: number) {
  */
 export async function renderPdf(m: ReportModel, art?: ReportArt): Promise<Blob> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true })
-  doc.setProperties({ title: pdfSafe(`Informe de ${m.pet.name}`), subject: 'Informe para el veterinario', creator: 'PetLog' })
+  doc.setProperties({ title: pdfSafe(tl('Informe de {0}', m.pet.name)), subject: tl('Informe para el veterinario'), creator: 'PetLog' })
   const w = new Writer(doc)
   const p = m.pet
 
@@ -165,47 +166,47 @@ export async function renderPdf(m: ReportModel, art?: ReportArt): Promise<Blob> 
   doc.setFillColor(...BRAND)
   doc.rect(0, 0, PAGE_W, 3, 'F')
   w.y = 10
-  w.text('PetLog · Informe detallado para el veterinario', { size: 9, color: MUTED, gap: 0 })
+  w.text(tl('PetLog · Informe detallado para el veterinario'), { size: 9, color: MUTED, gap: 0 })
   w.text(p.name, { size: 22, style: 'bold', gap: 1 })
   w.text(`${m.period.label} (${m.period.fromText} - ${m.period.toText})`, { size: 10, color: MUTED, gap: 0 })
-  w.text(`Generado el ${m.generatedAt}`, { size: 9, color: MUTED, gap: 2 })
+  w.text(tl('Generado el {0}', m.generatedAt), { size: 9, color: MUTED, gap: 2 })
 
-  w.heading('1. Datos de la mascota')
+  w.heading(tl('1. Datos de la mascota'))
   const vet = [p.vet.name, p.vet.clinic, p.vet.phone].filter(Boolean).join(' · ')
-  const rows: [string, string][] = [['Especie', p.species]]
-  if (p.breed) rows.push(['Raza', p.breed])
-  rows.push(['Sexo', p.sex])
-  if (p.age) rows.push(['Edad', p.age])
-  if (p.birthDate) rows.push(['Nacimiento', p.birthDate])
-  if (p.weight) rows.push(['Último peso', `${p.weight.text} (${p.weight.date})`])
-  if (vet) rows.push(['Veterinario habitual', vet])
+  const rows: [string, string][] = [[tl('Especie'), p.species]]
+  if (p.breed) rows.push([tl('Raza'), p.breed])
+  rows.push([tl('Sexo'), p.sex])
+  if (p.age) rows.push([tl('Edad'), p.age])
+  if (p.birthDate) rows.push([tl('Nacimiento'), p.birthDate])
+  if (p.weight) rows.push([tl('Último peso'), `${p.weight.text} (${p.weight.date})`])
+  if (vet) rows.push([tl('Veterinario habitual'), vet])
   w.kv(rows)
 
-  w.heading('2. Patologías y alergias')
+  w.heading(tl('2. Patologías y alergias'))
   w.kv([
-    ['Patologías', p.conditions.length ? p.conditions.join(', ') : 'Sin datos registrados'],
-    ['Alergias', p.allergies.length ? p.allergies.join(', ') : 'Sin datos registrados'],
+    [tl('Patologías'), p.conditions.length ? p.conditions.join(', ') : tl('Sin datos registrados')],
+    [tl('Alergias'), p.allergies.length ? p.allergies.join(', ') : tl('Sin datos registrados')],
   ])
 
-  w.heading('3. Medicación actual')
+  w.heading(tl('3. Medicación actual'))
   if (m.currentTreatments.length) {
     w.table(
       [
-        { title: 'Medicamento', w: 3 },
-        { title: 'Dosis', w: 2 },
-        { title: 'Pauta', w: 4 },
-        { title: 'Desde', w: 2 },
-        { title: 'Notas', w: 4 },
+        { title: tl('Medicamento'), w: 3 },
+        { title: tl('Dosis'), w: 2 },
+        { title: tl('Pauta'), w: 4 },
+        { title: tl('Desde'), w: 2 },
+        { title: tl('Notas'), w: 4 },
       ],
       m.currentTreatments.map((t) => [t.name, t.dose, t.schedule, t.until ? `${t.since} - ${t.until}` : t.since, t.notes ?? '']),
     )
-  } else w.text('Sin tratamientos activos registrados.', { color: MUTED })
+  } else w.text(tl('Sin tratamientos activos registrados.'), { color: MUTED })
 
-  w.heading('4. Resumen del periodo')
+  w.heading(tl('4. Resumen del periodo'))
   w.kv(m.summary.map((s) => [s.label, s.value] as [string, string]))
 
-  w.heading('5. Cronología de incidencias')
-  if (!m.timeline.length) w.text('No hay registros en este periodo.', { color: MUTED })
+  w.heading(tl('5. Cronología de incidencias'))
+  if (!m.timeline.length) w.text(tl('No hay registros en este periodo.'), { color: MUTED })
   for (const day of m.timeline) {
     w.ensure(14)
     w.y += 2
@@ -224,17 +225,17 @@ export async function renderPdf(m: ReportModel, art?: ReportArt): Promise<Blob> 
     }
   }
 
-  w.heading('6. Tabla de medicación')
+  w.heading(tl('6. Tabla de medicación'))
   if (m.medication.rows.length) {
     w.table(
       [
-        { title: 'Medicamento', w: 5 },
-        { title: 'Prev.', w: 1.4, right: true },
-        { title: 'A tiempo', w: 1.8, right: true },
-        { title: 'Retraso', w: 1.6, right: true },
-        { title: 'Omit.', w: 1.4, right: true },
-        { title: 'Sin reg.', w: 1.6, right: true },
-        { title: 'Adic.', w: 1.4, right: true },
+        { title: tl('Medicamento'), w: 5 },
+        { title: tl('Prev.'), w: 1.4, right: true },
+        { title: tl('A tiempo'), w: 1.8, right: true },
+        { title: tl('Retraso'), w: 1.6, right: true },
+        { title: tl('Omit.'), w: 1.4, right: true },
+        { title: tl('Sin reg.'), w: 1.6, right: true },
+        { title: tl('Adic.'), w: 1.4, right: true },
       ],
       m.medication.rows.map((r) => [
         `${r.name} ${r.dose} (${r.schedule})`,
@@ -246,11 +247,11 @@ export async function renderPdf(m: ReportModel, art?: ReportArt): Promise<Blob> 
         String(r.extra),
       ]),
     )
-    w.text('Prev. = tomas previstas ya vencidas. Retraso = administradas fuera del margen. Sin reg. = sin ningún registro. Adic. = tomas sin hueco programado.', { size: 8, color: MUTED })
-  } else w.text('Sin medicación en el periodo.', { color: MUTED })
-  if (m.medication.adHoc) w.text(`Además, ${m.medication.adHoc} toma(s) suelta(s) sin tratamiento asociado.`, { size: 9, color: MUTED })
+    w.text(tl('Prev. = tomas previstas ya vencidas. Retraso = administradas fuera del margen. Sin reg. = sin ningún registro. Adic. = tomas sin hueco programado.'), { size: 8, color: MUTED })
+  } else w.text(tl('Sin medicación en el periodo.'), { color: MUTED })
+  if (m.medication.adHoc) w.text(tl('Además, {0} toma(s) suelta(s) sin tratamiento asociado.', m.medication.adHoc), { size: 9, color: MUTED })
 
-  w.heading('7-8. Peso y gráficas', 75)
+  w.heading(tl('7-8. Peso y gráficas'), 75)
   for (const c of reportCharts(m, PALETTE_LIGHT, 340)) {
     w.ensure(12)
     w.text(c.title, { style: 'bold', size: 10, gap: 0.5 })
@@ -274,20 +275,20 @@ export async function renderPdf(m: ReportModel, art?: ReportArt): Promise<Blob> 
     }
   }
 
-  w.heading('9. Observaciones del propietario')
+  w.heading(tl('9. Observaciones del propietario'))
   if (m.ownerNotes.length) {
     w.table(
       [
-        { title: 'Fecha', w: 2.6 },
-        { title: 'Tipo', w: 2 },
-        { title: 'Nota', w: 9 },
+        { title: tl('Fecha'), w: 2.6 },
+        { title: tl('Tipo'), w: 2 },
+        { title: tl('Nota'), w: 9 },
       ],
       m.ownerNotes.map((n) => [n.when, n.label, n.text]),
     )
-  } else w.text('Sin notas en el periodo.', { color: MUTED })
+  } else w.text(tl('Sin notas en el periodo.'), { color: MUTED })
 
   if (m.photos.length) {
-    w.heading('Fotografías adjuntas')
+    w.heading(tl('Fotografías adjuntas'))
     const size = 42
     let x = M
     for (const f of m.photos) {
@@ -331,8 +332,8 @@ export async function renderPdf(m: ReportModel, art?: ReportArt): Promise<Blob> 
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8)
     doc.setTextColor(...MUTED)
-    doc.text(pdfSafe(`PetLog · ${p.name} · ${m.period.label}`), M, PAGE_H - 8)
-    doc.text(`Página ${i} de ${n}`, PAGE_W - M, PAGE_H - 8, { align: 'right' })
+    doc.text(pdfSafe(tl('PetLog · {0} · {1}', p.name, m.period.label)), M, PAGE_H - 8)
+    doc.text(tl('Página {0} de {1}', i, n), PAGE_W - M, PAGE_H - 8, { align: 'right' })
   }
   return doc.output('blob')
 }

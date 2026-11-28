@@ -8,6 +8,7 @@ import { Sheet } from './components'
 import { IconPlus } from './icons'
 import { TypeIcon } from './art/TypeIcon'
 import { nearestOpenSlot, useDoseActions } from './doses'
+import { tl } from '../i18n'
 
 /** Botón "Medicación": un toque por tratamiento, o una toma suelta. */
 export function MedSheet({ petId, onClose, onNewTreatment }: { petId: string; onClose: () => void; onNewTreatment: () => void }) {
@@ -22,8 +23,8 @@ export function MedSheet({ petId, onClose, onNewTreatment }: { petId: string; on
   const active = (treatments ?? []).filter((t) => isTreatmentActive(t, now))
 
   return (
-    <Sheet title="Medicación" icon={<TypeIcon k="medication" size={30} />} onClose={onClose}>
-      {active.length === 0 && !adHoc && <p className="muted">Todavía no hay tratamientos. Créalo una vez y después registrarás cada toma con un toque.</p>}
+    <Sheet title={tl('Medicación')} icon={<TypeIcon k="medication" size={30} />} onClose={onClose}>
+      {active.length === 0 && !adHoc && <p className="muted">{tl('Todavía no hay tratamientos. Créalo una vez y después registrarás cada toma con un toque.')}</p>}
       {active.length > 0 && <div className="list">
         {active.map((t) => (
           <div className="list-item" key={t.id}>
@@ -40,7 +41,7 @@ export function MedSheet({ petId, onClose, onNewTreatment }: { petId: string; on
                 onClose()
               }}
             >
-              Dada ahora
+              {tl('Dada ahora')}
             </button>
           </div>
         ))}
@@ -49,20 +50,20 @@ export function MedSheet({ petId, onClose, onNewTreatment }: { petId: string; on
         <div className="stack">
           <div className="field">
             <label htmlFor="ad-name" className="lbl">
-              Medicamento
+              {tl('Medicamento')}
             </label>
             <input id="ad-name" className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </div>
           <div className="two">
             <div className="field">
               <label htmlFor="ad-dose" className="lbl">
-                Dosis (opcional)
+                {tl('Dosis (opcional)')}
               </label>
               <input id="ad-dose" className="input" inputMode="decimal" value={dose} onChange={(e) => setDose(e.target.value)} />
             </div>
             <div className="field">
               <label htmlFor="ad-unit" className="lbl">
-                Unidad
+                {tl('Unidad')}
               </label>
               <select id="ad-unit" className="input" value={unit} onChange={(e) => setUnit(e.target.value)}>
                 {DOSE_UNITS.map((u) => (
@@ -80,17 +81,17 @@ export function MedSheet({ petId, onClose, onNewTreatment }: { petId: string; on
               onClose()
             }}
           >
-            Registrar toma
+            {tl('Registrar toma')}
           </button>
         </div>
       ) : (
         <div className="two">
           <button className="btn" onClick={() => setAdHoc(true)}>
-            Toma suelta
+            {tl('Toma suelta')}
           </button>
           <button className="btn" onClick={onNewTreatment}>
             <IconPlus />
-            Tratamiento
+            {tl('Tratamiento')}
           </button>
         </div>
       )}

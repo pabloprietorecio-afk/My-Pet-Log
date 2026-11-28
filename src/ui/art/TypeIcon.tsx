@@ -225,6 +225,18 @@ export const APP_GLYPHS = {
       <path d="M6 16.2c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4M14 10h4M14 13.2h3" stroke="#000" strokeOpacity=".18" strokeWidth="1.5" fill="none" strokeLinecap="round" />
     </>
   ),
+  language: (
+    <>
+      <circle cx="12" cy="12" r="8" stroke={W} strokeWidth="2" fill="none" />
+      <path d="M4.5 12h15M12 4c2.4 2.3 3.4 5 3.4 8s-1 5.7-3.4 8c-2.4-2.3-3.4-5-3.4-8s1-5.7 3.4-8z" stroke={W} strokeWidth="1.7" fill="none" strokeLinejoin="round" />
+    </>
+  ),
+  premium: (
+    <>
+      <path d="M4 9.2 7.8 12 12 5.5 16.2 12 20 9.2 18.3 18H5.7z" fill={W} strokeLinejoin="round" />
+      <rect x="5.7" y="18.6" width="12.6" height="1.9" rx=".9" fill={W} fillOpacity=".8" />
+    </>
+  ),
   sliders: (
     <>
       <path d="M5 8h14M5 16h14" stroke={W} strokeWidth="2.1" strokeLinecap="round" />
@@ -243,6 +255,8 @@ export const APP_COLORS: Record<keyof typeof APP_GLYPHS, Pal> = {
   share: ['#ffa3c4', '#e7558f'],
   card: ['#ffc56b', '#f59a21'],
   sliders: ['#b9a2ff', '#8460ef'],
+  language: ['#7cc4ff', '#3b7be8'],
+  premium: ['#ffd76a', '#f0a500'],
 }
 
 export function SettingIcon({ name, size = 32 }: { name: keyof typeof APP_GLYPHS; size?: number | string }) {

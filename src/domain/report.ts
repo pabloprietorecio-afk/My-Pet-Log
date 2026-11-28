@@ -23,6 +23,7 @@ import {
   startOfLocalDay,
   toLocalDate,
 } from './time'
+import { lang, tl } from '../i18n'
 
 export type PeriodPreset = '24h' | '7d' | '30d' | 'custom'
 
@@ -40,11 +41,11 @@ export function makePeriod(
 ): Period {
   switch (preset) {
     case '24h':
-      return { preset, from: new Date(now.getTime() - 24 * 3_600_000), to: now, label: 'Últimas 24 horas' }
+      return { preset, from: new Date(now.getTime() - 24 * 3_600_000), to: now, label: tl('Últimas 24 horas') }
     case '7d':
-      return { preset, from: startOfLocalDay(addDays(now, -6)), to: now, label: 'Últimos 7 días' }
+      return { preset, from: startOfLocalDay(addDays(now, -6)), to: now, label: tl('Últimos 7 días') }
     case '30d':
-      return { preset, from: startOfLocalDay(addDays(now, -29)), to: now, label: 'Últimos 30 días' }
+      return { preset, from: startOfLocalDay(addDays(now, -29)), to: now, label: tl('Últimos 30 días') }
     case 'custom': {
       const c = custom ?? { from: toLocalDate(addDays(now, -6)), to: toLocalDate(now) }
       const a = parseLocalDate(c.from)
@@ -54,16 +55,16 @@ export function makePeriod(
         preset,
         from: startOfLocalDay(f),
         to: endOfLocalDay(t),
-        label: `Del ${formatDateShort(f)} al ${formatDateShort(t)}`,
+        label: tl('Del {0} al {1}', formatDateShort(f), formatDateShort(t)),
       }
     }
   }
 }
 
 export const DISCLAIMER =
-  'Informe generado por PetLog a partir de los datos que ha introducido el propietario. ' +
-  'Es una organización de esos datos: no contiene diagnósticos, interpretaciones ni recomendaciones médicas, ' +
-  'y su exactitud depende de lo registrado.'
+  tl('Informe generado por PetLog a partir de los datos que ha introducido el propietario. ') +
+  tl('Es una organización de esos datos: no contiene diagnósticos, interpretaciones ni recomendaciones médicas, ') +
+  tl('y su exactitud depende de lo registrado.')
 
 export interface ReportInput {
   pet: Pet
@@ -160,7 +161,7 @@ export interface ReportModel {
   summary: { label: string; value: string }[]
   timeline: TimelineDay[]
   medication: { rows: MedRow[]; adHoc: number }
-  weight: { windowLabel: string; points: { t: number; v: number; date: LocalDate }[]; unit: string }
+  weight: { windowLabel: string; sixMonths?: boolean; points: { t: number; v: number; date: LocalDate }[]; unit: string }
   incidents: { bin: 'day' | 'week'; labels: string[]; series: IncidentSeries[] }
   frequency: { key: EventKey; label: string; emoji: string; count: number }[]
   appetite: { date: LocalDate; avg: number | null }[]
@@ -171,7 +172,7 @@ export interface ReportModel {
   disclaimer: string
 }
 
-const SEX = { male: 'Macho', female: 'Hembra', unknown: 'Sin especificar' } as const
+const SEX = { male: tl('Macho'), female: tl('Hembra'), unknown: tl('Sin especificar') } as const
 
 const short = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s)
 
@@ -216,19 +217,19 @@ export function buildReport(input: ReportInput): ReportModel {
   }
   for (const l of logs) {
     const t = l.treatmentId ? treatmentById.get(l.treatmentId) : undefined
-    const name = t?.name ?? l.adHoc?.name ?? 'Medicamento'
+    const name = t?.name ?? l.adHoc?.name ?? tl('Medicamento')
     const dose = t ? doseText(t) : l.adHoc?.dose !== undefined ? `${formatNumber(l.adHoc.dose)} ${l.adHoc.unit ?? ''}`.trim() : ''
-    let state = l.status === 'skipped' ? 'omitida' : 'administrada'
+    let state = l.status === 'skipped' ? tl('omitida') : tl('administrada')
     if (t && l.scheduledAt) {
       const st = doseState({ scheduledAt: l.scheduledAt }, l, t.graceMinutes, now)
-      if (st === 'late') state = `administrada con retraso (prevista ${formatTime(l.scheduledAt)})`
+      if (st === 'late') state = tl('administrada con retraso (prevista {0})', formatTime(l.scheduledAt))
     }
     const note = l.note ? ` · ${short(l.note, 80)}` : ''
     items.push({
       at: l.at,
       time: formatTime(l.at),
       emoji: '💊',
-      label: 'Medicación',
+      label: tl('Medicación'),
       detail: `${[name, dose].filter(Boolean).join(' ')} · ${state}${note}`,
       kind: 'dose',
     })
@@ -266,7 +267,7 @@ export function buildReport(input: ReportInput): ReportModel {
 
   const currentTreatments: CurrentTreatment[] = treatments
     .filter((t) => isTreatmentActive(t, now))
-    .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+    .sort((a, b) => a.name.localeCompare(b.name, lang()))
     .map((t) => ({
       name: t.name,
       dose: doseText(t),
@@ -280,10 +281,10 @@ export function buildReport(input: ReportInput): ReportModel {
   const summary: { label: string; value: string }[] = []
   const periodDays = daysWithRecords([...events.map((e) => e.at), ...logs.map((l) => l.at)], period.from, period.to)
   summary.push({
-    label: 'Días con algún registro',
+    label: tl('Días con algún registro'),
     value: `${periodDays.withRecords} de ${periodDays.total}`,
   })
-  const stats: CoverStat[] = [{ key: 'days', label: 'Días con registro', value: `${periodDays.withRecords} de ${periodDays.total}` }]
+  const stats: CoverStat[] = [{ key: 'days', label: tl('Días con registro'), value: `${periodDays.withRecords} de ${periodDays.total}` }]
   const ordered = [...types].sort((a, b) => a.order - b.order)
   for (const t of ordered) {
     if (t.key === 'medication' || t.key === 'weight' || t.key === 'vet') continue
@@ -291,7 +292,7 @@ export function buildReport(input: ReportInput): ReportModel {
     // Vómito y deposición se listan aunque sean 0 (un «0» también es información), salvo si el botón está oculto.
     const always = (t.key === 'vomit' || t.key === 'stool') && !t.hidden
     if (evs.length === 0 && !always) continue
-    const noun = t.key === 'vomit' || t.key === 'symptom' ? ['episodio', 'episodios'] : ['registro', 'registros']
+    const noun = t.key === 'vomit' || t.key === 'symptom' ? [tl('episodio'), tl('episodios')] : [tl('registro'), tl('registros')]
     if (t.input === 'number') {
       const vals = evs.filter((e) => typeof e.value === 'number')
       if (vals.length) {
@@ -299,8 +300,8 @@ export function buildReport(input: ReportInput): ReportModel {
         const min = Math.min(...vals.map((e) => e.value!))
         const max = Math.max(...vals.map((e) => e.value!))
         const range = `${min === max ? formatNumber(min) : `${formatNumber(min)}–${formatNumber(max)}`} ${u}`.trim()
-        summary.push({ label: t.label, value: `${vals.length} ${plural(vals.length, 'medida', 'medidas')} (${range})` })
-        stats.push({ key: t.key, emoji: t.emoji, label: t.label, value: `${vals.length} ${plural(vals.length, 'medida', 'medidas')}`, detail: range })
+        summary.push({ label: t.label, value: `${vals.length} ${plural(vals.length, tl('medida'), tl('medidas'))} (${range})` })
+        stats.push({ key: t.key, emoji: t.emoji, label: t.label, value: `${vals.length} ${plural(vals.length, tl('medida'), tl('medidas'))}`, detail: range })
         continue
       }
     }
@@ -313,9 +314,9 @@ export function buildReport(input: ReportInput): ReportModel {
   }
   const vetEvents = events.filter((e) => types.find((t) => t.id === e.typeId)?.key === 'vet')
   if (vetEvents.length > 0) {
-    summary.push({ label: 'Citas / visitas veterinarias', value: String(vetEvents.length) })
+    summary.push({ label: tl('Citas / visitas veterinarias'), value: String(vetEvents.length) })
     const vt = types.find((t) => t.key === 'vet')
-    stats.push({ key: 'vet', emoji: vt?.emoji, label: 'Citas veterinarias', value: String(vetEvents.length) })
+    stats.push({ key: 'vet', emoji: vt?.emoji, label: tl('Citas veterinarias'), value: String(vetEvents.length) })
   }
   const periodWeights = allWeights.filter((e) => e.at >= fromIso && e.at <= toIso)
   if (periodWeights.length > 0) {
@@ -323,7 +324,7 @@ export function buildReport(input: ReportInput): ReportModel {
     const last = periodWeights[periodWeights.length - 1]
     const u = last.unit ?? 'kg'
     summary.push({
-      label: 'Peso',
+      label: tl('Peso'),
       value:
         periodWeights.length === 1
           ? `${formatNumber(last.value!)} ${u} (${formatDayMonth(new Date(last.at))})`
@@ -340,20 +341,20 @@ export function buildReport(input: ReportInput): ReportModel {
     const bits: string[] = []
     if (planned > 0) {
       bits.push(
-        `${g + l} de ${planned} tomas previstas administradas (${g} a tiempo, ${l} con retraso)`,
+        tl('{0} de {1} tomas previstas administradas ({2} a tiempo, {3} con retraso)', g + l, planned, g, l),
         `${sk} omitidas`,
         `${un} sin registrar`,
       )
     } else {
-      bits.push('Sin tomas programadas en el periodo')
+      bits.push(tl('Sin tomas programadas en el periodo'))
     }
-    if (extra > 0) bits.push(`${extra} ${plural(extra, 'toma adicional', 'tomas adicionales')}`)
-    summary.push({ label: 'Medicación', value: bits.join(' · ') })
+    if (extra > 0) bits.push(`${extra} ${plural(extra, tl('toma adicional'), tl('tomas adicionales'))}`)
+    summary.push({ label: tl('Medicación'), value: bits.join(' · ') })
     const mt = types.find((t) => t.key === 'medication')
     stats.push(
       planned > 0
-        ? { key: 'medication', emoji: mt?.emoji, label: 'Medicación', value: `${g + l} de ${planned} tomas`, detail: [sk ? `${sk} omitidas` : '', un ? `${un} sin registrar` : '', extra ? `${extra} adicionales` : ''].filter(Boolean).join(' · ') || undefined }
-        : { key: 'medication', emoji: mt?.emoji, label: 'Medicación', value: `${extra} ${plural(extra, 'toma suelta', 'tomas sueltas')}` },
+        ? { key: 'medication', emoji: mt?.emoji, label: tl('Medicación'), value: tl('{0} de {1} tomas', g + l, planned), detail: [sk ? `${sk} omitidas` : '', un ? `${un} sin registrar` : '', extra ? `${extra} adicionales` : ''].filter(Boolean).join(' · ') || undefined }
+        : { key: 'medication', emoji: mt?.emoji, label: tl('Medicación'), value: `${extra} ${plural(extra, tl('toma suelta'), tl('tomas sueltas'))}` },
     )
   }
 
@@ -373,7 +374,7 @@ export function buildReport(input: ReportInput): ReportModel {
     const evs = events.filter((e) => e.typeId === t.id)
     if (t.key === 'vomit') addSeries(t.id, t.label, evs)
     else if (t.key === 'symptom') addSeries(t.id, t.label, evs)
-    else if (t.key === 'stool') addSeries(t.id, 'Deposición blanda o diarrea', evs.filter((e) => (e.level ?? 0) >= 2))
+    else if (t.key === 'stool') addSeries(t.id, tl('Deposición blanda o diarrea'), evs.filter((e) => (e.level ?? 0) >= 2))
     else if ((t.key === 'custom' || t.key === 'shed') && t.input !== 'number') addSeries(t.id, t.label, evs)
   }
 
@@ -408,17 +409,17 @@ export function buildReport(input: ReportInput): ReportModel {
   const ownerNotes: ReportModel['ownerNotes'] = []
   for (const e of events.filter((x) => x.note)) {
     const t = typeById.get(e.typeId)
-    ownerNotes.push({ when: formatDateTime(e.at), label: t?.label ?? 'Registro', text: e.note! })
+    ownerNotes.push({ when: formatDateTime(e.at), label: t?.label ?? tl('Registro'), text: e.note! })
   }
   for (const l of logs.filter((x) => x.note)) {
-    ownerNotes.push({ when: formatDateTime(l.at), label: 'Medicación', text: l.note! })
+    ownerNotes.push({ when: formatDateTime(l.at), label: tl('Medicación'), text: l.note! })
   }
   ownerNotes.sort((a, b) => a.when.localeCompare(b.when))
 
   const photos = events
     .filter((e) => e.photo)
     .slice(0, 12)
-    .map((e) => ({ when: formatDateTime(e.at), label: typeById.get(e.typeId)?.label ?? 'Registro', dataUrl: e.photo! }))
+    .map((e) => ({ when: formatDateTime(e.at), label: typeById.get(e.typeId)?.label ?? tl('Registro'), dataUrl: e.photo! }))
 
   const wUnit = lastWeight?.unit ?? 'kg'
 
@@ -430,8 +431,8 @@ export function buildReport(input: ReportInput): ReportModel {
     .map((e) => ({ when: formatDateTime(e.at), text: describeEvent(typeById.get(e.typeId)!, e) }))
   // Notas del propietario (las de «Veterinario» ya salen en su tarjeta), de la más reciente a la más antigua.
   const coverNotes = [
-    ...events.filter((x) => x.note && !vetTypeIds.has(x.typeId)).map((e) => ({ at: e.at, label: typeById.get(e.typeId)?.label ?? 'Registro', text: e.note! })),
-    ...logs.filter((x) => x.note).map((l) => ({ at: l.at, label: 'Medicación', text: l.note! })),
+    ...events.filter((x) => x.note && !vetTypeIds.has(x.typeId)).map((e) => ({ at: e.at, label: typeById.get(e.typeId)?.label ?? tl('Registro'), text: e.note! })),
+    ...logs.filter((x) => x.note).map((l) => ({ at: l.at, label: tl('Medicación'), text: l.note! })),
   ].sort((a, b) => b.at.localeCompare(a.at))
   let coverWeight: ReportCover['weight']
   if (lastWeight) {
@@ -455,16 +456,16 @@ export function buildReport(input: ReportInput): ReportModel {
   const PRIORITY: string[] = ['days', 'medication', 'vomit', 'stool', 'symptom', 'food', 'water', 'vet']
   const rank = (k: string) => (PRIORITY.includes(k) ? PRIORITY.indexOf(k) : PRIORITY.length)
   stats.sort((a, b) => rank(a.key) - rank(b.key))
-  const pctByName = new Map(rows.filter((r) => r.planned > 0).map((r) => [r.name, `${r.given + r.late} de ${r.planned} tomas`]))
+  const pctByName = new Map(rows.filter((r) => r.planned > 0).map((r) => [r.name, tl('{0} de {1} tomas', r.given + r.late, r.planned)]))
   const keyFacts: string[] = []
   for (const t of currentTreatments.slice(0, 2)) keyFacts.push(`${t.name} ${t.dose} · ${t.schedule}`)
   const medStat = stats.find((x) => x.key === 'medication')
-  if (medStat) keyFacts.push(`Medicación: ${medStat.value}${planned > 0 ? ' dadas' : ''}`)
-  if (coverWeight) keyFacts.push(`Último peso: ${coverWeight.last}${coverWeight.delta ? ` (${coverWeight.delta} desde el ${coverWeight.firstDate})` : ''}`)
+  if (medStat) keyFacts.push(tl('Medicación: {0}{1}', medStat.value, planned > 0 ? ' dadas' : ''))
+  if (coverWeight) keyFacts.push(tl('Último peso: {0}{1}', coverWeight.last, coverWeight.delta ? ` (${coverWeight.delta} desde el ${coverWeight.firstDate})` : ''))
   const vomitStat = stats.find((x) => x.key === 'vomit')
   if (vomitStat) keyFacts.push(`${vomitStat.label}: ${vomitStat.value}`)
-  if (vetVisits.length) keyFacts.push(`${vetVisits.length} ${plural(vetVisits.length, 'visita veterinaria', 'visitas veterinarias')}`)
-  keyFacts.push(`Registros en ${periodDays.withRecords} de ${periodDays.total} días`)
+  if (vetVisits.length) keyFacts.push(`${vetVisits.length} ${plural(vetVisits.length, tl('visita veterinaria'), tl('visitas veterinarias'))}`)
+  keyFacts.push(tl('Registros en {0} de {1} días', periodDays.withRecords, periodDays.total))
   const cover: ReportCover = {
     keyFacts: keyFacts.slice(0, 5),
     stats,
@@ -506,7 +507,8 @@ export function buildReport(input: ReportInput): ReportModel {
     timeline,
     medication: { rows, adHoc },
     weight: {
-      windowLabel: weightWindowFrom < period.from ? 'últimos 6 meses' : 'periodo del informe',
+      windowLabel: weightWindowFrom < period.from ? tl('últimos 6 meses') : tl('periodo del informe'),
+      sixMonths: weightWindowFrom < period.from,
       points: weightPoints,
       unit: wUnit,
     },

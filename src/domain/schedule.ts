@@ -9,6 +9,7 @@ import {
   toLocalDate,
   withTime,
 } from './time'
+import { tl } from '../i18n'
 
 /** Una toma programada ("hueco"). */
 export interface Slot {
@@ -65,17 +66,17 @@ export function doseState(
 export function doseStateLabel(state: DoseState, scheduledAt: ISODateTime, now: Date): string {
   switch (state) {
     case 'given':
-      return 'Administrada'
+      return tl('Administrada')
     case 'late':
-      return 'Administrada con retraso'
+      return tl('Administrada con retraso')
     case 'skipped':
-      return 'Omitida'
+      return tl('Omitida')
     case 'upcoming':
-      return 'Pendiente'
+      return tl('Pendiente')
     case 'due':
-      return 'Toca ahora'
+      return tl('Toca ahora')
     case 'overdue':
-      return toLocalDate(new Date(scheduledAt)) === toLocalDate(now) ? 'Sin dar' : 'Sin registrar'
+      return toLocalDate(new Date(scheduledAt)) === toLocalDate(now) ? tl('Sin dar') : tl('Sin registrar')
   }
 }
 
@@ -177,8 +178,8 @@ export function doseText(t: Pick<Treatment, 'dose' | 'unit'>): string {
 }
 
 export function scheduleText(t: Pick<Treatment, 'mode' | 'times' | 'everyDays'>): string {
-  if (t.mode === 'asNeeded') return 'Si hace falta'
-  const every = t.everyDays <= 1 ? 'Cada día' : t.everyDays === 2 ? 'Día sí, día no' : `Cada ${t.everyDays} días`
+  if (t.mode === 'asNeeded') return tl('Si hace falta')
+  const every = t.everyDays <= 1 ? tl('Cada día') : t.everyDays === 2 ? tl('Día sí, día no') : tl('Cada {0} días', t.everyDays)
   const times = [...t.times].sort().join(', ')
   return times ? `${every} · ${times}` : every
 }

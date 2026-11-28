@@ -11,6 +11,7 @@ import { todaySlots, useDoseActions, type SlotItem } from '../doses'
 import { IconCheck, IconPlus } from '../icons'
 import { Paged, type PagedItem } from '../layout'
 import { TreatmentSheet } from '../TreatmentSheet'
+import { tl } from '../../i18n'
 
 type Tab = 'today' | 'plans'
 
@@ -56,19 +57,19 @@ export function Medication() {
           </span>
           <span className="actions">
             {done ? (
-              <button className="btn sm" onClick={() => act.remove(it.log!)} aria-label={`Deshacer ${it.treatment.name} de las ${at}`}>
-                Deshacer
+              <button className="btn sm" onClick={() => act.remove(it.log!)} aria-label={tl('Deshacer {0} de las {1}', it.treatment.name, at)}>
+                {tl('Deshacer')}
               </button>
             ) : (
               <>
                 {(it.state === 'due' || it.state === 'overdue') && (
-                  <button className="btn sm" onClick={() => act.skip(it.treatment, it.slot)} aria-label={`Omitir ${it.treatment.name} de las ${at}`}>
-                    Omitir
+                  <button className="btn sm" onClick={() => act.skip(it.treatment, it.slot)} aria-label={tl('Omitir {0} de las {1}', it.treatment.name, at)}>
+                    {tl('Omitir')}
                   </button>
                 )}
-                <button className="btn primary sm" onClick={() => act.give(it.treatment, it.slot)} aria-label={`Dar ${it.treatment.name} de las ${at} ahora`}>
+                <button className="btn primary sm" onClick={() => act.give(it.treatment, it.slot)} aria-label={tl('Dar {0} de las {1} ahora', it.treatment.name, at)}>
                   <IconCheck />
-                  Dada
+                  {tl('Dada')}
                 </button>
               </>
             )}
@@ -83,11 +84,11 @@ export function Medication() {
     const pct = a && a.planned > 0 ? Math.round(((a.given + a.late) / a.planned) * 100) : undefined
     const when = isActive
       ? scheduleText(t)
-      : `Del ${formatDateShort(t.startDate)}${t.endDate ? ` al ${formatDateShort(t.endDate)}` : ''}`
+      : tl('Del {0}{1}', formatDateShort(t.startDate), t.endDate ? ` al ${formatDateShort(t.endDate)}` : '')
     return {
       key: t.id,
       onClick: () => setSheet({ t }),
-      label: `${t.name} ${doseText(t)}, ${when}${pct !== undefined ? `, ${pct} % de tomas dadas en 7 días` : ''}. Editar`,
+      label: `${t.name} ${doseText(t)}, ${when}${pct !== undefined ? tl(', {0} % de tomas dadas en 7 días', pct) : ''}. Editar`,
       node: (
         <>
           <span className="e" aria-hidden="true">
@@ -103,7 +104,7 @@ export function Medication() {
             </span>
           </span>
           {pct !== undefined ? (
-            <span className={`badge ${pct >= 90 ? 'ok' : pct >= 60 ? 'warn' : 'bad'}`} title="Tomas dadas en 7 días">
+            <span className={`badge ${pct >= 90 ? 'ok' : pct >= 60 ? 'warn' : 'bad'}`} title={tl('Tomas dadas en 7 días')}>
               {pct} %
             </span>
           ) : (
@@ -115,17 +116,17 @@ export function Medication() {
   }
 
   const plans: PagedItem[] = []
-  if (active.length) plans.push({ key: 'h-a', head: 'En curso' }, ...active.map((t) => planRow(t, true)))
-  if (ended.length) plans.push({ key: 'h-e', head: 'Finalizados' }, ...ended.map((t) => planRow(t, false)))
+  if (active.length) plans.push({ key: 'h-a', head: tl('En curso') }, ...active.map((t) => planRow(t, true)))
+  if (ended.length) plans.push({ key: 'h-e', head: tl('Finalizados') }, ...ended.map((t) => planRow(t, false)))
 
   if (treatments !== undefined && all.length === 0) {
     return (
       <>
-        <Empty emoji={<PetIllustration species="dog" />} title="Sin tratamientos">
-          <p>Crea el tratamiento una vez, con su dosis y horario, y después registra cada toma con un toque.</p>
+        <Empty emoji={<PetIllustration species="dog" />} title={tl('Sin tratamientos')}>
+          <p>{tl('Crea el tratamiento una vez, con su dosis y horario, y después registra cada toma con un toque.')}</p>
           <button className="btn primary" onClick={() => setSheet({})}>
             <IconPlus />
-            Crear tratamiento
+            {tl('Crear tratamiento')}
           </button>
         </Empty>
         {sheet && <TreatmentSheet petId={pet.id} treatment={sheet.t} onClose={() => setSheet(null)} />}
@@ -136,12 +137,12 @@ export function Medication() {
   return (
     <>
       <Seg<Tab>
-        label="Vista de medicación"
+        label={tl('Vista de medicación')}
         value={tab}
         onChange={setTab}
         options={[
-          { value: 'today', label: `Tomas de hoy${slots.length ? ` (${slots.length})` : ''}` },
-          { value: 'plans', label: `Tratamientos (${all.length})` },
+          { value: 'today', label: tl('Tomas de hoy{0}', slots.length ? ` (${slots.length})` : '') },
+          { value: 'plans', label: tl('Tratamientos ({0})', all.length) },
         ]}
       />
       {tab === 'today' ? (
@@ -150,22 +151,22 @@ export function Medication() {
           items={slots.map(doseRow)}
           rowRem={4.25}
           rowClass="dose-row"
-          label="Tomas de hoy"
+          label={tl('Tomas de hoy')}
           empty={
-            <Empty emoji="🗓️" title="Hoy no hay tomas con horario">
-              <p>Los tratamientos «si hace falta» se registran con el botón Medicación de la pantalla Hoy.</p>
+            <Empty emoji="🗓️" title={tl('Hoy no hay tomas con horario')}>
+              <p>{tl('Los tratamientos «si hace falta» se registran con el botón Medicación de la pantalla Hoy.')}</p>
             </Empty>
           }
         />
       ) : (
         <>
-          <Paged key="plans" items={plans} rowRem={3.9} rowClass="nt" label="Tratamientos" />
+          <Paged key="plans" items={plans} rowRem={3.9} rowClass="nt" label={tl('Tratamientos')} />
           <p className="hint" style={{ flex: 'none', textAlign: 'center' }}>
-            El porcentaje es la parte de tomas previstas que constan como dadas en los últimos 7 días.
+            {tl('El porcentaje es la parte de tomas previstas que constan como dadas en los últimos 7 días.')}
           </p>
           <button className="btn tonal block" style={{ flex: 'none' }} onClick={() => setSheet({})}>
             <IconPlus />
-            Nuevo tratamiento
+            {tl('Nuevo tratamiento')}
           </button>
         </>
       )}

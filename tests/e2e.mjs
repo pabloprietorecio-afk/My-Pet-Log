@@ -16,7 +16,7 @@ page.on('dialog', (d) => d.accept())
 const tab = (n) => page.getByRole('navigation', { name: 'Secciones' }).getByRole('link', { name: n })
 const shot = (n) => page.screenshot({ path: OUT + n + '.png' })
 
-await page.goto(URL_)
+await page.goto(URL_); await page.waitForFunction(() => window.__petlog, null, { timeout: 15000 }).catch(() => {})
 await page.getByRole('link', { name: 'Añadir mi mascota' }).click()
 await page.getByLabel('Nombre').fill('Luna')
 await page.getByRole('radio', { name: 'Gato' }).click()

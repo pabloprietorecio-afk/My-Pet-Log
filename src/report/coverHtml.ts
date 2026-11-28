@@ -9,6 +9,7 @@ import type { ReportModel } from '../domain/report'
 import { pawPath, type ReportArt } from './art'
 import { BLUE, coverCharts, fichaRows, LIMITS, nameSize, NAVY, POSTER as P, rest, SECTIONS, statIcon, typeIconSvg, type SectionKey } from './cover'
 import { glyph } from './glyphs'
+import { tl } from '../i18n'
 
 const PAD = 20
 const DESIGN = `
@@ -116,7 +117,7 @@ export function renderCoverHtml(m: ReportModel, art?: ReportArt): string {
   const charts = coverCharts(m, { weightW: wW - 32, weightH: r1.h - P.head - 24, incW: r2.split - 32, incH: r2.h - P.head - 50 })
 
   const avatar = p.photo
-    ? `<img src="${esc(p.photo)}" alt="Foto de ${esc(p.name)}">`
+    ? `<img src="${esc(p.photo)}" alt="${tl('Foto de {0}', esc(p.name))}">`
     : art
       ? art.pet(p.speciesKey)
       : `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="${pawPath(50, 56, 26)}" fill="#f2a65e"/></svg>`
@@ -125,9 +126,9 @@ export function renderCoverHtml(m: ReportModel, art?: ReportArt): string {
 <div class="photo abs">${avatar}</div>
 <div class="titles abs">
   <h1 style="font-size:calc(var(--u)*${nameSize(p.name)})">${esc(p.name)}</h1>
-  <div class="kind">Informe de salud ·<br>${esc(m.period.label)}</div>
+  <div class="kind">${tl('Informe de salud ·')}<br>${esc(m.period.label)}</div>
   <div class="range">${glyph('calendar', NAVY, 2)}<span>${esc(m.period.fromDay)} – ${esc(m.period.toDay)}</span></div>
-  <div class="gen">Generado: ${esc(m.generatedAt)}</div>
+  <div class="gen">${tl('Generado: {0}', esc(m.generatedAt))}</div>
 </div>
 <dl class="ficha abs f${fichaRows(m).length}">${fichaRows(m)
     .map((r) => `<div>${glyph(r.glyph, NAVY, 2.2)}<span><dt>${esc(r.label)}:</dt> <dd>${esc(r.value)}</dd></span></div>`)
@@ -144,17 +145,17 @@ export function renderCoverHtml(m: ReportModel, art?: ReportArt): string {
       .map((s) =>
         s
           ? `<li><span class="ic" aria-hidden="true">${statIcon(art, s)}</span><span class="t"><span class="l">${esc(s.label)}</span><b>${esc(s.value)}</b>${s.detail ? `<small>(${esc(s.detail)})</small>` : ''}</span></li>`
-          : '<li></li>',
+          : `<li></li>`,
       )
-      .join('')}</ul>${rest(c.stats.length, stats.length) ? `<p class="more">Y ${rest(c.stats.length, stats.length)} más en «Resumen del periodo».</p>` : ''}`,
+      .join('')}</ul>${rest(c.stats.length, stats.length) ? `<p class="more">${tl('Y {0} más en «Resumen del periodo».', rest(c.stats.length, stats.length))}</p>` : ''}`,
   )
 
   const weight = card(
     'weight',
     box(r1.split + P.gap, r1.y, wW, r1.h),
-    charts.weight ? `<div class="chart">${charts.weight}</div>` : '<p class="none">Sin pesos registrados.</p>',
+    charts.weight ? `<div class="chart">${charts.weight}</div>` : `<p class="none">${tl('Sin pesos registrados.')}</p>`,
     undefined,
-    m.weight.windowLabel === 'últimos 6 meses' && m.weight.points.length > 1 ? '<small>Últimos 6 meses</small>' : '',
+    !!m.weight.sixMonths && m.weight.points.length > 1 ? `<small>${tl('Últimos 6 meses')}</small>` : '',
   )
 
   const inc = card(
@@ -162,7 +163,7 @@ export function renderCoverHtml(m: ReportModel, art?: ReportArt): string {
     box(0, r2.y, r2.split, r2.h),
     `${charts.legend.length ? `<div class="legend">${charts.legend.map((l) => `<span><i style="background:${l.color}"></i>${esc(l.label)}</span>`).join('')}</div>` : ''}<div class="chart">${charts.incidents}</div>`,
     charts.incTitle,
-    '<small>Vómitos, deposiciones y síntomas</small>',
+    `<small>${tl('Vómitos, deposiciones y síntomas')}</small>`,
   )
 
   const freqItems = m.frequency.slice(0, LIMITS.freq)
@@ -173,7 +174,7 @@ export function renderCoverHtml(m: ReportModel, art?: ReportArt): string {
       ? `<ul class="freq">${freqItems
           .map((f) => `<li><span class="ic" aria-hidden="true">${typeIconSvg(art, f.key, f.label, f.emoji)}</span><span class="l">${esc(f.label)}</span><b>${f.count}</b></li>`)
           .join('')}</ul>${rest(m.frequency.length, freqItems.length) ? `<p class="more">Y ${rest(m.frequency.length, freqItems.length)} tipos más.</p>` : ''}`
-      : '<p class="none">Sin registros en el periodo.</p>',
+      : `<p class="none">${tl('Sin registros en el periodo.')}</p>`,
     undefined,
     '',
     P.W - r2.split - P.gap,
@@ -185,9 +186,9 @@ export function renderCoverHtml(m: ReportModel, art?: ReportArt): string {
     box(0, r3.y, r3.a, r3.h),
     visits.length
       ? `<ul class="rows">${visits
-          .map((v) => `<li><span class="w">${glyph('calendar', SECTIONS.vet.color, 2)}<span>${esc(v.when)}</span></span><span class="x">${v.text ? esc(v.text) : '<i>Sin nota</i>'}</span></li>`)
+          .map((v) => `<li><span class="w">${glyph('calendar', SECTIONS.vet.color, 2)}<span>${esc(v.when)}</span></span><span class="x">${v.text ? esc(v.text) : `<i>${tl('Sin nota')}</i>`}</span></li>`)
           .join('')}</ul>${rest(c.vetVisits.length, visits.length) ? `<p class="more">Y ${rest(c.vetVisits.length, visits.length)} más en la cronología.</p>` : ''}`
-      : '<p class="none">Sin visitas veterinarias registradas en el periodo.</p>',
+      : `<p class="none">${tl('Sin visitas veterinarias registradas en el periodo.')}</p>`,
     undefined,
     '',
     r3.a,
@@ -201,7 +202,7 @@ export function renderCoverHtml(m: ReportModel, art?: ReportArt): string {
       ? `<ul class="rows">${notes
           .map((n) => `<li><span class="w">${glyph('calendar', SECTIONS.notes.color, 2)}<span>${esc(n.when)} · <b>${esc(n.label)}</b></span></span><span class="x">${esc(n.text)}</span></li>`)
           .join('')}</ul>${rest(c.notes.length, notes.length) ? `<p class="more">Y ${rest(c.notes.length, notes.length)} más en el informe detallado.</p>` : ''}`
-      : '<p class="none">Sin notas en el periodo.</p>',
+      : `<p class="none">${tl('Sin notas en el periodo.')}</p>`,
   )
 
   const facts = c.keyFacts.slice(0, LIMITS.key)
@@ -211,7 +212,7 @@ export function renderCoverHtml(m: ReportModel, art?: ReportArt): string {
     `<ul class="facts">${facts.map((f) => `<li>${glyph('check', '#2e9d57', 2.4)}<span>${esc(f)}</span></li>`).join('')}</ul>`,
   )
 
-  return `<section class="cover" aria-label="Resumen visual del informe">
+  return `<section class="cover" aria-label="${tl('Resumen visual del informe')}">
 ${hero}
 ${sum}${weight}${inc}${freq}${vet}${obs}${key}
 <p class="cdisc abs">${esc(m.disclaimer)}</p>

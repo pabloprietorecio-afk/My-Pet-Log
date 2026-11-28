@@ -9,9 +9,10 @@ import { PetIllustration } from '../art/pets'
 import { SPECIES, SPECIES_ORDER } from '../../domain/eventTypes'
 
 /** Nombre corto en el selector (el completo va en la etiqueta accesible). */
-const SHORT: Record<Species, string> = { dog: 'Perro', cat: 'Gato', rabbit: 'Conejo', rodent: 'Hámster', bird: 'Pájaro', reptile: 'Serpiente' }
+const SHORT: Record<Species, string> = { dog: tl('Perro'), cat: tl('Gato'), rabbit: tl('Conejo'), rodent: tl('Hámster'), bird: tl('Pájaro'), reptile: tl('Serpiente') }
 import { rememberPet } from '../nav'
 import { useUsableHeight } from '../layout'
+import { tl } from '../../i18n'
 
 type Part = 'data' | 'health' | 'vet'
 
@@ -44,7 +45,7 @@ export function PetForm({ pet }: { pet?: Pet }) {
       try {
         setPhoto(await fileToSmallDataUrl(f, 512))
       } catch {
-        setError('No se pudo leer esa imagen.')
+        setError(tl('No se pudo leer esa imagen.'))
       }
     }
   }
@@ -52,12 +53,12 @@ export function PetForm({ pet }: { pet?: Pet }) {
   const save = async () => {
     if (!name.trim()) {
       setPart('data')
-      return setError('Escribe el nombre de tu mascota.')
+      return setError(tl('Escribe el nombre de tu mascota.'))
     }
     const w = weight.trim() ? Number(weight.replace(',', '.')) : undefined
     if (w !== undefined && (!Number.isFinite(w) || w <= 0)) {
       setPart('data')
-      return setError('El peso no es un número válido.')
+      return setError(tl('El peso no es un número válido.'))
     }
     setBusy(true)
     const data = {
@@ -82,7 +83,7 @@ export function PetForm({ pet }: { pet?: Pet }) {
         nav(`/pet/${created.id}/hoy`, { replace: true })
       }
     } catch {
-      setError('No se pudo guardar.')
+      setError(tl('No se pudo guardar.'))
       setBusy(false)
     }
   }
@@ -98,13 +99,13 @@ export function PetForm({ pet }: { pet?: Pet }) {
   return (
     <>
       <Seg<Part>
-        label="Parte de la ficha"
+        label={tl('Parte de la ficha')}
         value={part}
         onChange={setPart}
         options={[
-          { value: 'data', label: 'Datos' },
-          { value: 'health', label: `Salud${healthCount ? ` · ${healthCount}` : ''}` },
-          { value: 'vet', label: `Veterinario${vetCount ? ' ✓' : ''}` },
+          { value: 'data', label: tl('Datos') },
+          { value: 'health', label: tl('Salud{0}', healthCount ? ` · ${healthCount}` : '') },
+          { value: 'vet', label: tl('Veterinario{0}', vetCount ? ' ✓' : '') },
         ]}
       />
 
@@ -116,7 +117,7 @@ export function PetForm({ pet }: { pet?: Pet }) {
                 type="button"
                 className="photo-pick"
                 onClick={() => (photo ? setPhotoMenu(true) : choosePhoto())}
-                aria-label={photo ? 'Cambiar o quitar la foto' : 'Añadir foto'}
+                aria-label={photo ? tl('Cambiar o quitar la foto') : tl('Añadir foto')}
               >
                 <Avatar large pet={{ photo, species, name }} />
                 <span className="badge-cam" aria-hidden="true">
@@ -125,7 +126,7 @@ export function PetForm({ pet }: { pet?: Pet }) {
               </button>
               <div className="field" style={{ flex: 1 }}>
                 <label htmlFor="p-name" className="lbl">
-                  Nombre
+                  {tl('Nombre')}
                 </label>
                 <input
                   id="p-name"
@@ -139,8 +140,8 @@ export function PetForm({ pet }: { pet?: Pet }) {
                 />
               </div>
             </div>
-            <Field label={`Especie: ${SHORT[species]}`}>
-              <div className="species-grid" role="radiogroup" aria-label="Especie">
+            <Field label={tl('Especie: {0}', SHORT[species])}>
+              <div className="species-grid" role="radiogroup" aria-label={tl('Especie')}>
                 {SPECIES_ORDER.map((sp) => (
                   <button
                     key={sp}
@@ -156,30 +157,30 @@ export function PetForm({ pet }: { pet?: Pet }) {
                 ))}
               </div>
               {pet && species !== pet.species && (
-                <span className="hint">Tus botones se mantienen. Los propios de esta especie aparecerán ocultos en «Personalizar botones».</span>
+                <span className="hint">{tl('Tus botones se mantienen. Los propios de esta especie aparecerán ocultos en «Personalizar botones».')}</span>
               )}
             </Field>
-            <Field label="Sexo">
-              <Seg<Sex> label="Sexo" value={sex} onChange={setSex} options={[{ value: 'female', label: 'Hembra' }, { value: 'male', label: 'Macho' }, { value: 'unknown', label: 'No sé' }]} />
+            <Field label={tl('Sexo')}>
+              <Seg<Sex> label={tl('Sexo')} value={sex} onChange={setSex} options={[{ value: 'female', label: tl('Hembra') }, { value: 'male', label: tl('Macho') }, { value: 'unknown', label: tl('No sé') }]} />
             </Field>
             <div className="two">
               <div className="field">
                 <label htmlFor="p-birth" className="lbl">
-                  Nacimiento
+                  {tl('Nacimiento')}
                 </label>
                 <input id="p-birth" className="input" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} />
               </div>
               {pet ? (
                 <div className="field">
                   <label htmlFor="p-breed" className="lbl">
-                    Raza
+                    {tl('Raza')}
                   </label>
                   <input id="p-breed" className="input" value={breed} onChange={(e) => setBreed(e.target.value)} />
                 </div>
               ) : (
                 <div className="field">
                   <label htmlFor="p-weight" className="lbl">
-                    Peso ({SPECIES[species].weightUnit})
+                    {tl('Peso (')}{SPECIES[species].weightUnit})
                   </label>
                   <input
                     id="p-weight"
@@ -193,11 +194,11 @@ export function PetForm({ pet }: { pet?: Pet }) {
               )}
             </div>
             {pet ? (
-              veryShort ? null : <p className="hint">El peso se anota con el botón «Peso»; aquí se muestra siempre el último.</p>
+              veryShort ? null : <p className="hint">{tl('El peso se anota con el botón «Peso»; aquí se muestra siempre el último.')}</p>
             ) : breedInHealth ? null : (
               <div className="field">
                 <label htmlFor="p-breed" className="lbl">
-                  Raza (opcional)
+                  {tl('Raza (opcional)')}
                 </label>
                 <input id="p-breed" className="input" value={breed} onChange={(e) => setBreed(e.target.value)} />
               </div>
@@ -210,18 +211,18 @@ export function PetForm({ pet }: { pet?: Pet }) {
             {breedInHealth && (
               <div className="field">
                 <label htmlFor="p-breed" className="lbl">
-                  Raza (opcional)
+                  {tl('Raza (opcional)')}
                 </label>
                 <input id="p-breed" className="input" value={breed} onChange={(e) => setBreed(e.target.value)} />
               </div>
             )}
-            <TagInput label="Patologías" values={conditions} onChange={setConditions} placeholder="p. ej. Insuficiencia renal" />
-            <TagInput label="Alergias" values={allergies} onChange={setAllergies} placeholder="p. ej. Pollo" />
+            <TagInput label={tl('Patologías')} values={conditions} onChange={setConditions} placeholder={tl('p. ej. Insuficiencia renal')} />
+            <TagInput label={tl('Alergias')} values={allergies} onChange={setAllergies} placeholder={tl('p. ej. Pollo')} />
             <div className="field" style={{ flex: 1, minHeight: 0 }}>
               <label htmlFor="p-notes" className="lbl">
-                Notas generales
+                {tl('Notas generales')}
               </label>
-              <textarea id="p-notes" className="input grow" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Lo que quieras que conste en el informe" />
+              <textarea id="p-notes" className="input grow" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={tl('Lo que quieras que conste en el informe')} />
             </div>
           </>
         )}
@@ -230,23 +231,23 @@ export function PetForm({ pet }: { pet?: Pet }) {
           <>
             <div className="field">
               <label htmlFor="p-vet" className="lbl">
-                Veterinario
+                {tl('Veterinario')}
               </label>
               <input id="p-vet" className="input" value={vetName} onChange={(e) => setVetName(e.target.value)} />
             </div>
             <div className="field">
               <label htmlFor="p-clinic" className="lbl">
-                Clínica
+                {tl('Clínica')}
               </label>
               <input id="p-clinic" className="input" value={clinic} onChange={(e) => setClinic(e.target.value)} />
             </div>
             <div className="field">
               <label htmlFor="p-phone" className="lbl">
-                Teléfono
+                {tl('Teléfono')}
               </label>
               <input id="p-phone" className="input" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" />
             </div>
-            <p className="hint">Estos datos aparecen en la cabecera del informe.</p>
+            <p className="hint">{tl('Estos datos aparecen en la cabecera del informe.')}</p>
           </>
         )}
       </div>
@@ -260,12 +261,12 @@ export function PetForm({ pet }: { pet?: Pet }) {
         {pet && (
           <button
             className="btn danger"
-            aria-label={`Eliminar a ${pet.name}`}
+            aria-label={tl('Eliminar a {0}', pet.name)}
             onClick={async () => {
               const shared = ((await repo.db.meta.get('sync:links'))?.value as { petId: string }[] | undefined)?.some((l) => l.petId === pet.id)
               const msg = shared
-                ? `${pet.name} está compartida: se eliminará también para los demás dueños. Si solo quieres quitarla de tu móvil, usa antes «Dejar de compartir» en Ajustes → Compartir.`
-                : `¿Eliminar a ${pet.name} y todos sus registros de este dispositivo? Haz antes una copia de seguridad si quieres conservarlos.`
+                ? tl('{0} está compartida: se eliminará también para los demás dueños. Si solo quieres quitarla de tu móvil, usa antes «Dejar de compartir» en Ajustes → Compartir.', pet.name)
+                : tl('¿Eliminar a {0} y todos sus registros de este dispositivo? Haz antes una copia de seguridad si quieres conservarlos.', pet.name)
               if (await confirmDialog(msg)) {
                 await repo.deletePet(pet.id)
                 nav('/', { replace: true })
@@ -276,14 +277,14 @@ export function PetForm({ pet }: { pet?: Pet }) {
           </button>
         )}
         <button className="btn primary" onClick={save} disabled={busy}>
-          {pet ? 'Guardar ficha' : 'Crear mascota'}
+          {pet ? tl('Guardar ficha') : tl('Crear mascota')}
         </button>
       </div>
 
       {photoMenu && (
-        <Sheet title="Foto" onClose={() => setPhotoMenu(false)}>
+        <Sheet title={tl('Foto')} onClose={() => setPhotoMenu(false)}>
           <button className="btn primary block" onClick={choosePhoto}>
-            Elegir otra foto
+            {tl('Elegir otra foto')}
           </button>
           <button
             className="btn danger block"
@@ -292,7 +293,7 @@ export function PetForm({ pet }: { pet?: Pet }) {
               setPhotoMenu(false)
             }}
           >
-            Quitar foto
+            {tl('Quitar foto')}
           </button>
         </Sheet>
       )}
