@@ -29,6 +29,9 @@ Diseño y decisiones: [`docs/DISENO.md`](docs/DISENO.md).
   - Desde la 0.3.19, al abrir la app `VoiceShortcut.java` pregunta a Android si publicó el atajo fijo (`getManifestShortcuts`); si no, publica uno equivalente por código (`voz-app`, mismo destino e icono). Desde la 0.3.22 los dos abren la ventana flotante (`petlog://voz-rapida`) en vez de la app. Nunca los dos a la vez. Ese de respaldo necesita abrir la app una vez tras instalar o actualizar.
   - Ajustes → Icono de la app muestra qué atajo tiene publicado el sistema (fijo, de la app o ninguno).
 - Copia de seguridad/restauración en JSON (combina por «gana el más reciente»), tema claro/oscuro/automático.
+- **Idiomas:** español, inglés, francés, alemán, italiano y portugués. La primera vez sale una pantalla para elegir idioma (luego, en Ajustes → Idioma). Las traducciones están en `src/i18n/<idioma>.ts` con el texto español como clave (`tl('…')`); `tests/i18n.test.ts` falla si falta algún texto o si no coinciden los huecos `{0}`, y `tests/e2e-langs.mjs` recorre las pantallas en cada idioma (sin scroll, sin textos desbordados ni restos en español). Textos nativos de Android en `res/values-<idioma>`. Los **comandos de voz solo entienden español** (la app lo avisa); la confirmación hablada usa el idioma de la app.
+- **Anuncios (AdMob):** un banner adaptativo abajo en Historial, Gráficas y Consejos, nunca en Hoy, Informe ni al registrar. No personalizados (`npa`), con el mensaje de consentimiento de Google (UMP) para el EEE/Reino Unido/Suiza creado en AdMob («PetLog - consentimiento RGPD») y la opción de cambiarlo en Ajustes. Identificadores reales de la cuenta en `src/monetize/config.ts` y en el manifiesto. Solo compilado: **no se ha visto un anuncio real en un teléfono**, y AdMob limita los anuncios hasta que la app esté publicada y vinculada a Play.
+- **PetLog Premium:** compra única `petlog_premium` (Google Play Billing, `capacitor-plugin-cdv-purchase`) que quita los anuncios y el límite de 2 mascotas. Con «Ya lo compré: restaurar». **El producto aún no está creado en Play Console** (Play solo deja crearlo tras subir una versión con el permiso de facturación), así que la compra no se ha probado.
 
 ## Arquitectura
 
@@ -50,7 +53,7 @@ Datos con UUID, `updatedAt` y borrado lógico, listos para una sincronización f
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # 143 pruebas (dominio, datos, informe, contraste, voz)
+npm test             # 160 pruebas (dominio, datos, informe, contraste, voz, traducciones)
 npm run build        # typecheck + build de producción en dist/
 node tests/e2e-species.mjs  # especies: botones y unidad de peso
 node tests/e2e-tips.mjs     # Consejos: todas las fichas, temas, deslizar y fuentes
@@ -86,6 +89,13 @@ El script aplica el esquema de firma APK v2 (RSA + SHA-256), sustituye la firma 
 
 La app Android pide internet (solo para compartir mascotas) y micrófono (solo al anotar por voz, y lo pide la primera vez) y excluye sus datos de la copia en la nube de Google; el traspaso directo entre teléfonos sí está permitido.
 
+### Google Play (estado a 28/11/2026)
+
+- App creada en Play Console: «PetLog: diario de tu mascota», paquete `app.petlog.diario`, gratuita, idioma por defecto es-ES.
+- Completado en «Contenido de la aplicación»: política de privacidad (https://pabloprietorecio-afk.github.io/My-Pet-Log/privacidad/), anuncios (sí), acceso a la app, clasificación de contenido IARC (PEGI 3 / ESRB Para todos), público objetivo 18+, seguridad de los datos (lo que recoge el SDK de anuncios: ubicación aproximada por IP, interacciones, fallos y diagnósticos, IDs de dispositivo; cifrado en tránsito; sin cuentas), salud, ID de publicidad.
+- Pendiente: ficha de Play Store (textos en 6 idiomas, icono 512, gráfico destacado y capturas ya preparados con `tests/store-shots.mjs`, `tests/store-art.mjs` y `tests/store-feature.mjs`), subir el AAB firmado a prueba cerrada, producto `petlog_premium` y 12 testers durante 14 días (obligatorio en cuentas personales nuevas antes de producción).
+- El AAB de Actions sale sin firmar si faltan los secretos; se firma en local con la clave de subida (jarsigner) antes de subirlo.
+
 ### Empaquetar como app en local (no probado en este entorno)
 
 ```bash
@@ -107,6 +117,6 @@ npx cap open android
 - **Icono de la app:** sin probar en un teléfono. Según el lanzador, el cambio puede tardar unos segundos, y algunos quitan el acceso directo del escritorio (la app sigue en el cajón). En iOS no está implementado.
 - **Compartir:** probado con el servidor simulado y, en CI, contra los emuladores de Firebase. Probado contra el proyecto real desde CI (`.github/workflows/firebase-real.yml`); falta probarlo entre dos teléfonos. La sesión anónima se pierde si se reinstala la app: hay que volver a unirse con el código. El abuso de cuota no está limitado (App Check pendiente).
 - **Voz, widgets y ajustes rápidos:** el intérprete está probado con tests y la hoja, en Chrome escribiendo la frase. El dictado nativo, el permiso de micrófono, la voz de confirmación, los widgets y el botón de ajustes rápidos solo se han compilado en CI. **El atajo del icono no se ha visto funcionar en ningún teléfono** (en el Xiaomi del autor no aparecía con la 0.3.18). Sin Google Assistant (App Actions).
-- **Pendiente (no implementado):** recordatorios/notificaciones de tomas, otros idiomas, cifrado de la copia, importar analíticas.
+- **Pendiente (no implementado):** recordatorios/notificaciones de tomas, comandos de voz en otros idiomas, cifrado de la copia, importar analíticas.
 - Las fotos se reducen a ≤1024 px y se guardan dentro de la base (y de las copias): muchas fotos engordan las copias.
 - Probado solo con la zona horaria Europe/Madrid.
