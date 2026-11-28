@@ -78,3 +78,8 @@ export function tl(es: string, ...args: unknown[]): string {
   const s = dict[es] ?? es
   return args.length ? s.replace(/\{(\d+)\}/g, (m, i) => (args[+i] === undefined ? m : String(args[+i]))) : s
 }
+
+/** Nombre en minúscula dentro de una frase («último: vómito»). En alemán los sustantivos van con mayúscula. */
+export function lowerName(s: string): string {
+  return current === 'de' ? s : s.toLocaleLowerCase(locale())
+}

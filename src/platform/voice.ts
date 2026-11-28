@@ -3,14 +3,14 @@
  * En ningún caso PetLog envía audio a servidores propios: el reconocimiento lo hace el sistema del teléfono.
  */
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
-import { tl } from '../i18n'
+import { locale, tl } from '../i18n'
 
 interface VoicePlugin {
   available(): Promise<{ recognition: boolean; onDevice: boolean; permission: string }>
   start(opts: { lang?: string }): Promise<{ text: string; alternatives: string[]; engine: string }>
   stop(): Promise<void>
   cancel(): Promise<void>
-  speak(opts: { text: string }): Promise<void>
+  speak(opts: { text: string; lang?: string }): Promise<void>
   addListener(ev: 'partial', fn: (e: { text: string }) => void): Promise<PluginListenerHandle>
   addListener(ev: 'level', fn: (e: { level: number }) => void): Promise<PluginListenerHandle>
   addListener(ev: 'state', fn: (e: { state: string }) => void): Promise<PluginListenerHandle>
@@ -120,10 +120,10 @@ export async function cancelListening(): Promise<void> {
 }
 
 export async function speak(text: string): Promise<void> {
-  if (native()) return Native.speak({ text })
+  if (native()) return Native.speak({ text, lang: locale() })
   if (typeof speechSynthesis !== 'undefined') {
     const u = new SpeechSynthesisUtterance(text)
-    u.lang = 'es-ES'
+    u.lang = locale()
     speechSynthesis.cancel()
     speechSynthesis.speak(u)
   }

@@ -847,6 +847,9 @@ const d: Record<string, string> = {
  "Varias cosas y notas": "Più cose e note",
  "Otra mascota, notas y deshacer": "Altro animale, note e annulla",
  "Preguntas": "Domande",
- "Te lo respondo sin anotar nada": "Ti rispondo senza annotare nulla"
+ "Te lo respondo sin anotar nada": "Ti rispondo senza annotare nulla",
+ "Hoy, {0}": "Oggi, {0}",
+ ", ayer a las ": ", ieri alle ",
+ ", a las ": ", alle "
 }
 export default d

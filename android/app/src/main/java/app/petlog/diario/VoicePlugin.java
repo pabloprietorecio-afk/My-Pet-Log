@@ -256,10 +256,14 @@ public class VoicePlugin extends Plugin {
         }
     }
 
+    /** Idioma de la voz que lee las confirmaciones (el de la app). */
+    private Locale ttsLocale = new Locale("es", "ES");
+
     /** Lee en voz alta una confirmación corta («Anotado: vómito leve»). */
     @PluginMethod
     public void speak(PluginCall call) {
         String text = call.getString("text", "");
+        ttsLocale = Locale.forLanguageTag(call.getString("lang", "es-ES"));
         if (text == null || text.isEmpty()) {
             call.resolve();
             return;
@@ -269,12 +273,13 @@ public class VoicePlugin extends Plugin {
             tts = new TextToSpeech(getContext(), status -> {
                 ttsReady = status == TextToSpeech.SUCCESS;
                 if (ttsReady) {
-                    tts.setLanguage(new Locale("es", "ES"));
+                    tts.setLanguage(ttsLocale);
                     if (ttsQueued != null) tts.speak(ttsQueued, TextToSpeech.QUEUE_FLUSH, null, "petlog");
                     ttsQueued = null;
                 }
             });
         } else if (ttsReady) {
+            tts.setLanguage(ttsLocale);
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "petlog");
         } else {
             ttsQueued = text;

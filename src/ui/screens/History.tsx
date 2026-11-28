@@ -10,7 +10,7 @@ import { TypeIcon } from '../art/TypeIcon'
 import { PetIllustration } from '../art/pets'
 import { Paged, type PagedItem } from '../layout'
 import { EntryEditor, EntryRow, entryLabel, useEntries, type Entry } from '../timeline'
-import { tl } from '../../i18n'
+import { locale, tl } from '../../i18n'
 
 type Period = 'today' | '7' | '30' | 'all'
 
@@ -47,7 +47,7 @@ export function History() {
     const k = toLocalDate(new Date(e.at))
     if (k !== day) {
       day = k
-      items.push({ key: `h-${k}`, head: k === dayKey ? `Hoy, ${formatDateLong(k).toLowerCase()}` : formatDateLong(k) })
+      items.push({ key: `h-${k}`, head: k === dayKey ? tl('Hoy, {0}', formatDateLong(k).toLocaleLowerCase(locale())) : formatDateLong(k) })
     }
     push(e)
   }

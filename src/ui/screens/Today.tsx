@@ -18,7 +18,7 @@ import { Paged, useBox, useUsableHeight, type PagedItem } from '../layout'
 import { MedSheet } from '../MedSheet'
 import { EntryEditor, EntryRow, entryLabel, useEntries, type Entry } from '../timeline'
 import { TreatmentSheet } from '../TreatmentSheet'
-import { tl } from '../../i18n'
+import { lowerName, tl } from '../../i18n'
 
 type SheetState =
   | { kind: 'event'; type: EventType; event?: LogEvent }
@@ -304,7 +304,7 @@ export function Today() {
               {tl('Hoy:')}{' '}{todayCount} {todayCount === 1 ? tl('registro') : tl('registros')}
             </span>
             <span className="sub">
-              {lastEvent && lastType ? tl('Último: {0} a las {1}', lastType.label.toLowerCase(), formatTime(lastEvent.at)) : tl('Toca un botón y quedará anotado con la hora')}
+              {lastEvent && lastType ? tl('Último: {0} a las {1}', lowerName(lastType.label), formatTime(lastEvent.at)) : tl('Toca un botón y quedará anotado con la hora')}
             </span>
           </span>
         </span>

@@ -7,7 +7,7 @@ import { doseText, indexLogs, isTreatmentActive, slotKey, slotsInRange } from '.
 import { addDays, endOfLocalDay, formatTime, startOfLocalDay, startOfWeek } from '../domain/time'
 import type { DoseLog, EventType, Pet, Treatment } from '../domain/types'
 import { parseVoice, type VoiceAction, type VoiceContext, type VoiceQuery, type VoiceResult } from './parse'
-import { locale, tl } from '../i18n'
+import { locale, lowerName, tl } from '../i18n'
 
 export interface Done {
   kind: 'event' | 'dose'
@@ -54,7 +54,7 @@ const sameDay = (a: Date, b: Date) => startOfLocalDay(a).getTime() === startOfLo
 function when(at: Date, now: Date, said: boolean): string {
   if (!said) return ''
   if (sameDay(at, now)) return ` · ${hhmm(at)}`
-  if (sameDay(at, addDays(now, -1))) return ` · ayer ${hhmm(at)}`
+  if (sameDay(at, addDays(now, -1))) return ` · ${tl('ayer')} ${hhmm(at)}`
   return ` · ${at.toLocaleDateString(locale(), { day: 'numeric', month: 'short' })} ${hhmm(at)}`
 }
 
@@ -110,7 +110,7 @@ async function answer(petId: string, q: VoiceQuery, ctx: VoiceContext): Promise<
     const to = q.range === 'yesterday' ? endOfLocalDay(addDays(now, -1)) : now
     const n = (await repo.listEvents(petId, from, to)).filter((e) => e.typeId === type.id).length
     const range = q.range === 'week' ? tl('esta semana') : q.range === 'yesterday' ? tl('ayer') : tl('hoy')
-    return n === 1 ? tl('{0}: 1 registro de {1} {2}.', pet, type.label.toLowerCase(), range) : tl('{0}: {1} registros de {2} {3}.', pet, n, type.label.toLowerCase(), range)
+    return n === 1 ? tl('{0}: 1 registro de {1} {2}.', pet, lowerName(type.label), range) : tl('{0}: {1} registros de {2} {3}.', pet, n, lowerName(type.label), range)
   }
   if (q.medication) {
     const logs = (await repo.listDoseLogs(petId, addDays(now, -60), now))
@@ -124,9 +124,9 @@ async function answer(petId: string, q: VoiceQuery, ctx: VoiceContext): Promise<
   const type = ctx.types(petId).find((t) => t.id === q.typeId)!
   const evs = (await repo.listEvents(petId)).filter((e) => e.typeId === type.id).sort((a, b) => b.at.localeCompare(a.at))
   const e = evs[0]
-  if (!e) return tl('No hay registros de {0}.', type.label.toLowerCase())
+  if (!e) return tl('No hay registros de {0}.', lowerName(type.label))
   const det = describeEvent(type, e)
-  return tl('Último registro de {0}: {1}{2}.', type.label.toLowerCase(), when(new Date(e.at), now, true).replace(' · ', ''), det ? `, ${det}` : '')
+  return tl('Último registro de {0}: {1}{2}.', lowerName(type.label), when(new Date(e.at), now, true).replace(' · ', ''), det ? `, ${det}` : '')
 }
 
 /** Interpreta y ejecuta una frase. */
@@ -155,7 +155,7 @@ export async function runVoice(text: string, currentPetId: string): Promise<Outc
 export function spoken(o: Outcome, petName?: string): string {
   if (o.kind === 'saved') {
     if (!o.done.length) return o.needsTreatment ? tl('¿Qué medicamento? Dímelo por su nombre.') : tl('No lo he entendido.')
-    const say = (t: string) => t.replace(/ · ayer (\d)/, ', ayer a las $1').replace(/ · (\d)/, ', a las $1').replace(/ · /g, ', ')
+    const say = (t: string) => t.replace(` · ${tl('ayer')} `, tl(', ayer a las ')).replace(/ · (\d)/, `${tl(', a las ')}$1`).replace(/ · /g, ', ')
     return tl('Anotado{0}: {1}.', petName ? tl(' para {0}', petName) : '', o.done.map((d) => say(d.text)).join('; '))
   }
   if (o.kind === 'none') return tl('No lo he entendido.')

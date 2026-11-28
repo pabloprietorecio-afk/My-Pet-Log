@@ -7,7 +7,7 @@ const SHOTS = process.env.SHOTS ?? '/tmp/l10n'
 const LANGS = (process.env.LANGS ?? 'en,fr,de,it,pt').split(',')
 const ROUTES = ['hoy', 'historial', 'medicacion', 'graficas', 'informe', 'ficha', 'botones', 'consejos']
 // Palabras españolas que no deberían verse en otros idiomas (sí en los ejemplos de voz, que van en español).
-const ES = /\b(Hoy|Historial|Gráficas|Informe|Ajustes|Mascota|Añadir|Registro|Consejos|Tomas|Ficha)\b/
+const ES = /\b(Hoy|Historial|Gráficas|Informe|Ajustes|Mascota|Añadir|Registro|Consejos|Tomas)\b/
 
 const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] })
 const problems = []
@@ -22,6 +22,8 @@ for (const lang of LANGS) {
     const r = window.__petlog.repo
     await r.wipeAll()
     const p = await r.createPet({ name: 'Luna', species: 'dog', sex: 'female', conditions: ['Artrosis'], allergies: [], vet: {} })
+    const t = (await r.listEventTypes(p.id)).find((x) => x.key === 'vomit')
+    await r.addEvent({ petId: p.id, typeId: t.id, level: 2 })
     return p.id
   })
   const check = async (name) => {

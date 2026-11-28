@@ -7,7 +7,7 @@ import { fileToSmallDataUrl, pickImage } from '../platform/photo'
 import { Field, Sheet, confirmDialog } from './components'
 import { IconTrash } from './icons'
 import { TypeIcon } from './art/TypeIcon'
-import { tl } from '../i18n'
+import { lowerName, tl } from '../i18n'
 
 const parseNum = (s: string): number | undefined => {
   const n = Number(s.trim().replace(',', '.'))
@@ -75,7 +75,7 @@ export function EventSheet({
   const levelTitle = type.key === 'food' ? tl('Cuánto comió') : type.key === 'water' ? tl('Cuánto bebió') : type.key === 'stool' ? tl('Consistencia') : type.key === 'mood' ? tl('Cómo está') : tl('Intensidad')
 
   const remove = async () => {
-    if (event && (await confirmDialog(tl('¿Eliminar este registro de {0}?', type.label.toLowerCase())))) {
+    if (event && (await confirmDialog(tl('¿Eliminar este registro de {0}?', lowerName(type.label))))) {
       await repo.deleteEvent(event.id)
       onClose()
     }
