@@ -9,4 +9,5 @@
     <string name="widget_mic_desc">Micrófono para anotar por voz en PetLog</string>
     <string name="widget_quick_desc">Micrófono y los tres primeros botones de tu mascota</string>
     <string name="widget_quick_empty">Abre PetLog una vez para preparar los botones</string>
+    <string name="widget_log_item">Anotar %1$s</string>
 </resources>

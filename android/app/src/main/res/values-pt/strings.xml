@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="voice_label">Registar por voz</string>
+    <string name="voice_short">Voz</string>
+    <string name="widget_mic_desc">Microfone para registar por voz no PetLog</string>
+    <string name="widget_quick_desc">Microfone e os três primeiros botões do seu animal</string>
+    <string name="widget_quick_empty">Abra o PetLog uma vez para preparar os botões</string>
+    <string name="widget_log_item">Registar %1$s</string>
+</resources>

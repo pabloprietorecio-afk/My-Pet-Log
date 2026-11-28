@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="voice_label">Annota a voce</string>
+    <string name="voice_short">Voce</string>
+    <string name="widget_mic_desc">Microfono per annotare a voce in PetLog</string>
+    <string name="widget_quick_desc">Microfono e i primi tre pulsanti del tuo animale</string>
+    <string name="widget_quick_empty">Apri PetLog una volta per preparare i pulsanti</string>
+    <string name="widget_log_item">Annota %1$s</string>
+</resources>

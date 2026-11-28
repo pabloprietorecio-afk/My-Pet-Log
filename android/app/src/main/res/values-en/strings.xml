@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="voice_label">Voice note</string>
+    <string name="voice_short">Voice</string>
+    <string name="widget_mic_desc">Microphone to log by voice in PetLog</string>
+    <string name="widget_quick_desc">Microphone and your pet\'s first three buttons</string>
+    <string name="widget_quick_empty">Open PetLog once to set up the buttons</string>
+    <string name="widget_log_item">Log %1$s</string>
+</resources>

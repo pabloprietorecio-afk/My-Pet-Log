@@ -37,7 +37,7 @@ public class QuickWidget extends AppWidgetProvider {
             shown++;
             v.setViewVisibility(BOX[i], View.VISIBLE);
             v.setTextViewText(TXT[i], it.label);
-            v.setContentDescription(BOX[i], "Anotar " + it.label);
+            v.setContentDescription(BOX[i], ctx.getString(R.string.widget_log_item, it.label));
             Bitmap b = WidgetStore.bitmap(ctx, i);
             if (b != null) v.setImageViewBitmap(IMG[i], b);
             String url = "petlog://anotar/" + Uri.encode(it.typeId) + "?pet=" + Uri.encode(petId);

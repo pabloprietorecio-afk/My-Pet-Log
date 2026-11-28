@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="voice_label">Per Sprache notieren</string>
+    <string name="voice_short">Sprache</string>
+    <string name="widget_mic_desc">Mikrofon zum Eintragen per Sprache in PetLog</string>
+    <string name="widget_quick_desc">Mikrofon und die ersten drei Schaltflächen deines Tiers</string>
+    <string name="widget_quick_empty">Öffne PetLog einmal, um die Schaltflächen vorzubereiten</string>
+    <string name="widget_log_item">%1$s eintragen</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="voice_label">Noter à la voix</string>
+    <string name="voice_short">Voix</string>
+    <string name="widget_mic_desc">Micro pour noter à la voix dans PetLog</string>
+    <string name="widget_quick_desc">Micro et les trois premiers boutons de votre animal</string>
+    <string name="widget_quick_empty">Ouvrez PetLog une fois pour préparer les boutons</string>
+    <string name="widget_log_item">Noter %1$s</string>
+</resources>
